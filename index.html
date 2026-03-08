@@ -305,17 +305,19 @@ function noteKey(){
 return formatDateKey(selectedDate)+"_"+currentCategory
 }
 
-function switchCategory(cat,btn){
+function switchCategory(cat, btn) {
+    document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
 
-document.querySelectorAll('.bubble').forEach(b=>b.classList.remove('active'))
-btn.classList.add('active')
+    // Save current note before switching
+    db.notes[noteKey()] = textarea.value;
 
-db.notes[noteKey()]=textarea.value
+    currentCategory = cat;
 
-currentCategory=cat
+    // Update the header text
+    document.querySelector('.todo-header').innerText = btn.innerText + " List";
 
-loadContent()
-
+    loadContent();
 }
 
 function newNote(){
@@ -377,16 +379,30 @@ setupCalendar()
 loadContent()
 }
 
-function loadContent(){
+function loadContent() {
+    // 1. Load the text into the textarea for the specific category
+    const noteText = db.notes[noteKey()] || "";
+    textarea.value = noteText;
 
-textarea.value=db.notes[noteKey()]||""
+    const key = formatDateKey(selectedDate);
+    
+    // 2. Logic to decide if we show the "List" box
+    // We show it if there are checkboxes (todos) OR if there is text in the Note
+    const hasTodos = db.todos[key] && db.todos[key].length > 0;
+    const hasNote = noteText.trim().length > 0;
 
-const key=formatDateKey(selectedDate)
-
-if(!db.todos[key])db.todos[key]=[]
-
-renderTodos(db.todos[key])
-
+    if (hasTodos || hasNote) {
+        todoList.style.display = 'block';
+        
+        // If you want the Note text to appear as a list item:
+        if (hasNote && !hasTodos) {
+            todoItemsContainer.innerHTML = `<div class="todo-item"><span class="todo-text">${noteText}</span></div>`;
+        } else {
+            renderTodos(db.todos[key] || []);
+        }
+    } else {
+        todoList.style.display = 'none';
+    }
 }
 
 function renderTodos(list){

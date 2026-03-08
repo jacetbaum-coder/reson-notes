@@ -24,14 +24,14 @@
             align-items: center;
             padding: 20px;
             min-height: 100vh;
+            color: var(--text);
         }
 
         header {
             width: 100%;
             max-width: 500px;
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            justify-content: center;
             position: relative;
             margin-bottom: 10px;
         }
@@ -41,72 +41,73 @@
             font-weight: 800;
             color: white;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .cal-icon-wrapper { position: absolute; right: 0; top: 0; }
-        .cal-icon { cursor: pointer; font-size: 1.4rem; background: none; border: none; }
+        /* Calendar Row Styling */
+        .calendar-row {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            max-width: 550px;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
 
-        /* Calendar Strip */
         .calendar-strip {
             display: flex;
             overflow-x: auto;
-            gap: 12px;
-            width: 100%;
-            max-width: 500px;
-            padding: 15px 0;
+            gap: 10px;
+            flex-grow: 1;
+            padding: 10px 0;
             scrollbar-width: none;
         }
         .calendar-strip::-webkit-scrollbar { display: none; }
 
         .day-card {
-            min-width: 65px;
+            min-width: 60px;
+            height: 70px;
             background: var(--card);
             border-radius: 18px;
-            padding: 12px 0;
-            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
             cursor: pointer;
             transition: 0.2s;
         }
         .day-card.active { background: #000; color: white; transform: scale(1.05); }
 
-        /* Modern Filter Dropdown */
-        .filter-container {
-            width: 100%;
-            max-width: 500px;
-            margin: 15px 0;
-            display: flex;
-            justify-content: center;
-        }
-
-        .dropdown { position: relative; display: inline-block; }
+        /* Integrated Categories Button */
+        .dropdown { position: relative; }
         
         .dropbtn {
             background: var(--card);
             border: none;
-            padding: 10px 20px;
-            border-radius: 25px;
+            height: 70px;
+            padding: 0 15px;
+            border-radius: 18px;
             cursor: pointer;
-            font-weight: 700;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: 0.3s;
+            font-weight: 800;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            white-space: nowrap;
         }
 
         .dropdown-content {
             display: none;
             position: absolute;
             background-color: var(--card);
-            min-width: 180px;
+            min-width: 160px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
             padding: 12px;
             border-radius: 15px;
             z-index: 100;
-            top: 45px;
-            left: 50%;
-            transform: translateX(-50%);
+            right: 0;
+            top: 80px;
         }
 
-        .dropdown:hover .dropdown-content { display: block; }
+        .dropdown.open .dropdown-content { display: block; }
 
         .dropdown-content label {
             display: flex;
@@ -114,24 +115,22 @@
             gap: 10px;
             cursor: pointer;
             padding: 8px;
-            font-weight: 500;
-            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
         }
 
-        .dropdown-content label:hover { background: #f0f0f0; }
-
-        /* Custom Modern Checkbox */
+        /* Modern Checkbox */
         input[type="checkbox"] {
             appearance: none;
             width: 18px;
             height: 18px;
-            border: 2px solid var(--accent);
+            border: 2px solid #ddd;
             border-radius: 5px;
             cursor: pointer;
             position: relative;
+            transition: 0.2s;
         }
-
-        input[type="checkbox"]:checked { background: var(--accent); }
+        input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); }
         input[type="checkbox"]:checked::after {
             content: '✓';
             color: white;
@@ -141,7 +140,7 @@
             top: -1px;
         }
 
-        /* Todo List Area */
+        /* Lists and Inputs */
         .todo-card {
             width: 100%;
             max-width: 500px;
@@ -153,9 +152,8 @@
         }
 
         .todo-header { font-weight: 800; margin-bottom: 15px; font-size: 1.1rem; }
-        .todo-item { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+        .todo-item { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; font-weight: 500; }
 
-        /* Note Area */
         .note-container {
             width: 100%;
             max-width: 500px;
@@ -169,7 +167,7 @@
 
         textarea {
             width: 100%;
-            height: 200px;
+            height: 250px;
             border: none;
             outline: none;
             resize: none;
@@ -198,24 +196,21 @@
 
     <header>
         <div class="month-label" id="monthDisplay">March 2026</div>
-        <div class="cal-icon-wrapper">
-            <button class="cal-icon">🗓️</button>
-        </div>
     </header>
 
-    <div class="calendar-strip" id="strip"></div>
-
-    <div class="filter-container">
-        <div class="dropdown">
-            <button class="dropbtn">Categories ▼</button>
-            <div class="dropdown-content" id="categoryDropdown">
-                <label><input type="checkbox" value="todo" checked> To-do</label>
-                <label><input type="checkbox" value="work" checked> Work</label>
-                <label><input type="checkbox" value="groceries" checked> Groceries</label>
-                <label><input type="checkbox" value="errands" checked> Errands</label>
-                <label><input type="checkbox" value="dreams" checked> Dreams</label>
-                <label><input type="checkbox" value="family" checked> Family</label>
-                <label><input type="checkbox" value="other" checked> Other</label>
+    <div class="calendar-row">
+        <div class="calendar-strip" id="strip"></div>
+        
+        <div class="dropdown" id="catDropdown">
+            <button class="dropbtn" onclick="toggleDropdown()">Tags ▼</button>
+            <div class="dropdown-content" id="categoryOptions">
+                <label><input type="checkbox" value="todo"> To-do</label>
+                <label><input type="checkbox" value="work"> Work</label>
+                <label><input type="checkbox" value="groceries"> Groceries</label>
+                <label><input type="checkbox" value="errands"> Errands</label>
+                <label><input type="checkbox" value="dreams"> Dreams</label>
+                <label><input type="checkbox" value="family"> Family</label>
+                <label><input type="checkbox" value="roommates"> Roommates</label>
             </div>
         </div>
     </div>
@@ -223,7 +218,7 @@
     <div class="todo-card" id="todoList">
         <div class="todo-header">Tasks Overview</div>
         <div id="todoItems">
-            <div class="todo-item"><i>Selected notes will appear here...</i></div>
+            <div style="color:#888; font-style: italic;">Select categories to filter notes...</div>
         </div>
     </div>
 
@@ -238,11 +233,17 @@
         const textarea = document.getElementById('noteContent');
         
         let selectedDate = new Date();
+        // Load data from localStorage
         let db = JSON.parse(localStorage.getItem('reson_db')) || { notes: {} };
-        let selectedCategories = new Set(['todo', 'work', 'groceries', 'errands', 'dreams', 'family', 'other']);
+        // Empty by default as requested
+        let selectedCategories = new Set(); 
 
         function formatDateKey(date) {
             return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        }
+
+        function toggleDropdown() {
+            document.getElementById('catDropdown').classList.toggle('open');
         }
 
         function setupCalendar() {
@@ -270,13 +271,18 @@
         function renderAllNotes() {
             todoItemsContainer.innerHTML = '';
             const keyPrefix = formatDateKey(selectedDate);
-            let hasContent = false;
+            let contentFound = false;
+
+            if (selectedCategories.size === 0) {
+                todoItemsContainer.innerHTML = '<div style="color:#888; font-style: italic;">Select a category to view items.</div>';
+                return;
+            }
 
             selectedCategories.forEach(cat => {
                 const key = keyPrefix + "_" + cat;
                 const text = db.notes[key];
                 if (text) {
-                    hasContent = true;
+                    contentFound = true;
                     text.split('\n').forEach(line => {
                         if (line.trim()) {
                             const div = document.createElement('div');
@@ -287,27 +293,43 @@
                     });
                 }
             });
-            if (!hasContent) todoItemsContainer.innerHTML = "<div>No notes for selected categories.</div>";
+
+            if (!contentFound) {
+                todoItemsContainer.innerHTML = '<div style="color:#888; font-style: italic;">Nothing found for these categories.</div>';
+            }
         }
 
         function commitNote() {
             const text = textarea.value.trim();
             if (!text) return;
-            // For simplicity, saving to 'todo' category by default
-            const key = formatDateKey(selectedDate) + "_todo";
-            db.notes[key] = text;
+            
+            // Defaulting to 'todo' if none selected, or the first selected tag
+            const cat = selectedCategories.size > 0 ? Array.from(selectedCategories)[0] : 'todo';
+            const key = formatDateKey(selectedDate) + "_" + cat;
+            
+            // Append or create
+            db.notes[key] = db.notes[key] ? db.notes[key] + "\n" + text : text;
+            
             localStorage.setItem('reson_db', JSON.stringify(db));
             textarea.value = '';
             renderAllNotes();
         }
 
-        document.querySelectorAll('#categoryDropdown input').forEach(cb => {
+        // Handle category selection
+        document.querySelectorAll('#categoryOptions input').forEach(cb => {
             cb.addEventListener('change', (e) => {
                 if (e.target.checked) selectedCategories.add(e.target.value);
                 else selectedCategories.delete(e.target.value);
                 renderAllNotes();
             });
         });
+
+        // Close dropdown when clicking away
+        window.onclick = (e) => {
+            if (!e.target.closest('.dropdown')) {
+                document.getElementById('catDropdown').classList.remove('open');
+            }
+        };
 
         window.onload = () => {
             setupCalendar();

@@ -1,373 +1,284 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reson Notes</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reson Notes</title>
+    <style>
+        :root {
+            --bg: #77c98d; 
+            --card: #ffffff;
+            --text: #000000;
+            --accent: #2d5a3a; 
+            --muted: #666666;
+            --todo-bg: #e8f5e9;
+        }
 
-<style>
-:root {
---bg:#77c98d;
---card:#ffffff;
---text:#000000;
---accent:#2d5a3a;
---muted:#666666;
---star-gold:#ffd700;
---heat-0:#f0fdf4;
---heat-1:#dcfce7;
---heat-2:#86efac;
---heat-3:#22c55e;
-}
+        body { 
+            margin: 0; font-family: -apple-system, system-ui, sans-serif;
+            background-color: var(--bg); display: flex; flex-direction: column;
+            align-items: center; padding: 20px; min-height: 100vh;
+        }
 
-body{
-margin:0;
-font-family:-apple-system,system-ui,sans-serif;
-background:var(--bg);
-display:flex;
-flex-direction:column;
-align-items:center;
-padding:20px;
-min-height:100vh;
-}
+        header { width: 100%; max-width: 500px; display: flex; flex-direction: column; align-items: center; position: relative; }
+        .month-label { font-size: 1.2rem; font-weight: 800; color: white; text-transform: uppercase; margin-bottom: 10px; }
+        .cal-icon-wrapper { position: absolute; right: 0; top: 0; }
+        .cal-icon { cursor: pointer; font-size: 1.4rem; background: none; border: none; }
 
-header{width:100%;max-width:500px;display:flex;flex-direction:column;align-items:center;position:relative;margin-bottom:10px;}
-.month-label{font-size:1.2rem;font-weight:800;color:white;text-transform:uppercase;}
+        /* Integrated Calendar & Tag Row */
+        .calendar-row {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
 
-#todayBtn{
-background:rgba(255,255,255,0.2);
-border:1px solid white;
-color:white;
-padding:4px 12px;
-border-radius:12px;
-font-size:0.7rem;
-font-weight:700;
-cursor:pointer;
-text-transform:uppercase;
-margin-top:5px;
-display:none;
-}
+        .calendar-strip {
+            display: flex; overflow-x: auto; gap: 12px; flex-grow: 1;
+            padding: 10px 5px; scrollbar-width: none;
+        }
+        .calendar-strip::-webkit-scrollbar { display: none; }
 
-.cal-icon-wrapper{position:absolute;right:0;top:0;}
-.cal-icon{cursor:pointer;font-size:1.4rem;background:none;border:none;}
+        .day-card {
+            min-width: 65px; background: var(--card); border-radius: 18px;
+            padding: 12px 0; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer;
+        }
+        .day-card.active-view { border: 3px solid #000; }
+        .day-card.is-today { background: #000; color: white; }
 
-.calendar-strip{
-display:flex;
-overflow-x:auto;
-gap:12px;
-width:100%;
-max-width:500px;
-padding:15px 0;
-scrollbar-width:none;
-scroll-behavior:smooth;
-}
+        /* Integrated Categories Button */
+        .dropdown { position: relative; }
+        .dropbtn {
+            background: var(--card); border: none; height: 65px; padding: 0 15px;
+            border-radius: 18px; cursor: pointer; font-weight: 800;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); white-space: nowrap;
+        }
+        .dropdown-content {
+            display: none; position: absolute; background-color: var(--card);
+            min-width: 160px; box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            padding: 10px; border-radius: 15px; z-index: 100; right: 0; top: 75px;
+        }
+        .dropdown.open .dropdown-content { display: block; }
+        .dropdown-content label { display: flex; align-items: center; gap: 10px; padding: 8px; cursor: pointer; font-weight: 600; }
 
-.calendar-strip::-webkit-scrollbar{display:none;}
+        /* Modern Checkbox */
+        input[type="checkbox"] {
+            appearance: none; width: 18px; height: 18px; border: 2px solid #ddd;
+            border-radius: 5px; cursor: pointer; position: relative;
+        }
+        input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); }
+        input[type="checkbox"]:checked::after { content: '✓'; color: white; position: absolute; font-size: 12px; left: 3px; top: -1px; }
 
-.day-card{
-min-width:65px;
-background:var(--card);
-border-radius:18px;
-padding:12px 0;
-text-align:center;
-box-shadow:0 4px 10px rgba(0,0,0,0.05);
-cursor:pointer;
-transition:0.2s;
-}
+        /* To-Do List Card */
+        .todo-card {
+            width: 100%; max-width: 500px; background: var(--todo-bg);
+            border-radius: 25px; padding: 20px; margin-bottom: 15px; display: none;
+        }
+        .todo-header { font-weight: 800; margin-bottom: 15px; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center; }
+        .todo-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; background: white; padding: 8px 12px; border-radius: 15px; }
+        .todo-item.checked span { text-decoration: line-through; opacity: 0.5; }
+        
+        .star { cursor: pointer; color: #ccc; font-size: 1.2rem; transition: 0.2s; }
+        .star.starred { color: #f1c40f; }
 
-.day-card.active{
-background:#000;
-color:white;
-transform:scale(1.05);
-}
+        /* Note Area */
+        .note-container {
+            width: 100%; max-width: 500px; background: var(--card);
+            border-radius: 30px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        textarea {
+            width: 100%; height: 40vh; border: none; outline: none; resize: none;
+            font-size: 1.1rem; line-height: 1.6; background: transparent;
+        }
 
-.filter-container {
-display: flex;
-gap: 10px;
-width: 100%;
-max-width: 500px;
-margin: 15px 0;
-overflow-x: auto;
-scrollbar-width: none;
-padding-bottom: 5px;
-}
-.filter-container::-webkit-scrollbar { display: none; }
-
-.bubble {
-padding: 8px 20px;
-background: var(--card);
-border-radius: 20px;
-font-weight: 600;
-cursor: pointer;
-border: none;
-white-space: nowrap;
-box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-
-.bubble.active {
-background: var(--accent);
-color: white;
-}
-
-.todo-card{
-width:100%;
-max-width:500px;
-background:#e8f5e9;
-border-radius:25px;
-padding:20px;
-margin-bottom:15px;
-display:none;
-box-sizing:border-box;
-}
-
-.todo-header{font-weight:800;margin-bottom:15px;font-size:1.1rem;}
-.todo-item{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
-.todo-item input[type="checkbox"]{width:20px;height:20px;accent-color:var(--accent);cursor:pointer;}
-.todo-text.completed{text-decoration:line-through;color:var(--muted);opacity:0.7;}
-
-.star-btn{background:none;border:none;font-size:1.3rem;cursor:pointer;color:#ccc;filter:grayscale(1);}
-.star-btn.starred{filter:grayscale(0);color:var(--star-gold);}
-
-.note-container{
-width:100%;
-max-width:500px;
-background:var(--card);
-border-radius:30px;
-padding:25px;
-box-shadow:0 10px 30px rgba(0,0,0,0.1);
-box-sizing:border-box;
-position:relative;
-}
-
-textarea{
-width:100%;
-height:35vh;
-border:none;
-outline:none;
-resize:none;
-font-size:1.1rem;
-line-height:1.6;
-}
-
-.add-note{
-position:absolute;
-bottom:-25px;
-right:20px;
-width:50px;
-height:50px;
-border-radius:50%;
-border:none;
-background:black;
-color:white;
-font-size:28px;
-cursor:pointer;
-box-shadow:0 6px 20px rgba(0,0,0,0.3);
-}
-
-#overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:900;backdrop-filter:blur(4px);}
-
-#calModal{
-display:none;
-position:fixed;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-width:90%;
-max-width:400px;
-background:#111;
-border-radius:30px;
-padding:30px;
-z-index:1000;
-color:white;
-box-shadow:0 20px 50px rgba(0,0,0,0.5);
-}
-
-.modal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;text-align:center;}
-.modal-day-label{font-size:0.6rem;color:#555;text-transform:uppercase;margin-bottom:5px;font-weight:800;}
-
-.circle-day{
-aspect-ratio:1/1;
-display:flex;
-align-items:center;
-justify-content:center;
-border-radius:50%;
-font-size:0.9rem;
-font-weight:700;
-cursor:pointer;
-transition:0.2s;
-position:relative;
-color:#333;
-}
-.circle-day.selected{outline:2px solid white;outline-offset:2px;}
-</style>
+        #overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); z-index: 900; }
+        #calModal {
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 85%; max-width: 380px; background: white; border-radius: 25px; padding: 25px; z-index: 1000;
+        }
+    </style>
 </head>
-
 <body>
 
-<header>
-<div class="month-label" id="monthDisplay">March 2026</div>
-<button id="todayBtn" onclick="jumpToToday()">Today</button>
-<div class="cal-icon-wrapper">
-<button class="cal-icon" onclick="toggleModal()">🗓️</button>
-</div>
-</header>
+    <header>
+        <div class="month-label">March 2026</div>
+        <div class="cal-icon-wrapper"><button class="cal-icon" onclick="toggleModal()">🗓️</button></div>
+    </header>
 
-<div class="calendar-strip" id="strip"></div>
+    <div class="calendar-row">
+        <div class="calendar-strip" id="strip"></div>
+        
+        <div class="dropdown" id="catDropdown">
+            <button class="dropbtn" onclick="toggleDropdown()">Tags ▼</button>
+            <div class="dropdown-content" id="categoryOptions">
+                <label><input type="checkbox" value="todo" onchange="updateTagFilter(this)"> To-do</label>
+                <label><input type="checkbox" value="work" onchange="updateTagFilter(this)"> Work</label>
+                <label><input type="checkbox" value="groceries" onchange="updateTagFilter(this)"> Groceries</label>
+                <label><input type="checkbox" value="roommates" onchange="updateTagFilter(this)"> Roommates</label>
+            </div>
+        </div>
+    </div>
 
-<div class="filter-container">
-    <button class="bubble" style="font-weight:800; border: 2px solid var(--accent);">Tags</button>
-    <button class="bubble" onclick="switchCategory('todo',this)">To-do</button>
-    <button class="bubble" onclick="switchCategory('work',this)">Work</button>
-    <button class="bubble" onclick="switchCategory('groceries',this)">Groceries</button>
-    <button class="bubble" onclick="switchCategory('errands',this)">Errands</button>
-    <button class="bubble" onclick="switchCategory('dreams',this)">Dreams</button>
-</div>
+    <div class="todo-card" id="todoList">
+        <div class="todo-header">
+            <span>To-do List</span>
+            <button onclick="addNewTask()" style="border:none; background:black; color:white; border-radius:50%; width:24px; height:24px; cursor:pointer;">+</button>
+        </div>
+        <div id="todoItems"></div>
+    </div>
 
-<div class="todo-card" id="todoList">
-<div class="todo-header" id="todoHeader">To-do List</div>
-<div id="todoItems"></div>
-</div>
+    <div class="note-container">
+        <textarea id="noteContent" placeholder="Type your main notes here..."></textarea>
+    </div>
 
-<div class="note-container">
-<textarea id="noteContent" placeholder="Type your notes..."></textarea>
-<button class="add-note" onclick="commitNote()">✔</button>
-</div>
+    <div id="overlay" onclick="toggleModal()"></div>
+    <div id="calModal">
+        <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2 style="margin:0; font-size:1.1rem;">MARCH 2026</h2>
+            <button onclick="toggleModal()" style="border:none; background:#eee; border-radius:50%; width:30px; height:30px; cursor:pointer;">×</button>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center;" id="fullGrid"></div>
+    </div>
 
-<div id="overlay" onclick="toggleModal()"></div>
+    <script>
+        let selectedDate = new Date(); 
+        let tasks = JSON.parse(localStorage.getItem('reson_tasks')) || [];
+        let notes = JSON.parse(localStorage.getItem('reson_notes')) || {};
+        let activeTags = new Set();
+        
+        const strip = document.getElementById('strip');
+        const textarea = document.getElementById('noteContent');
+        const todoContainer = document.getElementById('todoItems');
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-<div id="calModal">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;">
-<h2 id="modalMonthTitle" style="margin:0;letter-spacing:2px;">MARCH 2026</h2>
-<button onclick="toggleModal()" style="background:none;border:none;color:white;font-size:1.5rem;cursor:pointer;">×</button>
-</div>
-<div class="modal-grid">
-<div class="modal-day-label">S</div><div class="modal-day-label">M</div><div class="modal-day-label">T</div>
-<div class="modal-day-label">W</div><div class="modal-day-label">T</div><div class="modal-day-label">F</div><div class="modal-day-label">S</div>
-</div>
-<div class="modal-grid" id="fullGrid"></div>
-</div>
+        function init() {
+            renderStrip();
+            renderTasks();
+            loadNote();
+        }
 
-<script>
-const strip=document.getElementById('strip')
-const fullGrid=document.getElementById('fullGrid')
-const todoItemsContainer=document.getElementById('todoItems')
-const textarea=document.getElementById('noteContent')
-const todoList=document.getElementById('todoList')
-const todayBtn=document.getElementById('todayBtn')
+        function toggleDropdown() {
+            document.getElementById('catDropdown').classList.toggle('open');
+        }
 
-let selectedDate=new Date()
-let currentCategory=null
+        function updateTagFilter(cb) {
+            if (cb.checked) {
+                activeTags.add(cb.value);
+                if (cb.value === 'todo') {
+                    document.getElementById('todoList').style.display = 'block';
+                }
+            } else {
+                activeTags.delete(cb.value);
+                if (cb.value === 'todo') {
+                    document.getElementById('todoList').style.display = 'none';
+                }
+            }
+            renderTasks();
+        }
 
-let db=JSON.parse(localStorage.getItem('reson_db'))||{notes:{},todos:{}}
-let starredIds=JSON.parse(localStorage.getItem('reson_starred_ids'))||[]
+        function renderStrip() {
+            strip.innerHTML = '';
+            const today = new Date();
+            for (let i = 1; i <= 31; i++) {
+                const date = new Date(2026, 2, i);
+                const card = document.createElement('div');
+                card.className = `day-card ${i === selectedDate.getDate() ? 'active-view' : ''} ${i === today.getDate() && today.getMonth() === 2 ? 'is-today' : ''}`;
+                card.innerHTML = `<div style="font-size:0.7rem; font-weight:600;">${days[date.getDay()]}</div><div style="font-weight:800; font-size:1.2rem;">${i}</div>`;
+                card.onclick = () => {
+                    selectedDate = new Date(2026, 2, i);
+                    init();
+                };
+                strip.appendChild(card);
+                if(i === selectedDate.getDate()) card.scrollIntoView({inline: "center", behavior: "smooth"});
+            }
+        }
 
-const daysShort=['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+        function renderTasks() {
+            todoContainer.innerHTML = '';
+            const dateKey = selectedDate.toISOString().split('T')[0];
+            const today = new Date();
 
-function formatDateKey(date){
-return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`
-}
+            const visibleTasks = tasks.filter(t => {
+                if (t.starred) return true; 
+                if (t.date === dateKey) return true; 
+                const taskDate = new Date(t.date);
+                const diffDays = Math.floor((today - taskDate) / (1000 * 60 * 60 * 24));
+                return diffDays < 7; 
+            });
 
-function save(){
-localStorage.setItem('reson_db',JSON.stringify(db))
-localStorage.setItem('reson_starred_ids',JSON.stringify(starredIds))
-}
+            visibleTasks.forEach(task => {
+                const item = document.createElement('div');
+                item.className = `todo-item ${task.checked ? 'checked' : ''}`;
+                item.innerHTML = `
+                    <input type="checkbox" ${task.checked ? 'checked' : ''} onchange="toggleCheck(${task.id})">
+                    <span style="flex-grow:1">${task.text}</span>
+                    <span class="star ${task.starred ? 'starred' : ''}" onclick="toggleStar(${task.id})">★</span>
+                `;
+                todoContainer.appendChild(item);
+            });
+        }
 
-function noteKey(){
-return currentCategory ? formatDateKey(selectedDate)+"_"+currentCategory : null
-}
+        function toggleCheck(id) {
+            const task = tasks.find(t => t.id === id);
+            task.checked = !task.checked;
+            save();
+            renderTasks();
+        }
 
-function switchCategory(cat, btn) {
-    if (currentCategory && noteKey()) {
-        db.notes[noteKey()] = textarea.value;
-    }
+        function toggleStar(id) {
+            const task = tasks.find(t => t.id === id);
+            task.starred = !task.starred;
+            save();
+            renderTasks();
+        }
 
-    document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
-    
-    if (currentCategory === cat) {
-        currentCategory = null;
-        todoList.style.display = 'none';
-        textarea.value = "";
-    } else {
-        currentCategory = cat;
-        btn.classList.add('active');
-        document.getElementById('todoHeader').innerText = btn.innerText + " List";
-        loadContent();
-    }
-}
+        function addNewTask() {
+            const text = prompt("New Task:");
+            if (text) {
+                tasks.push({
+                    id: Date.now(),
+                    text: text,
+                    checked: false,
+                    starred: false,
+                    date: selectedDate.toISOString().split('T')[0]
+                });
+                save();
+                renderTasks();
+            }
+        }
 
-function setupCalendar(){
-strip.innerHTML=''
-const year=selectedDate.getFullYear()
-const month=selectedDate.getMonth()
-const daysInMonth=new Date(year,month+1,0).getDate()
-const todayKey=formatDateKey(new Date())
-const selectedKey=formatDateKey(selectedDate)
+        function loadNote() {
+            const dateKey = selectedDate.toISOString().split('T')[0];
+            textarea.value = notes[dateKey] || "";
+        }
 
-todayBtn.style.display=(selectedKey===todayKey)?'none':'block'
-document.getElementById('monthDisplay').innerText=selectedDate.toLocaleString('default',{month:'long',year:'numeric'})
+        textarea.oninput = () => {
+            const dateKey = selectedDate.toISOString().split('T')[0];
+            notes[dateKey] = textarea.value;
+            localStorage.setItem('reson_notes', JSON.stringify(notes));
+        };
 
-for(let i=1;i<=daysInMonth;i++){
-    const date=new Date(year,month,i)
-    const isSelected=formatDateKey(date)===selectedKey
-    const card=document.createElement('div')
-    card.className=`day-card ${isSelected?'active':''}`
-    card.innerHTML=`<div style="font-size:0.7rem;">${daysShort[date.getDay()]}</div><div style="font-weight:800;font-size:1.2rem;">${i}</div>`
-    card.onclick=()=>selectDay(date)
-    strip.appendChild(card)
-}
-}
+        function toggleModal() {
+            const m = document.getElementById('calModal');
+            const o = document.getElementById('overlay');
+            const isOpen = m.style.display === 'block';
+            m.style.display = isOpen ? 'none' : 'block';
+            o.style.display = isOpen ? 'none' : 'block';
+        }
 
-function selectDay(date){
-selectedDate=date
-setupCalendar()
-if (currentCategory) loadContent()
-}
+        function save() { 
+            localStorage.setItem('reson_tasks', JSON.stringify(tasks)); 
+        }
 
-function loadContent() {
-    if (!currentCategory) return;
-    const noteText = db.notes[noteKey()] || "";
-    textarea.value = noteText;
-    const key = formatDateKey(selectedDate);
-    const todos = db.todos[key] || [];
+        window.onclick = (e) => {
+            if (!e.target.closest('.dropdown')) {
+                document.getElementById('catDropdown').classList.remove('open');
+            }
+        };
 
-    if (noteText.trim() !== "" || todos.length > 0) {
-        todoList.style.display = 'block';
-        renderTodos(todos, noteText);
-    } else {
-        todoList.style.display = 'none';
-    }
-}
-
-function renderTodos(list, noteText) {
-    todoItemsContainer.innerHTML = '';
-    if (noteText.trim() !== "") {
-        noteText.split('\n').filter(line => line.trim() !== "").forEach(line => {
-            const div = document.createElement('div');
-            div.className = 'todo-item';
-            div.innerHTML = `<input type="checkbox"> <span class="todo-text">${line}</span>`;
-            todoItemsContainer.appendChild(div);
-        });
-    }
-}
-
-function commitNote() {
-    if (!currentCategory) return;
-    const text = textarea.value.trim();
-    if (!text) return;
-    db.notes[noteKey()] = text;
-    save();
-    textarea.value = '';
-    loadContent();
-}
-
-function toggleModal(){
-const m=document.getElementById('calModal');
-const o=document.getElementById('overlay');
-const isOpen=m.style.display==='block';
-m.style.display=isOpen?'none':'block';
-o.style.display=isOpen?'none':'block';
-}
-
-window.onload=()=>{ setupCalendar(); }
-</script>
+        window.onload = init;
+    </script>
 </body>
 </html>

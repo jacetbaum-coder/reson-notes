@@ -506,45 +506,31 @@ fullGrid.appendChild(dayEl)
 
 let updateTimeout = null;
 
+let updateTimeout = null;
+
 textarea.oninput = () => {
-    const text = textarea.value.trim();
+    let text = textarea.value.trim();
     if (!text) return;
 
-    // Split into words
-    const words = text.toLowerCase().split(/\s+/);
-    let targetCat = null;
-
-    // Verb + keyword logic
-    const verbsForShopping = ['buy', 'get', 'pick'];
-    const groceryKeywords = ['fish', 'milk', 'bread', 'eggs', 'apple'];
-    const errandKeywords = ['bank', 'post', 'petco', 'mail'];
-
-    if (words.length >= 2) {
-        if (verbsForShopping.includes(words[0])) {
-            if (groceryKeywords.includes(words[1])) targetCat = 'groceries';
-            else if (errandKeywords.includes(words[1])) targetCat = 'errands';
-        }
-    } else if (words.length === 1) {
-        if (groceryKeywords.includes(words[0])) targetCat = 'groceries';
-        else if (errandKeywords.includes(words[0])) targetCat = 'errands';
-    }
+    // Detect the category automatically
+    const targetCat = detectSmartCategory(text);
 
     if (targetCat && currentCategory !== targetCat) {
         const newKey = formatDateKey(selectedDate) + "_" + targetCat;
-        db.notes[newKey] = textarea.value;
-        db.notes[noteKey()] = "";
+        db.notes[newKey] = text;
+        db.notes[noteKey()] = ""; 
         autoSwitch(targetCat);
     } else {
-        db.notes[noteKey()] = textarea.value;
+        db.notes[noteKey()] = text;
     }
 
     save();
 
-    // Debounce the visual update (2 seconds after typing stops)
+    // Debounce visual update
     if (updateTimeout) clearTimeout(updateTimeout);
     updateTimeout = setTimeout(() => {
         loadContent();
-    }, 2000);
+    }, 1000);
 };
 
 // Commit note and clear textarea (like a little checkmark)

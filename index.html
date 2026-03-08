@@ -506,31 +506,46 @@ fullGrid.appendChild(dayEl)
 
 textarea.oninput = () => {
     const text = textarea.value.toLowerCase();
-    
-    // Auto-sorting Logic
-    if (text.includes("buy") || text.includes("food") || text.includes("milk")) {
-        autoSwitch('groceries');
-    } 
-    else if (text.includes("bank") || text.includes("petco") || text.includes("post office")) {
-        autoSwitch('errands');
+    let targetCat = null;
+
+    // 1. Detect the correct category based on keywords
+    if (text.includes("buy") || text.includes("fish") || text.includes("milk")) {
+        targetCat = 'groceries';
+    } else if (text.includes("bank") || text.includes("petco") || text.includes("errand")) {
+        targetCat = 'errands';
     }
 
-    // Save the note to whatever the current category is
-    db.notes[noteKey()] = textarea.value;
-    save();
+    // 2. If a match is found and it's NOT the current tab, move it
+    if (targetCat && currentCategory !== targetCat) {
+        // Save the text to the NEW category
+        const newKey = formatDateKey(selectedDate) + "_" + targetCat;
+        db.notes[newKey] = textarea.value;
+        
+        // Clear the text from the OLD (current) category
+        db.notes[noteKey()] = ""; 
+        textarea.value = ""; 
+
+        // 3. Visually switch to the new bubble
+        autoSwitch(targetCat);
+        save();
+    } else {
+        // Otherwise, just save normally to the active tab
+        db.notes[noteKey()] = textarea.value;
+        save();
+    }
+    
+    // Refresh the list view
+    loadContent();
 };
-
-// Helper function to simulate a bubble click
-function autoSwitch(categoryName) {
-    if (currentCategory === categoryName) return; // Already there
-
+   function autoSwitch(categoryName) {
     const buttons = document.querySelectorAll('.bubble');
     buttons.forEach(btn => {
-        if (btn.innerText.toLowerCase() === categoryName) {
+        // Find the button that matches the category name (case-insensitive)
+        if (btn.innerText.toLowerCase().includes(categoryName.toLowerCase())) {
             switchCategory(categoryName, btn);
         }
     });
-}
+} 
 window.onload=()=>{
 setupCalendar()
 loadContent()

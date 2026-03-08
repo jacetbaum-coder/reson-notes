@@ -380,54 +380,54 @@ loadContent()
 }
 
 function loadContent() {
-    // 1. Load the text into the textarea for the specific category
     const noteText = db.notes[noteKey()] || "";
     textarea.value = noteText;
 
     const key = formatDateKey(selectedDate);
-    
-    // 2. Logic to decide if we show the "List" box
-    // We show it if there are checkboxes (todos) OR if there is text in the Note
-    const hasTodos = db.todos[key] && db.todos[key].length > 0;
-    const hasNote = noteText.trim().length > 0;
+    const todos = db.todos[key] || [];
 
-    if (hasTodos || hasNote) {
+    // If there's text in the note OR existing todos, show the card
+    if (noteText.trim() !== "" || todos.length > 0) {
         todoList.style.display = 'block';
-        
-        // If you want the Note text to appear as a list item:
-        if (hasNote && !hasTodos) {
-            todoItemsContainer.innerHTML = `<div class="todo-item"><span class="todo-text">${noteText}</span></div>`;
-        } else {
-            renderTodos(db.todos[key] || []);
-        }
+        renderTodos(todos, noteText);
     } else {
         todoList.style.display = 'none';
     }
 }
 
-function renderTodos(list){
+function renderTodos(list, noteText) {
+    todoItemsContainer.innerHTML = '';
 
-todoItemsContainer.innerHTML=''
+    // 1. Render existing "Official" Todos (from your DB)
+    list.forEach(todo => {
+        const isStarred = starredIds.includes(todo.id);
+        const div = document.createElement('div');
+        div.className = 'todo-item';
+        div.innerHTML = `
+            <input type="checkbox" ${todo.completed ? 'checked' : ''} onchange="toggleCheck(${todo.id})">
+            <span class="todo-text ${todo.completed ? 'completed' : ''}">${todo.text}</span>
+            <button class="star-btn ${isStarred ? 'starred' : ''}" onclick="toggleStar(${todo.id})">★</button>
+        `;
+        todoItemsContainer.appendChild(div);
+    });
 
-list.forEach(todo=>{
-
-const isStarred=starredIds.includes(todo.id)
-
-const div=document.createElement('div')
-div.className='todo-item'
-
-div.innerHTML=`
-<input type="checkbox" ${todo.completed?'checked':''} onchange="toggleCheck(${todo.id})">
-<span class="todo-text ${todo.completed?'completed':''}">${todo.text}</span>
-<button class="star-btn ${isStarred?'starred':''}" onclick="toggleStar(${todo.id})">★</button>
-`
-
-todoItemsContainer.appendChild(div)
-
-})
-
+    // 2. Turn "Notes" lines into Checkboxes (The "Buy Fish" Fix)
+    if (noteText.trim() !== "") {
+        const lines = noteText.split('\n').filter(line => line.trim() !== "");
+        lines.forEach((line, index) => {
+            const div = document.createElement('div');
+            div.className = 'todo-item';
+            // We give these a temporary look since they are "Note-based" items
+            div.innerHTML = `
+                <input type="checkbox">
+                <span class="todo-text">${line}</span>
+                <button class="star-btn">★</button>
+            `;
+            todoItemsContainer.appendChild(div);
+        });
+    }
 }
-
+    
 function toggleCheck(id){
 
 const key=formatDateKey(selectedDate)

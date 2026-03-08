@@ -247,7 +247,7 @@ border-radius:50%;
 
 <textarea id="noteContent" placeholder="Type your notes..."></textarea>
 
-<button class="add-note" onclick="newNote()">+</button>
+<button class="add-note" onclick="commitNote()">✔</button>
 
 </div>
 
@@ -505,47 +505,56 @@ fullGrid.appendChild(dayEl)
 }
 
 textarea.oninput = () => {
-    const text = textarea.value.toLowerCase();
+    const text = textarea.value.trim();
+    if (!text) return;
+
+    // Split into words
+    const words = text.toLowerCase().split(/\s+/);
     let targetCat = null;
 
-    // 1. Detect the correct category based on keywords
-    if (text.includes("buy") || text.includes("fish") || text.includes("milk")) {
-        targetCat = 'groceries';
-    } else if (text.includes("bank") || text.includes("petco") || text.includes("errand")) {
-        targetCat = 'errands';
+    // Simple verb + keyword logic
+    const verbsForShopping = ['buy', 'get', 'pick'];
+    const groceryKeywords = ['fish', 'milk', 'bread', 'eggs', 'apple'];
+    const errandKeywords = ['bank', 'post', 'petco', 'mail'];
+
+    if (words.length >= 2) {
+        if (verbsForShopping.includes(words[0])) {
+            if (groceryKeywords.includes(words[1])) targetCat = 'groceries';
+            else if (errandKeywords.includes(words[1])) targetCat = 'errands';
+        }
+    } else if (words.length === 1) {
+        if (groceryKeywords.includes(words[0])) targetCat = 'groceries';
+        else if (errandKeywords.includes(words[0])) targetCat = 'errands';
     }
 
-    // 2. If a match is found and it's NOT the current tab, move it
     if (targetCat && currentCategory !== targetCat) {
-        // Save the text to the NEW category
+        // Save to new category
         const newKey = formatDateKey(selectedDate) + "_" + targetCat;
         db.notes[newKey] = textarea.value;
-        
-        // Clear the text from the OLD (current) category
-        db.notes[noteKey()] = ""; 
-        textarea.value = ""; 
 
-        // 3. Visually switch to the new bubble
-        autoSwitch(targetCat);
+        // Clear old category
+        db.notes[noteKey()] = ""; 
         save();
+
+        // Auto switch visually
+        autoSwitch(targetCat);
     } else {
-        // Otherwise, just save normally to the active tab
+        // Save normally
         db.notes[noteKey()] = textarea.value;
         save();
     }
-    
-    // Refresh the list view
+
     loadContent();
 };
-   function autoSwitch(categoryName) {
-    const buttons = document.querySelectorAll('.bubble');
-    buttons.forEach(btn => {
-        // Find the button that matches the category name (case-insensitive)
-        if (btn.innerText.toLowerCase().includes(categoryName.toLowerCase())) {
-            switchCategory(categoryName, btn);
-        }
-    });
-} 
+
+// Commit note and clear textarea (like a little checkmark)
+function commitNote() {
+    if (!textarea.value.trim()) return;
+    db.notes[noteKey()] = textarea.value;
+    save();
+    textarea.value = '';
+    loadContent();
+}
 window.onload=()=>{
 setupCalendar()
 loadContent()

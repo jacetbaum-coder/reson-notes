@@ -231,12 +231,52 @@ border-radius:50%;
 <div class="calendar-strip" id="strip"></div>
 
 <div class="filter-container">
-    <button class="bubble active" onclick="switchCategory('todo',this)">To-do</button>
-    <button class="bubble" onclick="switchCategory('work',this)">Work</button>
-    <button class="bubble" onclick="switchCategory('groceries',this)">Groceries</button>
-    <button class="bubble" onclick="switchCategory('errands',this)">Errands</button> <button class="bubble" onclick="switchCategory('dreams',this)">Dreams</button>
+    <div class="dropdown">
+        <button class="dropbtn">Categories ▼</button>
+        <div class="dropdown-content" id="categoryDropdown">
+            <label><input type="checkbox" value="todo" checked> To-do</label>
+            <label><input type="checkbox" value="work" checked> Work</label>
+            <label><input type="checkbox" value="groceries" checked> Groceries</label>
+            <label><input type="checkbox" value="errands" checked> Errands</label>
+            <label><input type="checkbox" value="dreams" checked> Dreams</label>
+            <label><input type="checkbox" value="family" checked> Family</label>
+            <label><input type="checkbox" value="roommates" checked> Roommates</label>
+            <label><input type="checkbox" value="other" checked> Other</label>
+        </div>
+    </div>
 </div>
-    
+/* Dropdown */
+.dropdown { position: relative; display: inline-block; margin-bottom: 15px; }
+.dropbtn {
+    background: var(--card);
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 600;
+}
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: var(--card);
+    min-width: 160px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    padding: 10px;
+    border-radius: 12px;
+    z-index: 100;
+}
+.dropdown:hover .dropdown-content { display: block; }
+.dropdown-content label { display: block; cursor: pointer; padding: 5px 0; }
+
+let selectedCategories = new Set(['todo','work','groceries','errands','dreams','family','roommates','other']);
+
+document.querySelectorAll('#categoryDropdown input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', (e) => {
+        if(e.target.checked) selectedCategories.add(e.target.value);
+        else selectedCategories.delete(e.target.value);
+        renderAllNotes();
+    });
+});
 
 <div class="todo-card" id="todoList" style="display:block;">
 <div class="todo-header">To-do List</div>
@@ -378,20 +418,25 @@ setupCalendar()
 loadContent()
 }
 
-function loadContent() {
-    const noteText = db.notes[noteKey()] || "";
-    textarea.value = noteText;
+function renderAllNotes() {
+    todoItemsContainer.innerHTML = '';
 
-    const key = formatDateKey(selectedDate);
-    const todos = db.todos[key] || [];
+    const keyPrefix = formatDateKey(selectedDate);
+    selectedCategories.forEach(cat => {
+        const key = keyPrefix + "_" + cat;
+        const text = db.notes[key];
+        if(text && text.trim() !== "") {
+            const lines = text.split('\n').filter(l => l.trim() !== "");
+            lines.forEach(line => {
+                const div = document.createElement('div');
+                div.className = 'todo-item';
+                div.innerHTML = `<span class="todo-text">${line}</span>`;
+                todoItemsContainer.appendChild(div);
+            });
+        }
+    });
 
-    // If there's text in the note OR existing todos, show the card
-    if (noteText.trim() !== "" || todos.length > 0) {
-        todoList.style.display = 'block';
-        renderTodos(todos, noteText);
-    } else {
-        todoList.style.display = 'none';
-    }
+    todoList.style.display = todoItemsContainer.children.length ? 'block' : 'none';
 }
 
 function renderTodos(list, noteText) {

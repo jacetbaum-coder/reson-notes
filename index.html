@@ -6,7 +6,6 @@
 <title>Reson Notes</title>
 
 <style>
-
 :root {
 --bg:#77c98d;
 --card:#ffffff;
@@ -64,9 +63,6 @@ scroll-behavior:smooth;
 
 .calendar-strip::-webkit-scrollbar{display:none;}
 
-.calendar-strip::before,
-.calendar-strip::after{content:'';min-width:calc(50% - 40px);}
-
 .day-card{
 min-width:65px;
 background:var(--card);
@@ -84,6 +80,34 @@ color:white;
 transform:scale(1.05);
 }
 
+.filter-container {
+display: flex;
+gap: 10px;
+width: 100%;
+max-width: 500px;
+margin: 15px 0;
+overflow-x: auto;
+scrollbar-width: none;
+padding-bottom: 5px;
+}
+.filter-container::-webkit-scrollbar { display: none; }
+
+.bubble {
+padding: 8px 20px;
+background: var(--card);
+border-radius: 20px;
+font-weight: 600;
+cursor: pointer;
+border: none;
+white-space: nowrap;
+box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.bubble.active {
+background: var(--accent);
+color: white;
+}
+
 .todo-card{
 width:100%;
 max-width:500px;
@@ -96,38 +120,12 @@ box-sizing:border-box;
 }
 
 .todo-header{font-weight:800;margin-bottom:15px;font-size:1.1rem;}
-
 .todo-item{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
-
 .todo-item input[type="checkbox"]{width:20px;height:20px;accent-color:var(--accent);cursor:pointer;}
-
 .todo-text.completed{text-decoration:line-through;color:var(--muted);opacity:0.7;}
 
 .star-btn{background:none;border:none;font-size:1.3rem;cursor:pointer;color:#ccc;filter:grayscale(1);}
 .star-btn.starred{filter:grayscale(0);color:var(--star-gold);}
-
-.filter-container{
-display:flex;
-gap:10px;
-width:100%;
-max-width:500px;
-margin:15px 0;
-flex-wrap:wrap;
-}
-
-.bubble{
-padding:8px 20px;
-background:var(--card);
-border-radius:20px;
-font-weight:600;
-cursor:pointer;
-border:none;
-}
-
-.bubble.active{
-background:var(--accent);
-color:white;
-}
 
 .note-container{
 width:100%;
@@ -149,8 +147,6 @@ resize:none;
 font-size:1.1rem;
 line-height:1.6;
 }
-
-/* PLUS BUTTON */
 
 .add-note{
 position:absolute;
@@ -186,7 +182,6 @@ box-shadow:0 20px 50px rgba(0,0,0,0.5);
 }
 
 .modal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;text-align:center;}
-
 .modal-day-label{font-size:0.6rem;color:#555;text-transform:uppercase;margin-bottom:5px;font-weight:800;}
 
 .circle-day{
@@ -202,19 +197,7 @@ transition:0.2s;
 position:relative;
 color:#333;
 }
-
 .circle-day.selected{outline:2px solid white;outline-offset:2px;}
-
-.circle-day.holiday::after{
-content:'';
-position:absolute;
-bottom:4px;
-width:4px;
-height:4px;
-background:#ff4d4d;
-border-radius:50%;
-}
-
 </style>
 </head>
 
@@ -231,24 +214,22 @@ border-radius:50%;
 <div class="calendar-strip" id="strip"></div>
 
 <div class="filter-container">
-    <button class="bubble active" onclick="switchCategory('todo',this)">To-do</button>
+    <button class="bubble" style="font-weight:800; border: 2px solid var(--accent);">Tags</button>
+    <button class="bubble" onclick="switchCategory('todo',this)">To-do</button>
     <button class="bubble" onclick="switchCategory('work',this)">Work</button>
     <button class="bubble" onclick="switchCategory('groceries',this)">Groceries</button>
-    <button class="bubble" onclick="switchCategory('errands',this)">Errands</button> <button class="bubble" onclick="switchCategory('dreams',this)">Dreams</button>
+    <button class="bubble" onclick="switchCategory('errands',this)">Errands</button>
+    <button class="bubble" onclick="switchCategory('dreams',this)">Dreams</button>
 </div>
-    
 
-<div class="todo-card" id="todoList" style="display:block;">
-<div class="todo-header">To-do List</div>
+<div class="todo-card" id="todoList">
+<div class="todo-header" id="todoHeader">To-do List</div>
 <div id="todoItems"></div>
 </div>
 
 <div class="note-container">
-
 <textarea id="noteContent" placeholder="Type your notes..."></textarea>
-
 <button class="add-note" onclick="commitNote()">✔</button>
-
 </div>
 
 <div id="overlay" onclick="toggleModal()"></div>
@@ -258,22 +239,14 @@ border-radius:50%;
 <h2 id="modalMonthTitle" style="margin:0;letter-spacing:2px;">MARCH 2026</h2>
 <button onclick="toggleModal()" style="background:none;border:none;color:white;font-size:1.5rem;cursor:pointer;">×</button>
 </div>
-
 <div class="modal-grid">
-<div class="modal-day-label">S</div>
-<div class="modal-day-label">M</div>
-<div class="modal-day-label">T</div>
-<div class="modal-day-label">W</div>
-<div class="modal-day-label">T</div>
-<div class="modal-day-label">F</div>
-<div class="modal-day-label">S</div>
+<div class="modal-day-label">S</div><div class="modal-day-label">M</div><div class="modal-day-label">T</div>
+<div class="modal-day-label">W</div><div class="modal-day-label">T</div><div class="modal-day-label">F</div><div class="modal-day-label">S</div>
 </div>
-
 <div class="modal-grid" id="fullGrid"></div>
 </div>
 
 <script>
-
 const strip=document.getElementById('strip')
 const fullGrid=document.getElementById('fullGrid')
 const todoItemsContainer=document.getElementById('todoItems')
@@ -282,14 +255,12 @@ const todoList=document.getElementById('todoList')
 const todayBtn=document.getElementById('todayBtn')
 
 let selectedDate=new Date()
-let currentCategory="todo"
+let currentCategory=null
 
 let db=JSON.parse(localStorage.getItem('reson_db'))||{notes:{},todos:{}}
 let starredIds=JSON.parse(localStorage.getItem('reson_starred_ids'))||[]
 
 const daysShort=['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
-
-const holidays={"2026-03-17":"St Patrick"}
 
 function formatDateKey(date){
 return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`
@@ -301,91 +272,63 @@ localStorage.setItem('reson_starred_ids',JSON.stringify(starredIds))
 }
 
 function noteKey(){
-return formatDateKey(selectedDate)+"_"+currentCategory
+return currentCategory ? formatDateKey(selectedDate)+"_"+currentCategory : null
 }
 
 function switchCategory(cat, btn) {
+    if (currentCategory && noteKey()) {
+        db.notes[noteKey()] = textarea.value;
+    }
+
     document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-
-    // Save current note before switching
-    db.notes[noteKey()] = textarea.value;
-
-    currentCategory = cat;
-
-    // Update the header text
-    document.querySelector('.todo-header').innerText = btn.innerText + " List";
-
-    loadContent();
-}
-
-function newNote(){
-
-db.notes[noteKey()]=textarea.value
-
-textarea.value=""
-
-save()
-
+    
+    if (currentCategory === cat) {
+        currentCategory = null;
+        todoList.style.display = 'none';
+        textarea.value = "";
+    } else {
+        currentCategory = cat;
+        btn.classList.add('active');
+        document.getElementById('todoHeader').innerText = btn.innerText + " List";
+        loadContent();
+    }
 }
 
 function setupCalendar(){
-
 strip.innerHTML=''
-
 const year=selectedDate.getFullYear()
 const month=selectedDate.getMonth()
 const daysInMonth=new Date(year,month+1,0).getDate()
-
 const todayKey=formatDateKey(new Date())
 const selectedKey=formatDateKey(selectedDate)
 
 todayBtn.style.display=(selectedKey===todayKey)?'none':'block'
-
-document.getElementById('monthDisplay').innerText=
-selectedDate.toLocaleString('default',{month:'long',year:'numeric'})
+document.getElementById('monthDisplay').innerText=selectedDate.toLocaleString('default',{month:'long',year:'numeric'})
 
 for(let i=1;i<=daysInMonth;i++){
-
-const date=new Date(year,month,i)
-const isSelected=formatDateKey(date)===selectedKey
-
-const card=document.createElement('div')
-card.className=`day-card ${isSelected?'active':''}`
-
-card.innerHTML=
-`<div style="font-size:0.7rem;">${daysShort[date.getDay()]}</div>
-<div style="font-weight:800;font-size:1.2rem;">${i}</div>`
-
-card.onclick=()=>selectDay(date)
-
-strip.appendChild(card)
-
-if(isSelected)
-setTimeout(()=>card.scrollIntoView({behavior:'smooth',inline:'center'}),50)
-
+    const date=new Date(year,month,i)
+    const isSelected=formatDateKey(date)===selectedKey
+    const card=document.createElement('div')
+    card.className=`day-card ${isSelected?'active':''}`
+    card.innerHTML=`<div style="font-size:0.7rem;">${daysShort[date.getDay()]}</div><div style="font-weight:800;font-size:1.2rem;">${i}</div>`
+    card.onclick=()=>selectDay(date)
+    strip.appendChild(card)
 }
-
-}
-
-function jumpToToday(){
-selectDay(new Date())
 }
 
 function selectDay(date){
 selectedDate=date
 setupCalendar()
-loadContent()
+if (currentCategory) loadContent()
 }
 
 function loadContent() {
+    if (!currentCategory) return;
     const noteText = db.notes[noteKey()] || "";
     textarea.value = noteText;
-
     const key = formatDateKey(selectedDate);
     const todos = db.todos[key] || [];
 
-    // If there's text in the note OR existing todos, show the card
     if (noteText.trim() !== "" || todos.length > 0) {
         todoList.style.display = 'block';
         renderTodos(todos, noteText);
@@ -396,161 +339,35 @@ function loadContent() {
 
 function renderTodos(list, noteText) {
     todoItemsContainer.innerHTML = '';
-
-    // 1. Render existing "Official" Todos (from your DB)
-    list.forEach(todo => {
-        const isStarred = starredIds.includes(todo.id);
-        const div = document.createElement('div');
-        div.className = 'todo-item';
-        div.innerHTML = `
-            <input type="checkbox" ${todo.completed ? 'checked' : ''} onchange="toggleCheck(${todo.id})">
-            <span class="todo-text ${todo.completed ? 'completed' : ''}">${todo.text}</span>
-            <button class="star-btn ${isStarred ? 'starred' : ''}" onclick="toggleStar(${todo.id})">★</button>
-        `;
-        todoItemsContainer.appendChild(div);
-    });
-
-    // 2. Turn "Notes" lines into Checkboxes (The "Buy Fish" Fix)
     if (noteText.trim() !== "") {
-        const lines = noteText.split('\n').filter(line => line.trim() !== "");
-        lines.forEach((line, index) => {
+        noteText.split('\n').filter(line => line.trim() !== "").forEach(line => {
             const div = document.createElement('div');
             div.className = 'todo-item';
-            // We give these a temporary look since they are "Note-based" items
-            div.innerHTML = `
-                <input type="checkbox">
-                <span class="todo-text">${line}</span>
-                <button class="star-btn">★</button>
-            `;
+            div.innerHTML = `<input type="checkbox"> <span class="todo-text">${line}</span>`;
             todoItemsContainer.appendChild(div);
         });
     }
 }
-    
-function toggleCheck(id){
 
-const key=formatDateKey(selectedDate)
-
-const item=db.todos[key].find(t=>t.id===id)
-
-if(item){
-item.completed=!item.completed
-save()
-loadContent()
-}
-
-}
-
-function toggleStar(id){
-
-const idx=starredIds.indexOf(id)
-
-idx>-1?starredIds.splice(idx,1):starredIds.push(id)
-
-save()
-loadContent()
-
+function commitNote() {
+    if (!currentCategory) return;
+    const text = textarea.value.trim();
+    if (!text) return;
+    db.notes[noteKey()] = text;
+    save();
+    textarea.value = '';
+    loadContent();
 }
 
 function toggleModal(){
-
-const m=document.getElementById('calModal')
-const o=document.getElementById('overlay')
-
-const isOpen=m.style.display==='block'
-
-if(!isOpen)renderHeatmap()
-
-m.style.display=isOpen?'none':'block'
-o.style.display=isOpen?'none':'block'
-
+const m=document.getElementById('calModal');
+const o=document.getElementById('overlay');
+const isOpen=m.style.display==='block';
+m.style.display=isOpen?'none':'block';
+o.style.display=isOpen?'none':'block';
 }
 
-function renderHeatmap(){
-
-fullGrid.innerHTML=''
-
-const year=selectedDate.getFullYear()
-const month=selectedDate.getMonth()
-
-const firstDay=new Date(year,month,1).getDay()
-const daysInMonth=new Date(year,month+1,0).getDate()
-
-for(let p=0;p<firstDay;p++)
-fullGrid.appendChild(document.createElement('div'))
-
-for(let i=1;i<=daysInMonth;i++){
-
-const date=new Date(year,month,i)
-const key=formatDateKey(date)
-const taskCount=(db.todos[key]||[]).length
-
-const dayEl=document.createElement('div')
-
-dayEl.className=`circle-day ${key===formatDateKey(selectedDate)?'selected':''} ${holidays[key]?'holiday':''}`
-
-dayEl.innerText=i
-
-if(taskCount===0)dayEl.style.backgroundColor='var(--heat-0)'
-else if(taskCount<=2)dayEl.style.backgroundColor='var(--heat-1)'
-else if(taskCount<=4)dayEl.style.backgroundColor='var(--heat-2)'
-else dayEl.style.backgroundColor='var(--heat-3)'
-
-dayEl.onclick=()=>{selectDay(date);toggleModal()}
-
-fullGrid.appendChild(dayEl)
-
-}
-
-}
-
-let updateTimeout = null;
-
-let updateTimeout = null;
-
-textarea.oninput = () => {
-    let text = textarea.value.trim();
-    if (!text) return;
-
-    // Detect the category automatically
-    const targetCat = detectSmartCategory(text);
-
-    if (targetCat && currentCategory !== targetCat) {
-        const newKey = formatDateKey(selectedDate) + "_" + targetCat;
-        db.notes[newKey] = text;
-        db.notes[noteKey()] = ""; 
-        autoSwitch(targetCat);
-    } else {
-        db.notes[noteKey()] = text;
-    }
-
-    save();
-
-    // Debounce visual update
-    if (updateTimeout) clearTimeout(updateTimeout);
-    updateTimeout = setTimeout(() => {
-        loadContent();
-    }, 1000);
-};
-
-// Commit note and clear textarea (like a little checkmark)
-function commitNote() {
-    const text = textarea.value.trim();
-    if (!text) return;
-
-    // Save current text to the current category
-    db.notes[noteKey()] = text;
-    save();
-
-    // Clear textarea visually — now ready for a "new note"
-    textarea.value = '';
-}
-window.onload=()=>{
-setupCalendar()
-loadContent()
-}
-
+window.onload=()=>{ setupCalendar(); }
 </script>
-
 </body>
 </html>

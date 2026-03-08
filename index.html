@@ -504,6 +504,8 @@ fullGrid.appendChild(dayEl)
 
 }
 
+let updateTimeout = null;
+
 textarea.oninput = () => {
     const text = textarea.value.trim();
     if (!text) return;
@@ -512,7 +514,7 @@ textarea.oninput = () => {
     const words = text.toLowerCase().split(/\s+/);
     let targetCat = null;
 
-    // Simple verb + keyword logic
+    // Verb + keyword logic
     const verbsForShopping = ['buy', 'get', 'pick'];
     const groceryKeywords = ['fish', 'milk', 'bread', 'eggs', 'apple'];
     const errandKeywords = ['bank', 'post', 'petco', 'mail'];
@@ -528,23 +530,21 @@ textarea.oninput = () => {
     }
 
     if (targetCat && currentCategory !== targetCat) {
-        // Save to new category
         const newKey = formatDateKey(selectedDate) + "_" + targetCat;
         db.notes[newKey] = textarea.value;
-
-        // Clear old category
-        db.notes[noteKey()] = ""; 
-        save();
-
-        // Auto switch visually
+        db.notes[noteKey()] = "";
         autoSwitch(targetCat);
     } else {
-        // Save normally
         db.notes[noteKey()] = textarea.value;
-        save();
     }
 
-    loadContent();
+    save();
+
+    // Debounce the visual update (2 seconds after typing stops)
+    if (updateTimeout) clearTimeout(updateTimeout);
+    updateTimeout = setTimeout(() => {
+        loadContent();
+    }, 2000);
 };
 
 // Commit note and clear textarea (like a little checkmark)

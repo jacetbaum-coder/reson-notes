@@ -231,13 +231,12 @@ border-radius:50%;
 <div class="calendar-strip" id="strip"></div>
 
 <div class="filter-container">
-
-<button class="bubble active" onclick="switchCategory('todo',this)">To-do</button>
-<button class="bubble" onclick="switchCategory('work',this)">Work</button>
-<button class="bubble" onclick="switchCategory('groceries',this)">Groceries</button>
-<button class="bubble" onclick="switchCategory('dreams',this)">Dreams</button>
-
+    <button class="bubble active" onclick="switchCategory('todo',this)">To-do</button>
+    <button class="bubble" onclick="switchCategory('work',this)">Work</button>
+    <button class="bubble" onclick="switchCategory('groceries',this)">Groceries</button>
+    <button class="bubble" onclick="switchCategory('errands',this)">Errands</button> <button class="bubble" onclick="switchCategory('dreams',this)">Dreams</button>
 </div>
+    
 
 <div class="todo-card" id="todoList" style="display:block;">
 <div class="todo-header">To-do List</div>
@@ -505,11 +504,33 @@ fullGrid.appendChild(dayEl)
 
 }
 
-textarea.oninput=()=>{
-db.notes[noteKey()]=textarea.value
-save()
-}
+textarea.oninput = () => {
+    const text = textarea.value.toLowerCase();
+    
+    // Auto-sorting Logic
+    if (text.includes("buy") || text.includes("food") || text.includes("milk")) {
+        autoSwitch('groceries');
+    } 
+    else if (text.includes("bank") || text.includes("petco") || text.includes("post office")) {
+        autoSwitch('errands');
+    }
 
+    // Save the note to whatever the current category is
+    db.notes[noteKey()] = textarea.value;
+    save();
+};
+
+// Helper function to simulate a bubble click
+function autoSwitch(categoryName) {
+    if (currentCategory === categoryName) return; // Already there
+
+    const buttons = document.querySelectorAll('.bubble');
+    buttons.forEach(btn => {
+        if (btn.innerText.toLowerCase() === categoryName) {
+            switchCategory(categoryName, btn);
+        }
+    });
+}
 window.onload=()=>{
 setupCalendar()
 loadContent()

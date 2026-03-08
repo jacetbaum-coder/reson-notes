@@ -372,7 +372,8 @@ const todayKey=formatDateKey(new Date())
 const selectedKey=formatDateKey(selectedDate)
 
 todayBtn.style.display=(selectedKey===todayKey)?'none':'block'
-document.getElementById('monthDisplay').innerText=selectedDate.toLocaleString('default',{month:'long',year:'numeric'})
+const headerDate = selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+document.getElementById('monthDisplay').innerText = headerDate;
 
 for(let i=1;i<=daysInMonth;i++){
     const date=new Date(year,month,i)
@@ -419,6 +420,7 @@ function renderTodos(list, noteText) {
     }
 }
 
+/* [START] - Replace function commitNote() */
 function commitNote() {
     const text = textarea.value.trim();
     if (!text) return;
@@ -430,15 +432,17 @@ function commitNote() {
         content: text
     };
 
-    // Ensure db.notes is an array for the deck history
     if (!Array.isArray(db.notes_list)) db.notes_list = [];
     db.notes_list.unshift(newNote); 
     
     save();
     textarea.value = '';
-    renderDeck(); // Refresh the deck
+    renderDeck();
+    
+    // Simple cloud push
+    uploadToCloud(); 
 }
-
+/* [END] */
 /* [START] - Replace function renderDeck() */
 function renderDeck() {
     const deck = document.getElementById('noteDeck');
@@ -507,10 +511,55 @@ function renderHeatmap() {
 }
 /* [END] */
 
-window.onload=()=>{ 
+/* [START] - Real R2 Cloud Sync Logic */
+const CF_CONFIG = {
+    accountId: '0df0747b5cc853943508584dadcb9413', // Your ID from the screenshot
+    apiToken: 'fIvEkWRGsyaMpclVw4uPiaJDie2ng3O07afehp0S', // The token you provided
+    bucket: 'reson-notes-storage'
+};
+
+// This URL is the "Direct Link" to your JSON file in the bucket
+const R2_URL = `https://api.cloudflare.com/client/v4/accounts/${CF_CONFIG.accountId}/r2/buckets/${CF_CONFIG.bucket}/objects/notes_db.json`;
+
+async function syncWithCloud() {
+    try {
+        const response = await fetch(R2_URL, {
+            headers: { 'Authorization': `Bearer ${CF_CONFIG.apiToken}` }
+        });
+        if (response.ok) {
+            const cloudData = await response.json();
+            db = cloudData;
+            save(); 
+            renderDeck();
+            setupCalendar();
+        }
+    } catch (e) {
+        console.log("Cloud sync unavailable, using local storage.");
+    }
+}
+
+async function uploadToCloud() {
+    try {
+        await fetch(R2_URL, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${CF_CONFIG.apiToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(db)
+        });
+        console.log("Synced to Cloud!");
+    } catch (e) {
+        console.error("Upload failed:", e);
+    }
+}
+
+window.onload = () => { 
+    syncWithCloud(); 
     setupCalendar(); 
     renderDeck(); 
 }
+/* [END] */
 </script>
 </body>
 </html>

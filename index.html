@@ -549,11 +549,15 @@ textarea.oninput = () => {
 
 // Commit note and clear textarea (like a little checkmark)
 function commitNote() {
-    if (!textarea.value.trim()) return;
-    db.notes[noteKey()] = textarea.value;
+    const text = textarea.value.trim();
+    if (!text) return;
+
+    // Save current text to the current category
+    db.notes[noteKey()] = text;
     save();
+
+    // Clear textarea visually — now ready for a "new note"
     textarea.value = '';
-    loadContent();
 }
 window.onload=()=>{
 setupCalendar()

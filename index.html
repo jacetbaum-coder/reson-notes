@@ -317,9 +317,11 @@ transform:translateX(0);
 </style>
 </head>
 
-<body>
-
-<header>
+<div id="noteMenu" style="display:none;position:absolute;background:white;border-radius:15px;box-shadow:0 5px 20px rgba(0,0,0,0.2);padding:15px;z-index:3000;min-width:150px;">
+    <div style="font-weight:700;margin-bottom:10px;">Actions</div>
+    <div id="moveTabsContainer" style="display:flex;flex-direction:column;gap:5px;"></div>
+    <button id="deleteNoteBtn" style="margin-top:10px;background:#f87171;color:white;border:none;padding:6px 10px;border-radius:8px;cursor:pointer;">Delete</button>
+</div>
 <div class="month-label" id="monthDisplay">March 2026</div>
 <button id="todayBtn" onclick="jumpToToday()">Today</button>
 <div class="cal-icon-wrapper">
@@ -532,6 +534,17 @@ function renderDeck() {
         div.onclick = () => openNoteViewer(note.content);
 deck.appendChild(div);
     });
+// Long-press detection
+let pressTimer;
+div.addEventListener('mousedown', (e) => {
+    pressTimer = setTimeout(() => openNoteMenu(e, note), 500);
+});
+div.addEventListener('mouseup', ()=>clearTimeout(pressTimer));
+div.addEventListener('mouseleave', ()=>clearTimeout(pressTimer));
+div.addEventListener('touchstart', (e)=>{
+    pressTimer = setTimeout(() => openNoteMenu(e, note), 500);
+});
+div.addEventListener('touchend', ()=>clearTimeout(pressTimer));
 }
 /* [END] */
 /* [START] - Updated Modal Toggle & Heatmap Logic */
@@ -674,6 +687,68 @@ window.onload = () => {
     renderDeck(); 
 }
 /* [END] */
+function openNoteMenu(event, note){
+    const menu = document.getElementById('noteMenu');
+    const moveContainer = document.getElementById('moveTabsContainer');
+    const rect = event.target.getBoundingClientRect();
+    
+    // Position near cursor
+    const x = event.clientX || event.touches?.[0].clientX || rect.left;
+    const y = event.clientY || event.touches?.[0].clientY || rect.top;
+    menu.style.left = `${x}px`;
+    menu.style.top = `${y}px`;
+    menu.style.display = 'block';
+    
+    // Populate categories
+    moveContainer.innerHTML = '';
+    document.querySelectorAll('.bubble').forEach(b => {
+        if(b.innerText==='Tags') return; // skip Tags placeholder
+        const cb = document.createElement('input');
+        cb.type='checkbox';
+        cb.id='move_'+b.innerText;
+        cb.checked = (note.category === b.innerText);
+        
+        const label = document.createElement('label');
+        label.htmlFor = cb.id;
+        label.innerText = b.innerText;
+        label.style.cursor='pointer';
+        
+        const div = document.createElement('div');
+        div.appendChild(cb);
+        div.appendChild(label);
+        moveContainer.appendChild(div);
+    });
+    
+    // Delete button
+    const deleteBtn = document.getElementById('deleteNoteBtn');
+    deleteBtn.onclick = () => {
+        // Move to recentlyDeleted
+        if(!db.recentlyDeleted) db.recentlyDeleted=[];
+        db.recentlyDeleted.push(note);
+        
+        // Remove from notes_list
+        db.notes_list = db.notes_list.filter(n => n.id !== note.id);
+        save();
+        renderDeck();
+        menu.style.display='none';
+    };
+    
+    // Handle category moves
+    Array.from(moveContainer.querySelectorAll('input[type="checkbox"]')).forEach(cb => {
+        cb.onchange = () => {
+            if(cb.checked) note.category = cb.nextSibling.innerText;
+            else note.category = 'General'; // fallback if unchecked
+            save();
+            renderDeck();
+        };
+    });
+}
+
+// Hide menu when clicking elsewhere
+document.addEventListener('click', (e)=>{
+    const menu = document.getElementById('noteMenu');
+    if(!menu.contains(e.target)) menu.style.display='none';
+});
 </script>
 </body>
 </html>

@@ -397,6 +397,13 @@ let starredIds=JSON.parse(localStorage.getItem('reson_starred_ids'))||[]
 
 const daysShort=['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 
+function jumpToToday(){
+    selectedDate = new Date();
+    setupCalendar();
+    if(currentCategory) loadContent();
+    renderDeck();
+}
+
 function formatDateKey(date){
 return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`
 }
@@ -527,11 +534,7 @@ function renderDeck() {
 
         const div = document.createElement('div');
         div.className = 'saved-note';
-        div.innerHTML = `
-            <div class="saved-note-title">${formattedDate} • ${note.category}</div>
-            <div class="saved-note-text">${note.content}</div>
-        `;
-        div.onclick = () => openNoteViewer(note.content);
+div.onclick = () => openNoteViewer(note.content);
 deck.appendChild(div);
     });
 // Long-press detection
@@ -749,6 +752,17 @@ document.addEventListener('click', (e)=>{
     const menu = document.getElementById('noteMenu');
     if(!menu.contains(e.target)) menu.style.display='none';
 });
+function openNoteViewer(content){
+    const viewer=document.getElementById('noteViewer');
+    const viewerContent=document.getElementById('noteViewerContent');
+    viewerContent.innerText=content;
+    viewer.classList.add('open');
+}
+
+function closeNoteViewer(){
+    const viewer=document.getElementById('noteViewer');
+    viewer.classList.remove('open');
+}
 </script>
 </body>
 </html>

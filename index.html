@@ -265,6 +265,36 @@ position:relative;
 color:#333;
 }
 .circle-day.selected{outline:2px solid white;outline-offset:2px;}
+
+/* Fullscreen Note Viewer */
+#noteViewer{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:white;
+z-index:2000;
+display:none;
+overflow-y:auto;
+padding:40px 25px;
+box-sizing:border-box;
+transform:translateX(100%);
+transition:transform 0.35s cubic-bezier(.32,.72,0,.99);
+}
+
+#noteViewer.open{
+display:block;
+transform:translateX(0);
+}
+
+#noteViewerContent{
+max-width:600px;
+margin:auto;
+font-size:1.2rem;
+line-height:1.7;
+white-space:pre-wrap;
+}
 </style>
 </head>
 
@@ -302,6 +332,10 @@ color:#333;
 <div id="noteDeck"></div>
 
 <div id="overlay" onclick="toggleModal()"></div>
+
+<div id="noteViewer">
+    <div id="noteViewerContent"></div>
+</div>
 
 <div id="calModal">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;">
@@ -474,7 +508,8 @@ function renderDeck() {
             <div class="saved-note-title">${formattedDate} • ${note.category}</div>
             <div class="saved-note-text">${note.content}</div>
         `;
-        deck.appendChild(div);
+        div.onclick = () => openNoteViewer(note.content);
+deck.appendChild(div);
     });
 }
 /* [END] */
@@ -579,6 +614,39 @@ async function uploadToCloud() {
     }
 }
 
+
+let startX = 0;
+
+function openNoteViewer(text){
+    const viewer = document.getElementById('noteViewer');
+    const content = document.getElementById('noteViewerContent');
+
+    content.innerText = text;
+
+    viewer.style.display = 'block';
+    setTimeout(()=>viewer.classList.add('open'),10);
+}
+
+function closeNoteViewer(){
+    const viewer = document.getElementById('noteViewer');
+    viewer.classList.remove('open');
+    setTimeout(()=>viewer.style.display='none',350);
+}
+
+/* Swipe right to close */
+const viewer = document.getElementById('noteViewer');
+
+document.addEventListener('touchstart',(e)=>{
+    startX = e.touches[0].clientX;
+});
+
+document.addEventListener('touchend',(e)=>{
+    const endX = e.changedTouches[0].clientX;
+    if(endX - startX > 80){
+        closeNoteViewer();
+    }
+});
+    
 window.onload = () => { 
     syncWithCloud(); 
     setupCalendar(); 

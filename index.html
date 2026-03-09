@@ -289,11 +289,30 @@ transform:translateX(0);
 }
 
 #noteViewerContent{
-max-width:600px;
-margin:auto;
-font-size:1.2rem;
-line-height:1.7;
-white-space:pre-wrap;
+    max-width:600px;
+    margin:auto;
+    font-size:1.2rem;
+    line-height:1.7;
+    white-space:pre-wrap;
+}
+
+#noteViewerClose {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    font-weight: 700;
+    cursor: pointer;
+    color: #2d5a3a;
+    z-index: 2100;
+    transition: transform 0.2s, color 0.2s;
+}
+#noteViewerClose:hover {
+    transform: scale(1.2);
+    color: #166534;
+}
 }
 </style>
 </head>
@@ -334,7 +353,9 @@ white-space:pre-wrap;
 <div id="overlay" onclick="toggleModal()"></div>
 
 <div id="noteViewer">
+    <button id="noteViewerClose" onclick="closeNoteViewer()">×</button>
     <div id="noteViewerContent"></div>
+</div>
 </div>
 
 <div id="calModal">

@@ -320,6 +320,15 @@ const strip=document.getElementById('strip')
 const fullGrid=document.getElementById('fullGrid')
 const todoItemsContainer=document.getElementById('todoItems')
 const textarea=document.getElementById('noteContent')
+// autosave typing every 3 seconds
+setInterval(() => {
+    if (!currentCategory) return;
+    const key = noteKey();
+    if (!key) return;
+
+    db.notes[key] = textarea.value;
+    save();
+}, 3000);
 const todoList=document.getElementById('todoList')
 const todayBtn=document.getElementById('todayBtn')
 
@@ -338,8 +347,10 @@ return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${Str
 function save(){
 localStorage.setItem('reson_db',JSON.stringify(db))
 localStorage.setItem('reson_starred_ids',JSON.stringify(starredIds))
-}
 
+// permanent safety backup
+localStorage.setItem('reson_db_backup', JSON.stringify(db))
+}
 function noteKey(){
 return currentCategory ? formatDateKey(selectedDate)+"_"+currentCategory : null
 }
@@ -528,7 +539,21 @@ async function syncWithCloud() {
         });
         if (response.ok) {
             const cloudData = await response.json();
-            db = cloudData;
+             // Merge cloud + local so nothing gets overwritten
+if (cloudData) {
+    if (!Array.isArray(db.notes_list)) db.notes_list = [];
+    if (!Array.isArray(cloudData.notes_list)) cloudData.notes_list = [];
+
+    const combined = [...cloudData.notes_list];
+
+    db.notes_list.forEach(localNote => {
+        if (!combined.some(n => n.id === localNote.id)) {
+            combined.push(localNote);
+        }
+    });
+
+    db.notes_list = combined;
+}
             save(); 
             renderDeck();
             setupCalendar();

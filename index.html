@@ -346,6 +346,9 @@ transform:translateX(0);
 </div>
 
 <div class="note-container">
+<div style="display:flex;gap:10px;margin-bottom:10px;">
+<button onclick="insertBullet()" style="border:none;background:#e8f5e9;border-radius:8px;padding:6px 10px;font-weight:700;cursor:pointer;">•</button>
+</div>
 <textarea id="noteContent" placeholder="Type your notes..."></textarea>
 <button class="add-note" onclick="commitNote()">✔</button>
 </div>
@@ -378,6 +381,23 @@ const strip=document.getElementById('strip')
 const fullGrid=document.getElementById('fullGrid')
 const todoItemsContainer=document.getElementById('todoItems')
 const textarea=document.getElementById('noteContent')
+textarea.addEventListener('keydown', function(e){
+    if(e.key === "Enter"){
+        const start = textarea.selectionStart;
+        const before = textarea.value.substring(0,start);
+        const line = before.split("\n").pop();
+
+        if(line.trim().startsWith("•")){
+            e.preventDefault();
+            textarea.value =
+                textarea.value.substring(0,start) +
+                "\n• " +
+                textarea.value.substring(start);
+
+            textarea.selectionStart = textarea.selectionEnd = start + 3;
+        }
+    }
+});
 // autosave typing every 3 seconds
 setInterval(() => {
     if (!currentCategory) return;
@@ -701,7 +721,15 @@ document.addEventListener('touchend',(e)=>{
         closeNoteViewer();
     }
 });
-    
+function insertBullet(){
+    const ta = document.getElementById('noteContent');
+    const start = ta.selectionStart;
+    const text = ta.value;
+
+    ta.value = text.slice(0,start) + "• " + text.slice(start);
+    ta.focus();
+    ta.selectionStart = ta.selectionEnd = start + 2;
+}
 window.onload = () => { 
     syncWithCloud(); 
     setupCalendar(); 
@@ -788,9 +816,16 @@ function openNoteViewer(note){
     activeNote = note;
     viewerContent.value = note.content;
 
-    viewer.classList.add('open');
-}
+    function openNoteViewer(note){
+    const viewer=document.getElementById('noteViewer');
+    const viewerContent=document.getElementById('noteViewerContent');
 
+    activeNote = note;
+    viewerContent.value = note.content;
+
+    viewer.style.display='block';
+    setTimeout(()=>viewer.classList.add('open'),10);
+}
 </script>
 </body>
 </html>

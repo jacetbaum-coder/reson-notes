@@ -356,7 +356,8 @@ transform:translateX(0);
 
 <div id="noteViewer">
     <button id="noteViewerClose" onclick="closeNoteViewer()">×</button>
-    <div id="noteViewerContent"></div>
+    <textarea id="noteViewerContent"></textarea>
+<button onclick="saveViewerEdit()" style="margin-top:20px;padding:10px 18px;border:none;border-radius:10px;background:#2d5a3a;color:white;font-weight:700;cursor:pointer;">Save</button>
 </div>
 </div>
 
@@ -529,7 +530,16 @@ function renderDeck() {
     notesToShow.forEach(note => {
     const div = document.createElement('div');
     div.className = 'saved-note';
-    div.onclick = () => openNoteViewer(note.content);
+
+const title = note.content.split('\n')[0].slice(0,40);
+const preview = note.content.split('\n').slice(1).join(' ').slice(0,80);
+
+div.innerHTML = `
+<div class="saved-note-title">${note.category}</div>
+<div class="saved-note-text"><strong>${title}</strong><br>${preview}</div>
+`;
+
+div.onclick = () => openNoteViewer(note);
     
     // Long-press detection for menu
     let pressTimer;
@@ -698,6 +708,15 @@ window.onload = () => {
     renderDeck(); 
 }
 /* [END] */
+function saveViewerEdit(){
+    if(!activeNote) return;
+
+    const viewerContent=document.getElementById('noteViewerContent');
+    activeNote.content = viewerContent.value;
+
+    save();
+    renderDeck();
+}
 function openNoteMenu(event, note){
     const menu = document.getElementById('noteMenu');
     const moveContainer = document.getElementById('moveTabsContainer');
@@ -760,17 +779,18 @@ document.addEventListener('click', (e)=>{
     const menu = document.getElementById('noteMenu');
     if(!menu.contains(e.target)) menu.style.display='none';
 });
-function openNoteViewer(content){
+let activeNote = null;
+
+function openNoteViewer(note){
     const viewer=document.getElementById('noteViewer');
     const viewerContent=document.getElementById('noteViewerContent');
-    viewerContent.innerText=content;
+
+    activeNote = note;
+    viewerContent.value = note.content;
+
     viewer.classList.add('open');
 }
 
-function closeNoteViewer(){
-    const viewer=document.getElementById('noteViewer');
-    viewer.classList.remove('open');
-}
 </script>
 </body>
 </html>

@@ -381,6 +381,7 @@ const strip=document.getElementById('strip')
 const fullGrid=document.getElementById('fullGrid')
 const todoItemsContainer=document.getElementById('todoItems')
 const textarea=document.getElementById('noteContent')
+// Auto bullet continuation for main textarea
 textarea.addEventListener('keydown', function(e){
     if(e.key === "Enter"){
         const start = textarea.selectionStart;
@@ -398,15 +399,26 @@ textarea.addEventListener('keydown', function(e){
         }
     }
 });
-// autosave typing every 3 seconds
-setInterval(() => {
-    if (!currentCategory) return;
-    const key = noteKey();
-    if (!key) return;
 
-    db.notes[key] = textarea.value;
-    save();
-}, 3000);
+// Auto bullet continuation for fullscreen viewer
+const viewerContent=document.getElementById('noteViewerContent');
+viewerContent.addEventListener('keydown', function(e){
+    if(e.key === "Enter"){
+        const start = viewerContent.selectionStart;
+        const before = viewerContent.value.substring(0,start);
+        const line = before.split("\n").pop();
+
+        if(line.trim().startsWith("•")){
+            e.preventDefault();
+            viewerContent.value =
+                viewerContent.value.substring(0,start) +
+                "\n• " +
+                viewerContent.value.substring(start);
+
+            viewerContent.selectionStart = viewerContent.selectionEnd = start + 3;
+        }
+    }
+});
 const todoList=document.getElementById('todoList')
 const todayBtn=document.getElementById('todayBtn')
 
@@ -730,10 +742,16 @@ function insertBullet(){
     ta.focus();
     ta.selectionStart = ta.selectionEnd = start + 2;
 }
-window.onload = () => { 
-    syncWithCloud(); 
-    setupCalendar(); 
-    renderDeck(); 
+
+// Insert bullet in fullscreen viewer
+function insertBulletViewer(){
+    const ta = document.getElementById('noteViewerContent');
+    const start = ta.selectionStart;
+    const text = ta.value;
+
+    ta.value = text.slice(0,start) + "• " + text.slice(start);
+    ta.focus();
+    ta.selectionStart = ta.selectionEnd = start + 2;
 }
 /* [END] */
 function saveViewerEdit(){
@@ -810,13 +828,6 @@ document.addEventListener('click', (e)=>{
 let activeNote = null;
 
 function openNoteViewer(note){
-    const viewer=document.getElementById('noteViewer');
-    const viewerContent=document.getElementById('noteViewerContent');
-
-    activeNote = note;
-    viewerContent.value = note.content;
-
-    function openNoteViewer(note){
     const viewer=document.getElementById('noteViewer');
     const viewerContent=document.getElementById('noteViewerContent');
 

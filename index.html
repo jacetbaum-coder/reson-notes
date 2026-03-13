@@ -522,7 +522,7 @@ function renderTodos(list, noteText) {
         noteText.split('\n').filter(line => line.trim() !== "").forEach(line => {
             const div = document.createElement('div');
             div.className = 'todo-item';
-            div.innerHTML = `<input type="checkbox"> <span class="todo-text">${line}</span>`;
+            div.innerHTML = `<input type="checkbox" onchange="this.nextElementSibling.classList.toggle('completed', this.checked)"> <span class="todo-text">${line}</span>`;
             todoItemsContainer.appendChild(div);
         });
     }
@@ -874,6 +874,11 @@ function deleteDeckNote(id){
     save();
     renderDeck();
 }
+/* Initialize app on load */
+window.addEventListener("DOMContentLoaded", () => {
+    setupCalendar();
+    renderDeck();
+});
 </script>
 </body>
 </html>

@@ -533,15 +533,18 @@ function commitNote() {
     const text = textarea.value.trim();
     if (!text) return;
 
-    const newNote = {
-        id: Date.now(),
-        date: formatDateKey(selectedDate),
-        category: currentCategory || 'General',
-        content: text
-    };
+   const newNote = {
+    id: Date.now(),
+    date: formatDateKey(selectedDate),
+    category: currentCategory || 'General',
+    content: text
+};
 
-    if (!Array.isArray(db.notes_list)) db.notes_list = [];
-    db.notes_list.unshift(newNote); 
+if (!db.notes) db.notes = {};
+if (noteKey()) db.notes[noteKey()] = text;  // <-- ADD THIS LINE
+
+if (!Array.isArray(db.notes_list)) db.notes_list = [];
+db.notes_list.unshift(newNote); 
     
     save();
     textarea.value = '';

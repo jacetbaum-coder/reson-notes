@@ -591,17 +591,7 @@ div.onclick = () => openNoteViewer(note);
 
     deck.appendChild(div);
 });
-// Long-press detection
-let pressTimer;
-div.addEventListener('mousedown', (e) => {
-    pressTimer = setTimeout(() => openNoteMenu(e, note), 500);
-});
-div.addEventListener('mouseup', ()=>clearTimeout(pressTimer));
-div.addEventListener('mouseleave', ()=>clearTimeout(pressTimer));
-div.addEventListener('touchstart', (e)=>{
-    pressTimer = setTimeout(() => openNoteMenu(e, note), 500);
-});
-div.addEventListener('touchend', ()=>clearTimeout(pressTimer));
+// REMOVE THIS ENTIRE BLOCK
 }
 /* [END] */
 /* [START] - Updated Modal Toggle & Heatmap Logic */

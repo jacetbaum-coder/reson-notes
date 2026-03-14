@@ -813,19 +813,7 @@ function openNoteMenu(event, note){
     });
 }
     
-    // Delete button
-    const deleteBtn = document.getElementById('deleteNoteBtn');
-    deleteBtn.onclick = () => {
-        // Move to recentlyDeleted
-        if(!db.recentlyDeleted) db.recentlyDeleted=[];
-        db.recentlyDeleted.push(note);
-        
-        // Remove from notes_list
-        db.notes_list = db.notes_list.filter(n => n.id !== note.id);
-        save();
-        renderDeck();
-        menu.style.display='none';
-    };
+ // (DELETE THIS ENTIRE BLOCK — it’s duplicated and causes moveContainer error)
     
     // Handle category moves
     Array.from(moveContainer.querySelectorAll('input[type="checkbox"]')).forEach(cb => {

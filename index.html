@@ -700,29 +700,31 @@ const R2_URL = `https://api.cloudflare.com/client/v4/accounts/${CF_CONFIG.accoun
 
 async function syncWithCloud() {
     try {
-        const response = await fetch('/api/syncNotes?t=' + Date.now());
-        if (response.ok) {
-            const cloudData = await response.json();
-            if (cloudData) {
-                if (!Array.isArray(db.notes_list)) db.notes_list = [];
-                if (!Array.isArray(cloudData.notes_list)) cloudData.notes_list = [];
+        const response = await fetch('/api/syncNotes?t=' + Date.now(), { cache: 'no-store' }); // force fresh fetch
+        const cloudData = await response.json();
 
-                const combined = [...cloudData.notes_list];
+        // TEMP DEBUG: show what cloud actually returns
+        alert(JSON.stringify(cloudData));
 
-                db.notes_list.forEach(localNote => {
-                    if (!combined.some(n => n.id === localNote.id)) {
-                        combined.push(localNote);
-                    }
-                });
+        if (cloudData) {
+            if (!Array.isArray(db.notes_list)) db.notes_list = [];
+            if (!Array.isArray(cloudData.notes_list)) cloudData.notes_list = [];
 
-                db.notes_list = combined;
-            }
-            save(); 
-            renderDeck();
-            setupCalendar();
+            const combined = [...cloudData.notes_list];
+
+            db.notes_list.forEach(localNote => {
+                if (!combined.some(n => n.id === localNote.id)) {
+                    combined.push(localNote);
+                }
+            });
+
+            db.notes_list = combined;
         }
+        save(); 
+        renderDeck();
+        setupCalendar();
     } catch (e) {
-        console.log("Cloud sync unavailable, using local storage.");
+        alert("Cloud sync unavailable: " + e.message);
     }
 }
 async function uploadToCloud() {

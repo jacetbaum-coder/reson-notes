@@ -703,10 +703,10 @@ async function syncWithCloud() {
 
     try {
         const response = await fetch('/api/syncNotes?t=' + Date.now(), { cache: 'no-store' });
-        alert("fetch done, status: " + response.status); // <-- shows fetch result
+        alert("fetch done, status: " + response.status);
 
         const cloudData = await response.json();
-        alert("data: " + JSON.stringify(cloudData)); // <-- shows actual data
+        alert("data: " + JSON.stringify(cloudData));
 
         if (cloudData) {
             if (!Array.isArray(db.notes_list)) db.notes_list = [];
@@ -725,8 +725,11 @@ async function syncWithCloud() {
         save(); 
         renderDeck();
         setupCalendar();
+
+        return cloudData; // <-- return the cloud data
     } catch (e) {
         alert("Cloud sync failed: " + e.message);
+        return null;
     }
 }
 async function uploadToCloud() {

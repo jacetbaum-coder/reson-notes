@@ -380,7 +380,7 @@ transform:translateX(0);
 <div id="overlay" onclick="toggleModal()"></div>
 
 <!-- In-app Delete Confirmation Modal -->
-<div id="deleteConfirmModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:6000; display:flex; align-items:center; justify-content:center;">
+<div id="deleteConfirmModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:6000; align-items:center; justify-content:center;">
   <div style="background:white; padding:25px; border-radius:20px; max-width:320px; width:90%; text-align:center;">
     <p style="margin-bottom:20px; font-weight:600;">Are you sure you want to permanently delete this note?</p>
     <div style="display:flex; gap:10px; justify-content:center;">
@@ -413,7 +413,6 @@ const strip=document.getElementById('strip')
 const fullGrid=document.getElementById('fullGrid')
 const todoItemsContainer=document.getElementById('todoItems')
 const textarea=document.getElementById('noteContent')
-let pendingDeleteId = null;
 // Auto bullet continuation for main textarea
 textarea.addEventListener('keydown', function(e){
     if(e.key === "Enter"){
@@ -896,21 +895,6 @@ function deleteDeckNote(id){
     save();
     renderDeck();
 }
-// Modal button logic
-document.getElementById('cancelDeleteBtn').onclick = () => {
-    pendingDeleteId = null;
-    document.getElementById('deleteConfirmModal').style.display = 'none';
-};
-
-document.getElementById('confirmDeleteBtn').onclick = () => {
-    if (pendingDeleteId !== null) {
-        db.recentlyDeleted = (db.recentlyDeleted || []).filter(n => n.id !== pendingDeleteId);
-        save();
-        renderDeletedNotes();
-        pendingDeleteId = null;
-    }
-    document.getElementById('deleteConfirmModal').style.display = 'none';
-};
 /* Initialize app on load */
 window.addEventListener("DOMContentLoaded", () => {
     setupCalendar();
@@ -988,10 +972,29 @@ function restoreNote(id) {
 let pendingDeleteId = null; // Add this at top of script, before functions
 
 function deleteForever(id){
-    // Only open in-app modal instead of immediate deletion
     pendingDeleteId = id;
-    const modal = document.getElementById('deleteConfirmModal');
-    modal.style.display = 'flex';
+    document.getElementById('deleteConfirmModal').style.display = 'flex';
+    
+    // Cancel button
+    document.getElementById('cancelDeleteBtn').onclick = () => {
+        pendingDeleteId = null;
+        document.getElementById('deleteConfirmModal').style.display = 'none';
+    };
+
+    // Confirm delete button
+    document.getElementById('confirmDeleteBtn').onclick = () => {
+        if(pendingDeleteId !== null){
+            const idx = db.recentlyDeleted.findIndex(n => n.id === pendingDeleteId);
+            if(idx > -1) db.recentlyDeleted.splice(idx,1);
+            save();
+            renderDeletedNotes();
+            pendingDeleteId = null;
+            document.getElementById('deleteConfirmModal').style.display = 'none';
+        }
+    };
+}
+    pendingDeleteId = id;
+    document.getElementById('deleteConfirmModal').style.display = 'flex';
 }
 </script>
 </body>

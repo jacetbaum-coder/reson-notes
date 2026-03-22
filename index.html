@@ -370,7 +370,7 @@ transform:translateX(0);
         <button onclick="uploadToCloud()" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:10px; cursor:pointer; font-weight:700; font-size: 0.8rem;">
             Save Notes Now
         </button>
-       <button onclick="syncWithCloud()" style="background:#000; color:white; border:none; padding:12px 20px; border-radius:10px; cursor:pointer; font-weight:700; font-size:0.9rem; z-index:10000; position:relative;">
+       <button id="loadCloudBtn" style="background:var(--accent); color:white; border:none; padding:12px 20px; border-radius:10px; cursor:pointer; font-weight:700; font-size:0.9rem;">
     Load Latest Notes
 </button>
     </div>
@@ -999,11 +999,10 @@ function deleteForever(id){
     document.getElementById('deleteConfirmModal').style.display = 'flex';
 }
 document.addEventListener("DOMContentLoaded", () => {
-    const btn = document.querySelector("button[onclick='syncWithCloud()']");
-    btn.removeAttribute("onclick");
+    const btn = document.getElementById("loadCloudBtn");
     btn.addEventListener("click", async () => {
         const data = await syncWithCloud();
-        alert("Cloud data loaded. Notes count: " + ((data.notes_list && data.notes_list.length) || 0));
+        alert("Cloud data loaded. Notes count: " + ((data && data.notes_list && data.notes_list.length) || 0));
     });
 });
 </script>

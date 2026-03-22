@@ -699,10 +699,10 @@ const CF_CONFIG = {
 const R2_URL = `https://api.cloudflare.com/client/v4/accounts/${CF_CONFIG.accountId}/r2/buckets/${CF_CONFIG.bucket}/objects/notes_db.json`;
 
 async function syncWithCloud() {
-    alert("syncWithCloud called"); 
+    alert("iPhone is trying to connect..."); 
 
     try {
-        // We MUST send the token to Cloudflare to get permission to read the file
+        // This is the part where the iPhone "introduces" itself to Cloudflare
         const response = await fetch(R2_URL, { 
             method: 'GET',
             headers: {
@@ -712,15 +712,25 @@ async function syncWithCloud() {
             cache: 'no-store' 
         }); 
 
-        if (!response.ok) throw new Error('Fetch failed, status ' + response.status);
+        // If the door is locked (401 or 403 error)
+        if (response.status === 401 || response.status === 403) {
+            alert("Error: Cloudflare doesn't recognize your API Token. Check your token settings.");
+            return;
+        }
+
+        // If the file just isn't there (404 error)
+        if (response.status === 404) {
+            alert("Error: No notes found in the cloud. Save a note on your Mac first!");
+            return;
+        }
 
         const cloudData = await response.json();
-        alert("Cloud data found! Notes count: " + (cloudData.notes_list ? cloudData.notes_list.length : 0));
-
+        
         if (cloudData && cloudData.notes_list) {
-            if (!Array.isArray(db.notes_list)) db.notes_list = [];
+            alert("Success! Found " + cloudData.notes_list.length + " notes in the cloud.");
             
-            // Merge logic
+            // This part merges the cloud notes with your phone notes
+            if (!Array.isArray(db.notes_list)) db.notes_list = [];
             const combined = [...cloudData.notes_list];
             db.notes_list.forEach(localNote => {
                 if (!combined.some(n => n.id === localNote.id)) {
@@ -732,10 +742,14 @@ async function syncWithCloud() {
             save(); 
             renderDeck();
             setupCalendar();
+        } else {
+            alert("Connected, but the cloud file is empty.");
         }
         
     } catch (e) {
-        alert("Cloud sync failed: " + e.message);
+        // This triggers if the internet connection itself fails
+        alert("Connection Error: The iPhone can't reach the cloud at all. Check your Wi-Fi or CORS settings.");
+        console.log(e);
     }
 }
 async function uploadToCloud() {

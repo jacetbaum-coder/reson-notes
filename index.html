@@ -876,7 +876,7 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 /* --- TAB NAVIGATION LOGIC --- */
 function showSettings() {
-    // Hide Main UI
+    // Hide Main UI instantly
     document.querySelector('header').style.display = 'none';
     document.getElementById('strip').style.display = 'none';
     document.querySelector('.filter-container').style.display = 'none';
@@ -886,11 +886,16 @@ function showSettings() {
 
     // Show Settings
     document.getElementById('settingsView').style.display = 'block';
-    renderDeletedNotes();
+    
+    // Only render deleted notes if not already rendered
+    if (!document.getElementById('deletedNotesList').hasChildNodes()) {
+        renderDeletedNotes();
+    }
+}
 }
 
 function showMain() {
-    // Show Main UI
+    // Show Main UI instantly
     document.querySelector('header').style.display = 'flex';
     document.getElementById('strip').style.display = 'flex';
     document.querySelector('.filter-container').style.display = 'flex';
@@ -900,8 +905,9 @@ function showMain() {
     // Hide Settings
     document.getElementById('settingsView').style.display = 'none';
     
+    // Only load content if category changed
     if(currentCategory) loadContent();
-    renderDeck();
+}
 }
 
 function renderDeletedNotes() {

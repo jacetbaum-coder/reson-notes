@@ -699,12 +699,14 @@ const CF_CONFIG = {
 const R2_URL = `https://api.cloudflare.com/client/v4/accounts/${CF_CONFIG.accountId}/r2/buckets/${CF_CONFIG.bucket}/objects/notes_db.json`;
 
 async function syncWithCloud() {
-    try {
-        const response = await fetch('/api/syncNotes?t=' + Date.now(), { cache: 'no-store' }); // force fresh fetch
-        const cloudData = await response.json();
+    alert("syncWithCloud called"); // <-- shows function ran
 
-        // TEMP DEBUG: show what cloud actually returns
-        alert(JSON.stringify(cloudData));
+    try {
+        const response = await fetch('/api/syncNotes?t=' + Date.now(), { cache: 'no-store' });
+        alert("fetch done, status: " + response.status); // <-- shows fetch result
+
+        const cloudData = await response.json();
+        alert("data: " + JSON.stringify(cloudData)); // <-- shows actual data
 
         if (cloudData) {
             if (!Array.isArray(db.notes_list)) db.notes_list = [];
@@ -724,7 +726,7 @@ async function syncWithCloud() {
         renderDeck();
         setupCalendar();
     } catch (e) {
-        alert("Cloud sync unavailable: " + e.message);
+        alert("Cloud sync failed: " + e.message);
     }
 }
 async function uploadToCloud() {

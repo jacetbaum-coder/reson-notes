@@ -378,15 +378,6 @@ transform:translateX(0);
     </div>
 </div>
 <div id="overlay" onclick="toggleModal()"></div>
-
-<!-- Confirm Deletion Modal -->
-<div id="confirmDeleteModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; color:black; padding:20px; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,0.2); z-index:6000; min-width:250px; text-align:center;">
-    <p style="margin-bottom:20px;">Are you sure you want to permanently delete this note?</p>
-    <div style="display:flex; justify-content:center; gap:10px;">
-        <button id="cancelDeleteBtn" style="padding:6px 12px; border:none; border-radius:8px; background:#ccc; cursor:pointer;">Cancel</button>
-        <button id="confirmDeleteBtn" style="padding:6px 12px; border:none; border-radius:8px; background:#f87171; color:white; cursor:pointer;">Delete</button>
-    </div>
-</div>
 <div id="noteViewer">
     <button id="noteViewerClose" onclick="closeNoteViewer()">×</button>
     <textarea id="noteViewerContent"></textarea>
@@ -967,27 +958,9 @@ function restoreNote(id) {
     }
 }
 function deleteForever(id){
-    const modal = document.getElementById('confirmDeleteModal');
-    modal.style.display = 'block';
-
-    const confirmBtn = document.getElementById('confirmDeleteBtn');
-    const cancelBtn = document.getElementById('cancelDeleteBtn');
-
-    // Remove any old event listeners to prevent double actions
-    confirmBtn.onclick = null;
-    cancelBtn.onclick = null;
-
-    confirmBtn.onclick = () => {
-        db.recentlyDeleted = (db.recentlyDeleted || []).filter(n => n.id !== id);
-        save();
-        renderDeletedNotes();
-        modal.style.display = 'none';
-    };
-
-    cancelBtn.onclick = () => {
-        modal.style.display = 'none';
-    };
-}
+    db.recentlyDeleted = (db.recentlyDeleted || []).filter(n => n.id !== id);
+    save();
+    renderDeletedNotes();
 }
 </script>
 </body>

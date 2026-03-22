@@ -370,7 +370,9 @@ transform:translateX(0);
         <button onclick="uploadToCloud()" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:10px; cursor:pointer; font-weight:700; font-size: 0.8rem;">
             Save Notes Now
         </button>
-        <button onclick="syncWithCloud()" style="background:#000; color:white; border:none; padding:12px 20px; border-radius:10px; cursor:pointer; font-weight:700; font-size:0.9rem; z-index:10000; position:relative;">
+       <button onclick="syncWithCloud()" style="background:#000; color:white; border:none; padding:12px 20px; border-radius:10px; cursor:pointer; font-weight:700; font-size:0.9rem; z-index:10000; position:relative;">
+    Load Latest Notes
+</button>
     </div>
 </div>
 
@@ -979,12 +981,13 @@ document.getElementById('cancelDeleteBtn').onclick = () => {
 };
 
 document.getElementById('confirmDeleteBtn').onclick = () => {
-    if(pendingDeleteId !== null){
+    if(pendingDeleteId !== null) {
+        // Your logic to delete the note from db.recentlyDeleted
         db.recentlyDeleted = db.recentlyDeleted.filter(n => n.id !== pendingDeleteId);
         save();
         renderDeletedNotes();
-        pendingDeleteId = null;
         document.getElementById('deleteConfirmModal').style.display = 'none';
+        pendingDeleteId = null;
     }
 };
 

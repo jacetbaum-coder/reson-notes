@@ -362,13 +362,19 @@ transform:translateX(0);
     <h2 style="margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px;">Settings</h2>
     
     <div class="note-container" style="margin-bottom: 20px; background: white; color: black;">
-        <h3 style="margin-top:0; font-size: 1rem;">Cloud Sync</h3>
-        <p style="font-size: 0.8rem; color: var(--muted); margin-bottom: 15px;">Connected to Cloudflare R2 storage.</p>
-        <div style="display:flex; gap:10px;">
-            <button onclick="uploadToCloud()" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:10px; cursor:pointer; font-weight:700; font-size: 0.8rem;">Manual Push</button>
-            <button onclick="syncWithCloud()" style="background:#000; color:white; border:none; padding:8px 15px; border-radius:10px; cursor:pointer; font-weight:700; font-size: 0.8rem;">Pull Latest</button>
-        </div>
+    <h3 style="margin-top:0; font-size: 1rem;">Cloud Backup</h3>
+    <p style="font-size: 0.8rem; color: var(--muted); margin-bottom: 15px;">
+        Keep your notes safe in the cloud. Use the buttons below to save or load your latest notes.
+    </p>
+    <div style="display:flex; gap:10px;">
+        <button onclick="uploadToCloud()" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:10px; cursor:pointer; font-weight:700; font-size: 0.8rem;">
+            Save Notes Now
+        </button>
+        <button onclick="syncWithCloud()" style="background:#000; color:white; border:none; padding:8px 15px; border-radius:10px; cursor:pointer; font-weight:700; font-size: 0.8rem;">
+            Load Latest Notes
+        </button>
     </div>
+</div>
 
     <div class="note-container" style="background: white; color: black;">
         <h3 style="margin-top:0; font-size: 1rem;">Recently Deleted</h3>

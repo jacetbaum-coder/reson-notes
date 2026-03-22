@@ -793,7 +793,9 @@ function openNoteMenu(event, noteId){
     const menu = document.getElementById('noteMenu');
     const moveContainer = document.getElementById('moveTabsContainer');
     const card = event.target.closest('.saved-note');
-const rect = card.getBoundingClientRect();
+    const rect = card.getBoundingClientRect();
+
+    const note = (db.notes_list || []).find(n => n.id === noteId); // <-- define note immediately
 
     // Position menu near cursor but keep inside viewport
     menu.style.left = `${rect.right - 130}px`;
@@ -842,7 +844,7 @@ menu.style.top = `${rect.top + 10}px`;
     menu.style.display='none';
 };
     // Handle category moves
-    const note = (db.notes_list || []).find(n => n.id === noteId); // <--- define note here
+    
 Array.from(moveContainer.querySelectorAll('input[type="checkbox"]')).forEach(cb => {
     cb.onchange = () => {
         if(!note) return;

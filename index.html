@@ -972,6 +972,22 @@ function restoreNote(id) {
 }
 let pendingDeleteId = null; // Add this at top of script, before functions
 
+// Wire up the delete confirmation buttons
+document.getElementById('cancelDeleteBtn').onclick = () => {
+    pendingDeleteId = null;
+    document.getElementById('deleteConfirmModal').style.display = 'none';
+};
+
+document.getElementById('confirmDeleteBtn').onclick = () => {
+    if(pendingDeleteId !== null){
+        db.recentlyDeleted = db.recentlyDeleted.filter(n => n.id !== pendingDeleteId);
+        save();
+        renderDeletedNotes();
+        pendingDeleteId = null;
+        document.getElementById('deleteConfirmModal').style.display = 'none';
+    }
+};
+
 function deleteForever(id){
     pendingDeleteId = id;
     document.getElementById('deleteConfirmModal').style.display = 'flex';

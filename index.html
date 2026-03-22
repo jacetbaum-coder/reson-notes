@@ -413,6 +413,7 @@ const strip=document.getElementById('strip')
 const fullGrid=document.getElementById('fullGrid')
 const todoItemsContainer=document.getElementById('todoItems')
 const textarea=document.getElementById('noteContent')
+let pendingDeleteId = null;
 // Auto bullet continuation for main textarea
 textarea.addEventListener('keydown', function(e){
     if(e.key === "Enter"){
@@ -895,6 +896,21 @@ function deleteDeckNote(id){
     save();
     renderDeck();
 }
+// Modal button logic
+document.getElementById('cancelDeleteBtn').onclick = () => {
+    pendingDeleteId = null;
+    document.getElementById('deleteConfirmModal').style.display = 'none';
+};
+
+document.getElementById('confirmDeleteBtn').onclick = () => {
+    if (pendingDeleteId !== null) {
+        db.recentlyDeleted = (db.recentlyDeleted || []).filter(n => n.id !== pendingDeleteId);
+        save();
+        renderDeletedNotes();
+        pendingDeleteId = null;
+    }
+    document.getElementById('deleteConfirmModal').style.display = 'none';
+};
 /* Initialize app on load */
 window.addEventListener("DOMContentLoaded", () => {
     setupCalendar();
@@ -972,8 +988,10 @@ function restoreNote(id) {
 let pendingDeleteId = null; // Add this at top of script, before functions
 
 function deleteForever(id){
+    // Only open in-app modal instead of immediate deletion
     pendingDeleteId = id;
-    document.getElementById('deleteConfirmModal').style.display = 'flex';
+    const modal = document.getElementById('deleteConfirmModal');
+    modal.style.display = 'flex';
 }
 </script>
 </body>

@@ -926,13 +926,22 @@ function renderDeletedNotes() {
         list.innerHTML = '<p style="color:var(--muted); font-size:0.8rem;">Trash is empty.</p>';
         return;
     }
-    deleted.forEach(note => {
+   deleted.forEach(note => {
+        // Auto-delete if more than 30 days old
+        if(note.deletedAt && (Date.now() - note.deletedAt) > 30*24*60*60*1000){
+            db.recentlyDeleted = db.recentlyDeleted.filter(n => n.id !== note.id);
+            return;
+        }
+
         const div = document.createElement('div');
         div.style = "background:#f8fdf9; border: 1px solid #e2e8f0; padding:12px; border-radius:12px; display:flex; justify-content:space-between; align-items:center;";
         const preview = note.content.split('\n')[0].substring(0, 20);
         div.innerHTML = `
             <div style="font-size:0.85rem; font-weight:600; color:#333;">${preview}...</div>
-            <button onclick="restoreNote(${note.id})" style="background:var(--accent); color:white; border:none; padding:6px 12px; border-radius:8px; font-size:0.7rem; cursor:pointer;">Restore</button>
+            <div style="display:flex; gap:5px;">
+                <button onclick="restoreNote(${note.id})" style="background:var(--accent); color:white; border:none; padding:6px 12px; border-radius:8px; font-size:0.7rem; cursor:pointer;">Restore</button>
+                <button onclick="deleteForever(${note.id})" style="background:#f87171; color:white; border:none; padding:6px 12px; border-radius:8px; font-size:0.7rem; cursor:pointer;">Delete Forever</button>
+            </div>
         `;
         list.appendChild(div);
     });
@@ -947,6 +956,11 @@ function restoreNote(id) {
         save();
         renderDeletedNotes();
     }
+}
+function deleteForever(id){
+    db.recentlyDeleted = (db.recentlyDeleted || []).filter(n => n.id !== id);
+    save();
+    renderDeletedNotes();
 }
 </script>
 </body>

@@ -696,35 +696,33 @@ const CF_CONFIG = {
 };
 
 // This is the "Full Path" - Copy this line exactly
-const R2_URL = "https://api.cloudflare.com/client/v4/accounts/0df0747b5cc853943508584dadcb9413/r2/buckets/reson-notes-storage/objects/notes_db.json";
+const R2_URL = "https://pub-66479d392b224c95a6cb0e230ac238bb.r2.dev/notes_db.json";
 
 async function syncWithCloud() {
     try {
+        // We are just downloading the file like a regular image or website
         const response = await fetch(R2_URL, { 
             method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + CF_CONFIG.apiToken,
-                'Content-Type': 'application/json'
-            },
-            mode: 'cors',      // Tells Safari "This is okay!"
-            credentials: 'omit' // Tells Safari "Don't worry about cookies"
+            mode: 'cors',
+            cache: 'no-store' 
         }); 
 
         if (!response.ok) {
-            alert("Cloud responded with an error: " + response.status);
+            alert("Cloud Error: " + response.status + ". Make sure you saved a note on your Mac first!");
             return;
         }
 
         const cloudData = await response.json();
+        
         if (cloudData) {
             db = cloudData; 
             save(); 
             renderDeck();
             setupCalendar();
-            alert("SUCCESS! Notes are now on your iPhone.");
+            alert("SUCCESS! Notes found and loaded.");
         }
     } catch (e) {
-        alert("Safari Blocked it again. Error: " + e.message);
+        alert("Safari Blocked: " + e.message);
     }
 }
 async function uploadToCloud() {

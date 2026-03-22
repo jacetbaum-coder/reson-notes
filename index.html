@@ -827,16 +827,18 @@ menu.style.top = `${rect.top + 10}px`;
     // Delete button
     const deleteBtn = document.getElementById('deleteNoteBtn');
     deleteBtn.onclick = () => {
-    const note = (db.notes_list || []).find(n => n.id === noteId.id || n.id === noteId);
-    if(!note) return;
+    const noteIndex = (db.notes_list || []).findIndex(n => n.id === noteId);
+    if(noteIndex === -1) return;
 
+    const note = db.notes_list[noteIndex];
     if(!db.recentlyDeleted) db.recentlyDeleted = [];
     note.deletedAt = Date.now();
     db.recentlyDeleted.unshift(note);
 
-    db.notes_list = db.notes_list.filter(n => n.id !== note.id);
+    db.notes_list.splice(noteIndex, 1);
     save();
     renderDeck();
+    renderDeletedNotes(); // Update the Recently Deleted panel if open
     menu.style.display='none';
 };
     // Handle category moves

@@ -700,7 +700,7 @@ const R2_URL = `https://api.cloudflare.com/client/v4/accounts/${CF_CONFIG.accoun
 
 async function syncWithCloud() {
     try {
-        const response = await fetch('/api/syncNotes'); // <-- call your API route
+        const response = await fetch('/api/syncNotes?t=' + Date.now());
         if (response.ok) {
             const cloudData = await response.json();
             if (cloudData) {
@@ -725,7 +725,6 @@ async function syncWithCloud() {
         console.log("Cloud sync unavailable, using local storage.");
     }
 }
-
 async function uploadToCloud() {
     try {
         await fetch('/api/syncNotes', {

@@ -576,7 +576,7 @@ const preview = note.content.split('\n').slice(1).join(' ').slice(0,80);
 div.innerHTML = `
 <div style="display:flex;justify-content:space-between;align-items:center;">
   <div class="saved-note-title">${note.category}</div>
-  <button style="background:#f87171;color:white;border:none;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:0.8rem;" onclick="deleteDeckNote(${note.id})">Delete</button>
+  <button style="background:none;border:none;font-size:1.2rem;cursor:pointer;padding:4px;" onclick="event.stopPropagation(); openNoteMenu(event, note)">⋯</button>
 </div>
 <div class="saved-note-text"><strong>${title}</strong><br>${preview}</div>
 `;

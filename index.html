@@ -586,7 +586,9 @@ function renderDeck() {
     deck.innerHTML = '';
     
     const selectedKey = formatDateKey(selectedDate);
-    const notesToShow = (db.notes_list || []).filter(n => n.date === selectedKey);
+    const deletedIds = (db.recentlyDeleted || []).map(n => n.id);
+const notesToShow = (db.notes_list || [])
+    .filter(n => n.date === selectedKey && !deletedIds.includes(n.id));
 
     notesToShow.forEach(note => {
     const div = document.createElement('div');

@@ -699,20 +699,29 @@ const CF_CONFIG = {
 const R2_URL = `https://api.cloudflare.com/client/v4/accounts/${CF_CONFIG.accountId}/r2/buckets/${CF_CONFIG.bucket}/objects/notes_db.json`;
 
 async function syncWithCloud() {
-    alert("syncWithCloud called"); // <-- shows function ran
+    alert("syncWithCloud called"); 
 
     try {
-        const response = await fetch(R2_URL, { cache: 'no-store' }); 
-if (!response.ok) throw new Error('Failed to fetch from R2, status ' + response.status);
-const cloudData = await response.json();
-        alert("data: " + JSON.stringify(cloudData));
+        // We MUST send the token to Cloudflare to get permission to read the file
+        const response = await fetch(R2_URL, { 
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + CF_CONFIG.apiToken,
+                'Content-Type': 'application/json'
+            },
+            cache: 'no-store' 
+        }); 
 
-        if (cloudData) {
+        if (!response.ok) throw new Error('Fetch failed, status ' + response.status);
+
+        const cloudData = await response.json();
+        alert("Cloud data found! Notes count: " + (cloudData.notes_list ? cloudData.notes_list.length : 0));
+
+        if (cloudData && cloudData.notes_list) {
             if (!Array.isArray(db.notes_list)) db.notes_list = [];
-            if (!Array.isArray(cloudData.notes_list)) cloudData.notes_list = [];
-
+            
+            // Merge logic
             const combined = [...cloudData.notes_list];
-
             db.notes_list.forEach(localNote => {
                 if (!combined.some(n => n.id === localNote.id)) {
                     combined.push(localNote);
@@ -720,15 +729,13 @@ const cloudData = await response.json();
             });
 
             db.notes_list = combined;
+            save(); 
+            renderDeck();
+            setupCalendar();
         }
-        save(); 
-        renderDeck();
-        setupCalendar();
-
-        return cloudData; // <-- return the cloud data
+        
     } catch (e) {
         alert("Cloud sync failed: " + e.message);
-        return null;
     }
 }
 async function uploadToCloud() {

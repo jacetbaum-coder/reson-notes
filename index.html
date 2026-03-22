@@ -201,7 +201,8 @@ cursor:pointer;
 box-shadow:0 6px 20px rgba(0,0,0,0.3);
 }
 
-#overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:900;backdrop-filter:blur(4px);pointer-events:none;}
+#overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:900;backdrop-filter:blur(4px);}
+
 /* [START] - Updated Green Modal & 2-Column Deck */
 #calModal {
     display: none;
@@ -610,7 +611,6 @@ function toggleModal(){
     if(!isOpen) renderHeatmap(); /* Generates heatmap colors when opening */
     m.style.display=isOpen?'none':'block';
     o.style.display=isOpen?'none':'block';
-o.style.pointerEvents = isOpen ? 'none' : 'auto';
 }
 
 /* [START] - Replace function renderHeatmap() */
@@ -856,16 +856,6 @@ window.addEventListener("DOMContentLoaded", () => {
     setupCalendar();
     renderDeck();
 });
-<script>
-function showMain() {
-    document.getElementById('noteDeck').style.display = 'grid';
-    document.getElementById('settingsPage').style.display = 'none';
-}
-
-function showSettings() {
-    document.getElementById('noteDeck').style.display = 'none';
-    document.getElementById('settingsPage').style.display = 'block';
-}
 </script>
 </body>
 </html>

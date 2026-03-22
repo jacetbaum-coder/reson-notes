@@ -699,10 +699,7 @@ const CF_CONFIG = {
 const R2_URL = `https://api.cloudflare.com/client/v4/accounts/${CF_CONFIG.accountId}/r2/buckets/${CF_CONFIG.bucket}/objects/notes_db.json`;
 
 async function syncWithCloud() {
-    alert("iPhone is trying to connect..."); 
-
     try {
-        // This is the part where the iPhone "introduces" itself to Cloudflare
         const response = await fetch(R2_URL, { 
             method: 'GET',
             headers: {
@@ -712,48 +709,25 @@ async function syncWithCloud() {
             cache: 'no-store' 
         }); 
 
-        // If the door is locked (401 or 403 error)
-        if (response.status === 401 || response.status === 403) {
-            alert("Error: Cloudflare doesn't recognize your API Token. Check your token settings.");
-            return;
-        }
-
-        // If the file just isn't there (404 error)
-        if (response.status === 404) {
-            alert("Error: No notes found in the cloud. Save a note on your Mac first!");
-            return;
-        }
+        if (!response.ok) throw new Error('Fetch failed');
 
         const cloudData = await response.json();
         
-        if (cloudData && cloudData.notes_list) {
-            alert("Success! Found " + cloudData.notes_list.length + " notes in the cloud.");
-            
-            // This part merges the cloud notes with your phone notes
-            if (!Array.isArray(db.notes_list)) db.notes_list = [];
-            const combined = [...cloudData.notes_list];
-            db.notes_list.forEach(localNote => {
-                if (!combined.some(n => n.id === localNote.id)) {
-                    combined.push(localNote);
-                }
-            });
-
-            db.notes_list = combined;
+        // This line is the magic fix: It replaces your empty phone data with the Mac data
+        if (cloudData) {
+            db = cloudData; 
             save(); 
             renderDeck();
             setupCalendar();
-        } else {
-            alert("Connected, but the cloud file is empty.");
+            alert("Sync Complete! Notes loaded.");
         }
-        
     } catch (e) {
-        // This triggers if the internet connection itself fails
-        alert("Connection Error: The iPhone can't reach the cloud at all. Check your Wi-Fi or CORS settings.");
-        console.log(e);
+        alert("iPhone Sync Error: " + e.message);
     }
 }
 async function uploadToCloud() {
     try {
+        // We send the ENTIRE database (both the list and the calendar notes)
         const response = await fetch(R2_URL, {
             method: 'PUT',
             headers: {
@@ -762,14 +736,12 @@ async function uploadToCloud() {
             },
             body: JSON.stringify(db)
         });
-        if (!response.ok) throw new Error('Upload failed, status ' + response.status);
-        console.log("Synced to Cloud!");
+        if (!response.ok) throw new Error('Upload failed');
+        console.log("Mac synced everything to Cloud!");
     } catch (e) {
-        console.error("Upload failed:", e);
-        alert("Cloud upload failed: " + e.message);
+        alert("Mac upload failed: " + e.message);
     }
 }
-
 let startX = 0;
 
 function openNoteViewer(text){

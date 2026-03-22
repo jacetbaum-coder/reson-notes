@@ -629,6 +629,9 @@ function toggleModal(){
     if(!isOpen) renderHeatmap(); /* Generates heatmap colors when opening */
     m.style.display=isOpen?'none':'block';
     o.style.display=isOpen?'none':'block';
+    
+    // Ensure calendar-strip stays clickable when modal is closed
+    document.getElementById('strip').style.pointerEvents = isOpen ? 'auto' : 'none';
 }
 
 /* [START] - Replace function renderHeatmap() */

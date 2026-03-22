@@ -576,7 +576,7 @@ const preview = note.content.split('\n').slice(1).join(' ').slice(0,80);
 div.innerHTML = `
 <div style="display:flex;justify-content:space-between;align-items:center;">
   <div class="saved-note-title">${note.category}</div>
-  <button style="background:none;border:none;font-size:1.2rem;cursor:pointer;padding:4px;" onclick="event.stopPropagation(); openNoteMenu(event, note)">⋯</button>
+  <button style="background:none;border:none;font-size:1.2rem;cursor:pointer;padding:4px;" onclick="event.stopPropagation(); openNoteMenu(event, ${note.id})">⋯</button>
 </div>
 <div class="saved-note-text"><strong>${title}</strong><br>${preview}</div>
 `;
@@ -762,7 +762,7 @@ function saveViewerEdit(){
     save();
     renderDeck();
 }
-function openNoteMenu(event, note){
+function openNoteMenu(event, noteId){
     const menu = document.getElementById('noteMenu');
     const moveContainer = document.getElementById('moveTabsContainer');
     const rect = event.target.getBoundingClientRect();
@@ -822,7 +822,8 @@ function openNoteMenu(event, note){
     
 // Hide menu when clicking elsewhere
 document.addEventListener('click', (e)=>{
-    const menu = document.getElementById('noteMenu');
+    const note = db.notes_list.find(n => n.id === noteId);
+const menu = document.getElementById('noteMenu');
     if(!menu.contains(e.target)) menu.style.display='none';
 });
 let activeNote = null;

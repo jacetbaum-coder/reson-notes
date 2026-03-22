@@ -812,19 +812,6 @@ function openNoteMenu(event, note){
         };
     });
 }
-    
- // (DELETE THIS ENTIRE BLOCK — it’s duplicated and causes moveContainer error)
-    
-    // Handle category moves
-    Array.from(moveContainer.querySelectorAll('input[type="checkbox"]')).forEach(cb => {
-        cb.onchange = () => {
-            if(cb.checked) note.category = cb.nextSibling.innerText;
-            else note.category = 'General'; // fallback if unchecked
-            save();
-            renderDeck();
-        };
-    });
-}
 
 // Hide menu when clicking elsewhere
 document.addEventListener('click', (e)=>{

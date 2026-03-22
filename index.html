@@ -733,14 +733,19 @@ const cloudData = await response.json();
 }
 async function uploadToCloud() {
     try {
-        await fetch('/api/syncNotes', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const response = await fetch(R2_URL, {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + CF_CONFIG.apiToken,
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify(db)
         });
+        if (!response.ok) throw new Error('Upload failed, status ' + response.status);
         console.log("Synced to Cloud!");
     } catch (e) {
         console.error("Upload failed:", e);
+        alert("Cloud upload failed: " + e.message);
     }
 }
 

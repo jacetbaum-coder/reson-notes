@@ -827,15 +827,18 @@ menu.style.top = `${rect.top + 10}px`;
     // Delete button
     const deleteBtn = document.getElementById('deleteNoteBtn');
     deleteBtn.onclick = () => {
-        if(!db.recentlyDeleted) db.recentlyDeleted=[];
-        note.deletedAt = Date.now();
-db.recentlyDeleted.unshift(note);
-        db.notes_list = db.notes_list.filter(n => n.id !== note.id);
-        save();
-        renderDeck();
-        menu.style.display='none';
-    };
+    const note = (db.notes_list || []).find(n => n.id === noteId.id || n.id === noteId);
+    if(!note) return;
 
+    if(!db.recentlyDeleted) db.recentlyDeleted = [];
+    note.deletedAt = Date.now();
+    db.recentlyDeleted.unshift(note);
+
+    db.notes_list = db.notes_list.filter(n => n.id !== note.id);
+    save();
+    renderDeck();
+    menu.style.display='none';
+};
     // Handle category moves
     Array.from(moveContainer.querySelectorAll('input[type="checkbox"]')).forEach(cb => {
         cb.onchange = () => {

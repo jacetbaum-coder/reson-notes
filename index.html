@@ -958,6 +958,7 @@ function restoreNote(id) {
     }
 }
 function deleteForever(id){
+    if(!confirm("Are you sure you want to permanently delete this note?")) return;
     db.recentlyDeleted = (db.recentlyDeleted || []).filter(n => n.id !== id);
     save();
     renderDeletedNotes();

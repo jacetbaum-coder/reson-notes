@@ -900,12 +900,6 @@ function showSettings() {
 
     // Show Settings
     document.getElementById('settingsView').style.display = 'block';
-    
-    // Ensure each separate settings card is visible
-    document.querySelectorAll('#settingsView .note-container').forEach(card => {
-        card.style.display = 'block';
-    });
-
     renderDeletedNotes();
 }
 
@@ -953,44 +947,21 @@ function renderDeletedNotes() {
     });
 }
 
-let deletePendingId = null; // stores which note is being deleted
-
-function deleteForever(id){
-    deletePendingId = id;
-    document.getElementById('confirmDeleteModal').style.display = 'flex';
-}
-
-// Cancel button
-document.getElementById('cancelDeleteBtn').onclick = () => {
-    deletePendingId = null;
-    document.getElementById('confirmDeleteModal').style.display = 'none';
-};
-
-// Confirm button
-document.getElementById('confirmDeleteBtn').onclick = () => {
-    if(deletePendingId !== null){
-        db.recentlyDeleted = (db.recentlyDeleted || []).filter(n => n.id !== deletePendingId);
+function restoreNote(id) {
+    const idx = db.recentlyDeleted.findIndex(n => n.id === id);
+    if(idx > -1) {
+        const note = db.recentlyDeleted.splice(idx, 1)[0];
+        if(!db.notes_list) db.notes_list = [];
+        db.notes_list.unshift(note);
         save();
         renderDeletedNotes();
-        deletePendingId = null;
-        document.getElementById('confirmDeleteModal').style.display = 'none';
     }
-};
 }
 function deleteForever(id){
     db.recentlyDeleted = (db.recentlyDeleted || []).filter(n => n.id !== id);
     save();
     renderDeletedNotes();
 }
-<div id="confirmDeleteModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:6000; display:flex; align-items:center; justify-content:center;">
-  <div style="background:white; border-radius:20px; padding:25px; max-width:300px; text-align:center;">
-    <p style="margin-bottom:20px; font-weight:700;">Delete this note forever?</p>
-    <div style="display:flex; justify-content:space-between;">
-      <button id="cancelDeleteBtn" style="flex:1; margin-right:5px; padding:8px 12px; border:none; border-radius:10px; cursor:pointer;">Cancel</button>
-      <button id="confirmDeleteBtn" style="flex:1; margin-left:5px; padding:8px 12px; background:#f87171; color:white; border:none; border-radius:10px; cursor:pointer;">Delete</button>
-    </div>
-  </div>
-</div>
 </script>
 </body>
 </html>

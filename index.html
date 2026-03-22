@@ -489,6 +489,12 @@ for(let i=1;i<=daysInMonth;i++){
     card.innerHTML=`<div style="font-size:0.7rem;">${daysShort[date.getDay()]}</div><div style="font-weight:800;font-size:1.2rem;">${i}</div>`
     card.onclick=()=>selectDay(date)
     strip.appendChild(card)
+
+if(isSelected){
+    setTimeout(()=>{
+        card.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'})
+    },0)
+}
 }
 }
 

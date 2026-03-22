@@ -734,7 +734,7 @@ async function uploadToCloud() {
             body: JSON.stringify(db)
         });
         console.log("Synced to Cloud!");
-    } catch (e) {
+showCloudStatus("Saved notes to Cloud ✅");
         console.error("Upload failed:", e);
     }
 }

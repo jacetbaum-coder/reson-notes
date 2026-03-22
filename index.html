@@ -699,39 +699,17 @@ const CF_CONFIG = {
 const R2_URL = `https://api.cloudflare.com/client/v4/accounts/${CF_CONFIG.accountId}/r2/buckets/${CF_CONFIG.bucket}/objects/notes_db.json`;
 
 async function syncWithCloud() {
-    alert("Connecting to Cloudflare..."); 
-
     try {
         const response = await fetch(R2_URL, { 
             method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + CF_CONFIG.apiToken,
-                'Content-Type': 'application/json'
-            },
-            cache: 'no-store' 
-        }); 
-
-        if (!response.ok) {
-            alert("Cloud Error: " + response.status);
-            return;
-        }
-
-        const cloudData = await response.json();
+            headers: { 'Authorization': 'Bearer ' + CF_CONFIG.apiToken }
+        });
         
-        if (cloudData) {
-            // This replaces your phone's memory with the Cloud data
-            db = cloudData; 
-            save(); 
-            
-            // This refreshes the screen so you see the new notes
-            setupCalendar();
-            renderDeck();
-            
-            alert("Sync Complete! Notes loaded from Cloud.");
-        }
+        // This is the only part that matters right now:
+        alert("The Cloud responded with status: " + response.status);
+
     } catch (e) {
-        alert("Connection Failed: Check your internet or CORS settings.");
-        console.log(e);
+        alert("The iPhone blocked the request entirely. Error: " + e.message);
     }
 }
 async function uploadToCloud() {

@@ -690,26 +690,41 @@ function renderHeatmap() {
 
 /* [START] - Real R2 Cloud Sync Logic */
 const CF_CONFIG = {
-    accountId: '0df0747b5cc853943508584dadcb9413', // Your ID from the screenshot
-    apiToken: 'cfut_HevbM2ak9IG7euRSqfJJvMtfl3rmGl0loh2gkwKA55fb0f6b', // The token you provided
+    accountId: '0df0747b5cc853943508584dadcb9413',
+    apiToken: 'cfut_HevbM2ak9IG7euRSqfJJvMtfl3rmGl0loh2gkwKA55fb0f6b', 
     bucket: 'reson-notes-storage'
 };
 
-// This URL is the "Direct Link" to your JSON file in the bucket
-const R2_URL = `https://api.cloudflare.com/client/v4/accounts/${CF_CONFIG.accountId}/r2/buckets/${CF_CONFIG.bucket}/objects/notes_db.json`;
+// This is the "Full Path" - Copy this line exactly
+const R2_URL = "https://api.cloudflare.com/client/v4/accounts/0df0747b5cc853943508584dadcb9413/r2/buckets/reson-notes-storage/objects/notes_db.json";
 
 async function syncWithCloud() {
     try {
         const response = await fetch(R2_URL, { 
             method: 'GET',
-            headers: { 'Authorization': 'Bearer ' + CF_CONFIG.apiToken }
-        });
-        
-        // This is the only part that matters right now:
-        alert("The Cloud responded with status: " + response.status);
+            headers: {
+                'Authorization': 'Bearer ' + CF_CONFIG.apiToken,
+                'Content-Type': 'application/json'
+            },
+            mode: 'cors',      // Tells Safari "This is okay!"
+            credentials: 'omit' // Tells Safari "Don't worry about cookies"
+        }); 
 
+        if (!response.ok) {
+            alert("Cloud responded with an error: " + response.status);
+            return;
+        }
+
+        const cloudData = await response.json();
+        if (cloudData) {
+            db = cloudData; 
+            save(); 
+            renderDeck();
+            setupCalendar();
+            alert("SUCCESS! Notes are now on your iPhone.");
+        }
     } catch (e) {
-        alert("The iPhone blocked the request entirely. Error: " + e.message);
+        alert("Safari Blocked it again. Error: " + e.message);
     }
 }
 async function uploadToCloud() {

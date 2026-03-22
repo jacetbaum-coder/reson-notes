@@ -597,8 +597,13 @@ db.notes_list.unshift(newNote);
     // Simple cloud push
     uploadToCloud(); 
 }
-/* [END] */
-/* [START] - Replace function renderDeck() */
+// Add auto-sync after commitNote
+const originalCommitNote = commitNote;
+commitNote = function(){
+    originalCommitNote();
+    // Auto push to Cloud immediately
+    uploadToCloud();
+};
 function renderDeck() {
     const deck = document.getElementById('noteDeck');
     deck.innerHTML = '';
@@ -810,6 +815,33 @@ function saveViewerEdit(){
 
     save();
     renderDeck();
+
+    // Auto push edits to Cloud immediately
+    uploadToCloud();
+}
+
+// Auto-save on typing in viewer
+viewerContent.addEventListener('input', () => {
+    if(activeNote){
+        activeNote.content = viewerContent.value;
+        save();
+        renderDeck();
+        uploadToCloud();
+    }
+});
+
+// Auto-save when closing viewer
+function closeNoteViewer(){
+    if(activeNote){
+        activeNote.content = viewerContent.value;
+        save();
+        renderDeck();
+        uploadToCloud();
+    }
+    const viewer = document.getElementById('noteViewer');
+    viewer.classList.remove('open');
+    setTimeout(()=>viewer.style.display='none',350);
+    activeNote = null;
 }
 function openNoteMenu(event, noteId){
     const menu = document.getElementById('noteMenu');

@@ -700,26 +700,23 @@ const R2_URL = `https://api.cloudflare.com/client/v4/accounts/${CF_CONFIG.accoun
 
 async function syncWithCloud() {
     try {
-        const response = await fetch(R2_URL, {
-            headers: { 'Authorization': `Bearer ${CF_CONFIG.apiToken}` }
-        });
+        const response = await fetch('/api/syncNotes'); // <-- call your API route
         if (response.ok) {
             const cloudData = await response.json();
-             // Merge cloud + local so nothing gets overwritten
-if (cloudData) {
-    if (!Array.isArray(db.notes_list)) db.notes_list = [];
-    if (!Array.isArray(cloudData.notes_list)) cloudData.notes_list = [];
+            if (cloudData) {
+                if (!Array.isArray(db.notes_list)) db.notes_list = [];
+                if (!Array.isArray(cloudData.notes_list)) cloudData.notes_list = [];
 
-    const combined = [...cloudData.notes_list];
+                const combined = [...cloudData.notes_list];
 
-    db.notes_list.forEach(localNote => {
-        if (!combined.some(n => n.id === localNote.id)) {
-            combined.push(localNote);
-        }
-    });
+                db.notes_list.forEach(localNote => {
+                    if (!combined.some(n => n.id === localNote.id)) {
+                        combined.push(localNote);
+                    }
+                });
 
-    db.notes_list = combined;
-}
+                db.notes_list = combined;
+            }
             save(); 
             renderDeck();
             setupCalendar();
@@ -731,12 +728,9 @@ if (cloudData) {
 
 async function uploadToCloud() {
     try {
-        await fetch(R2_URL, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${CF_CONFIG.apiToken}`,
-                'Content-Type': 'application/json'
-            },
+        await fetch('/api/syncNotes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(db)
         });
         console.log("Synced to Cloud!");
@@ -744,7 +738,6 @@ async function uploadToCloud() {
         console.error("Upload failed:", e);
     }
 }
-
 
 let startX = 0;
 

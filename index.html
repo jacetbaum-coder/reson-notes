@@ -699,6 +699,8 @@ const CF_CONFIG = {
 const R2_URL = `https://api.cloudflare.com/client/v4/accounts/${CF_CONFIG.accountId}/r2/buckets/${CF_CONFIG.bucket}/objects/notes_db.json`;
 
 async function syncWithCloud() {
+    alert("Connecting to Cloudflare..."); 
+
     try {
         const response = await fetch(R2_URL, { 
             method: 'GET',
@@ -709,20 +711,27 @@ async function syncWithCloud() {
             cache: 'no-store' 
         }); 
 
-        if (!response.ok) throw new Error('Fetch failed');
+        if (!response.ok) {
+            alert("Cloud Error: " + response.status);
+            return;
+        }
 
         const cloudData = await response.json();
         
-        // This line is the magic fix: It replaces your empty phone data with the Mac data
         if (cloudData) {
+            // This replaces your phone's memory with the Cloud data
             db = cloudData; 
             save(); 
-            renderDeck();
+            
+            // This refreshes the screen so you see the new notes
             setupCalendar();
-            alert("Sync Complete! Notes loaded.");
+            renderDeck();
+            
+            alert("Sync Complete! Notes loaded from Cloud.");
         }
     } catch (e) {
-        alert("iPhone Sync Error: " + e.message);
+        alert("Connection Failed: Check your internet or CORS settings.");
+        console.log(e);
     }
 }
 async function uploadToCloud() {
@@ -1002,6 +1011,7 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Cloud data loaded. Notes count: " + ((data && data.notes_list && data.notes_list.length) || 0));
     });
 });
+document.getElementById('loadCloudBtn').onclick = syncWithCloud;
 </script>
 </body>
 </html>

@@ -702,10 +702,9 @@ async function syncWithCloud() {
     alert("syncWithCloud called"); // <-- shows function ran
 
     try {
-        const response = await fetch('/api/syncNotes?t=' + Date.now(), { cache: 'no-store' });
-        alert("fetch done, status: " + response.status);
-
-        const cloudData = await response.json();
+        const response = await fetch(R2_URL, { cache: 'no-store' }); 
+if (!response.ok) throw new Error('Failed to fetch from R2, status ' + response.status);
+const cloudData = await response.json();
         alert("data: " + JSON.stringify(cloudData));
 
         if (cloudData) {

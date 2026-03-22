@@ -897,6 +897,7 @@ function deleteDeckNote(id){
 }
 /* Initialize app on load */
 window.addEventListener("DOMContentLoaded", () => {
+    document.getElementById('deleteConfirmModal').style.display = 'none'; // ensure modal is hidden on start
     setupCalendar();
     renderDeck();
 });

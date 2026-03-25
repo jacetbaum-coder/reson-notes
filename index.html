@@ -593,14 +593,14 @@ db.notes_list.unshift(newNote);
     renderDeck();
     
     // Simple cloud push
-    uploadToCloud(); 
+    // uploadToCloud(); // disabled (CORS issue)
 }
 // Add auto-sync after commitNote
 const originalCommitNote = commitNote;
 commitNote = function(){
     originalCommitNote();
     // Auto push to Cloud immediately
-    uploadToCloud();
+    // uploadToCloud(); // disabled (CORS issue)
 };
 function renderDeck() {
     const deck = document.getElementById('noteDeck');

@@ -491,15 +491,14 @@ return currentCategory ? formatDateKey(selectedDate)+"_"+currentCategory : null
 }
 
 function switchCategory(cat, btn) {
-    if (currentCategory && noteKey()) {
-        db.notes[noteKey()] = textarea.value;
-    }
+    // Removed — never save draft here
 
     document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
     
     if (currentCategory === cat) {
     currentCategory = null;
     todoList.style.display = 'none';
+    // Removed: do NOT clear textarea.value
 } else {
         currentCategory = cat;
         btn.classList.add('active');

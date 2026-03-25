@@ -491,20 +491,16 @@ return currentCategory ? formatDateKey(selectedDate)+"_"+currentCategory : null
 }
 
 function switchCategory(cat, btn) {
-    // Toggle the 'active' class on the clicked button
-    btn.classList.toggle('active');
-    
-    // Update the UI to show the notes filtered by these tags
-    renderDeck();
-}
+    if (currentCategory && noteKey()) {
+        db.notes[noteKey()] = textarea.value;
+    }
 
     document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
     
     if (currentCategory === cat) {
-        currentCategory = null;
-        todoList.style.display = 'none';
-        textarea.value = "";
-    } else {
+    currentCategory = null;
+    todoList.style.display = 'none';
+} else {
         currentCategory = cat;
         btn.classList.add('active');
         document.getElementById('todoHeader').innerText = btn.innerText + " List";
@@ -580,28 +576,23 @@ function commitNote() {
     const text = textarea.value.trim();
     if (!text) return;
 
-    // Get all currently active tags from the bubble bar
-    const activeTags = Array.from(document.querySelectorAll('.bubble.active'))
-                            .map(btn => btn.innerText);
+   const newNote = {
+    id: Date.now(),
+    date: formatDateKey(selectedDate),
+    tags: currentCategory ? [currentCategory] : [],
+    content: text
+};
+if (!db.notes) db.notes = {};
+if (noteKey()) db.notes[noteKey()] = text;  // <-- ADD THIS LINE
 
-    const newNote = {
-        id: Date.now(),
-        date: formatDateKey(selectedDate),
-        tags: activeTags.length > 0 ? activeTags : ['General'], // Use selected tags or General
-        content: text
-    };
-
-    if (!Array.isArray(db.notes_list)) db.notes_list = [];
-    db.notes_list.unshift(newNote); 
+if (!Array.isArray(db.notes_list)) db.notes_list = [];
+db.notes_list.unshift(newNote); 
     
     save();
     textarea.value = '';
-    
-    // Clear the active bubbles after saving so the next note starts fresh
-    document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
-    currentCategory = null; 
-
     renderDeck();
+    
+    // Simple cloud push
     uploadToCloud(); 
 }
 // Add auto-sync after commitNote
@@ -617,42 +608,43 @@ function renderDeck() {
     
     const selectedKey = formatDateKey(selectedDate);
     const deletedIds = (db.recentlyDeleted || []).map(n => n.id);
-    
-    // Get currently selected filter tags
-    const activeFilters = Array.from(document.querySelectorAll('.bubble.active'))
-                               .map(btn => btn.innerText);
-
-    const notesToShow = (db.notes_list || []).filter(note => {
-        const isSameDay = note.date === selectedKey;
-        const isNotDeleted = !deletedIds.includes(note.id);
-        
-        // If filters are active, note must have one of the tags. 
-        // If no filters, show all notes for the day.
-        const matchesFilter = activeFilters.length === 0 || 
-                             (note.tags && note.tags.some(t => activeFilters.includes(t)));
-
-        return isSameDay && isNotDeleted && matchesFilter;
+const notesToShow = (db.notes_list || [])
+    .filter(n => {
+        if (n.date !== selectedKey || deletedIds.includes(n.id)) return false;
+        if (!currentCategory) return true;
+        return (n.tags || []).includes(currentCategory);
     });
-
     notesToShow.forEach(note => {
-        const div = document.createElement('div');
-        div.className = 'saved-note';
+    const div = document.createElement('div');
+    div.className = 'saved-note';
 
-        const title = note.content.split('\n')[0].slice(0,40);
-        const preview = note.content.split('\n').slice(1).join(' ').slice(0,80);
-        const tagLabels = (note.tags || []).join(', ');
+const title = note.content.split('\n')[0].slice(0,40);
+const preview = note.content.split('\n').slice(1).join(' ').slice(0,80);
 
-        div.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div class="saved-note-title" style="font-size:0.6rem;">${tagLabels}</div>
-          <button style="background:none;border:none;font-size:1.2rem;cursor:pointer;padding:4px;" onclick="event.stopPropagation(); openNoteMenu(event, ${note.id})">⋯</button>
-        </div>
-        <div class="saved-note-text"><strong>${title}</strong><br>${preview}</div>
-        `;
+div.innerHTML = `
+<div style="display:flex;justify-content:space-between;align-items:center;">
+  <div class="saved-note-title">${(note.tags || []).join(', ') || 'General'}</div>
+  <button style="background:none;border:none;font-size:1.2rem;cursor:pointer;padding:4px;" onclick="event.stopPropagation(); openNoteMenu(event, ${note.id})">⋯</button>
+</div>
+<div class="saved-note-text"><strong>${title}</strong><br>${preview}</div>
+`;
 
-        div.onclick = () => openNoteViewer(note);
-        deck.appendChild(div);
+div.onclick = () => openNoteViewer(note);
+    
+    // Long-press detection for menu
+    let pressTimer;
+    div.addEventListener('mousedown', (e) => {
+        pressTimer = setTimeout(() => openNoteMenu(e, note), 500);
     });
+    div.addEventListener('mouseup', ()=>clearTimeout(pressTimer));
+    div.addEventListener('mouseleave', ()=>clearTimeout(pressTimer));
+    div.addEventListener('touchstart', (e)=>{
+        pressTimer = setTimeout(() => openNoteMenu(e, note), 500);
+    });
+    div.addEventListener('touchend', ()=>clearTimeout(pressTimer));
+
+    deck.appendChild(div);
+});
 }
 /* [END] */
 /* [START] - Updated Modal Toggle & Heatmap Logic */
@@ -876,7 +868,7 @@ menu.style.top = `${rect.top + 10}px`;
         const cb = document.createElement('input');
         cb.type='checkbox';
         cb.id='move_'+b.innerText;
-        cb.checked = (note.category === b.innerText);
+        cb.checked = (note.tags || []).includes(b.innerText);
 
         const label = document.createElement('label');
         label.htmlFor = cb.id;
@@ -911,8 +903,17 @@ menu.style.top = `${rect.top + 10}px`;
 Array.from(moveContainer.querySelectorAll('input[type="checkbox"]')).forEach(cb => {
     cb.onchange = () => {
         if(!note) return;
-        if(cb.checked) note.category = cb.nextSibling.innerText;
-        else note.category = 'General';
+
+        if(!Array.isArray(note.tags)) note.tags = [];
+
+        const tag = cb.nextSibling.innerText;
+
+        if(cb.checked){
+            if(!note.tags.includes(tag)) note.tags.push(tag);
+        } else {
+            note.tags = note.tags.filter(t => t !== tag);
+        }
+
         save();
         renderDeck();
     };

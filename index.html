@@ -493,8 +493,10 @@ return currentCategory ? formatDateKey(selectedDate)+"_"+currentCategory : null
 function switchCategory(cat, btn) {
     const isTyping = textarea.value.trim().length > 0;
 
-    if (isTyping) {
-        // If user is typing, save current note to clicked category
+        if (isTyping) {
+        // Only commit if textarea has actual non-empty content
+        if (textarea.value.trim().length === 0) return;
+
         // Temporarily set currentCategory to cat so commitNote assigns tag
         const oldCategory = currentCategory;
         currentCategory = cat;

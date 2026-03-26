@@ -948,9 +948,21 @@ function openNoteViewer(note){
     const viewerContent=document.getElementById('noteViewerContent');
 
     activeNote = note;
-    viewerContent.value = note.content;
+
+    // If it's a todo note → show checkbox format
+    if((note.tags || []).includes('todo')){
+        const lines = note.content.split('\n');
+
+        viewerContent.value = lines.map(line => {
+            return line.startsWith("•") ? line : "• " + line;
+        }).join('\n');
+    } else {
+        viewerContent.value = note.content;
+    }
 
     viewer.style.display='block';
+    setTimeout(()=>viewer.classList.add('open'),10);
+}
     setTimeout(()=>viewer.classList.add('open'),10);
 }
 function deleteDeckNote(id){

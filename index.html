@@ -490,87 +490,91 @@ function noteKey(){
 return currentCategory ? formatDateKey(selectedDate)+"_"+currentCategory : null
 }
 
-let draftNotes = {}; // add this at the top of your script (global)
+let draftNotes = {}; 
 
+/**
+ * switchCategory: Preserves typed text in drafts when moving between tabs.
+ * Allows unselecting a tab by clicking it again.
+ */
 function switchCategory(cat, btn) {
-    const isTyping = textarea.value.trim().length > 0 && !currentCategory;
+    // Save current text to the draft slot of the outgoing category
+    const activeCatKey = currentCategory || 'home_draft';
+    draftNotes[activeCatKey] = textarea.value;
 
-    if (isTyping) {
-        // Only commit if textarea has actual non-empty content
-        if (textarea.value.trim().length === 0) return;
-
-        // Temporarily set currentCategory to cat so commitNote assigns tag
-        const oldCategory = currentCategory;
-        currentCategory = cat;
-        commitNote();
-        currentCategory = oldCategory;
-
-        // Highlight clicked tag visually
-        btn.classList.add('active');
-        document.getElementById('todoHeader').innerText = btn.innerText + " List";
-        return; // exit early — don’t switch view
-    }
-
-    // Save current text as draft
-    if (currentCategory) draftNotes[currentCategory] = textarea.value;
-
-    // Normal tab switching
-    document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
-    
+    // Toggle logic: If clicking the active tab, unselect it and return to Home
     if (currentCategory === cat) {
         currentCategory = null;
+        document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
+        document.getElementById('todoHeader').innerText = "Notes";
+        textarea.value = draftNotes['home_draft'] || '';
         todoList.style.display = 'none';
-        textarea.value = draftNotes[cat] || ''; // load draft if any
+        document.querySelector('.note-container').style.display = 'block';
+        renderDeck();
+        return;
+    }
+
+    // Tab switching: Update UI and load the corresponding draft
+    document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
+    currentCategory = cat;
+    btn.classList.add('active');
+    document.getElementById('todoHeader').innerText = btn.innerText + " List";
+    
+    textarea.value = draftNotes[cat] || '';
+    
+    // UI state management
+    if (cat === null) {
+        todoList.style.display = 'none';
         document.querySelector('.note-container').style.display = 'block';
     } else {
-        currentCategory = cat;
-        btn.classList.add('active');
-        document.getElementById('todoHeader').innerText = btn.innerText + " List";
-        document.querySelector('.note-container').style.display = 'none';
-        textarea.value = draftNotes[cat] || ''; // load draft if any
+        document.querySelector('.note-container').style.display = 'block'; 
         loadContent();
     }
-}
-function setupCalendar(){
-strip.innerHTML=''
-const year=selectedDate.getFullYear()
-const month=selectedDate.getMonth()
-const daysInMonth=new Date(year,month+1,0).getDate()
-const todayKey=formatDateKey(new Date())
-const selectedKey=formatDateKey(selectedDate)
-
-todayBtn.style.display=(selectedKey===todayKey)?'none':'block'
-const headerDate = selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-document.getElementById('monthDisplay').innerText = headerDate;
-
-for(let i=1;i<=daysInMonth;i++){
-    const date=new Date(year,month,i)
-    const isSelected=formatDateKey(date)===selectedKey
-    const card=document.createElement('div')
-    card.className=`day-card ${isSelected?'active':''}`
-    card.innerHTML=`<div style="font-size:0.7rem;">${daysShort[date.getDay()]}</div><div style="font-weight:800;font-size:1.2rem;">${i}</div>`
-    card.onclick=()=>selectDay(date)
-    strip.appendChild(card)
-
-if(isSelected){
-    setTimeout(()=>{
-        card.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'})
-    },0)
-}
-}
+    renderDeck();
 }
 
-function selectDay(date){
-selectedDate=date
-setupCalendar()
-if (currentCategory) loadContent()
-renderDeck()
+/**
+ * commitNote: Saves the note to the DB, clears the textarea,
+ * wipes the draft for that category, and resets the UI to Home.
+ */
+function commitNote() {
+    const text = textarea.value.trim();
+    if (!text) return;
+
+    const newNote = {
+        id: Date.now(),
+        date: formatDateKey(selectedDate),
+        tags: currentCategory ? [currentCategory] : [],
+        content: text
+    };
+
+    if (!db.notes_list) db.notes_list = [];
+    db.notes_list.unshift(newNote); 
+
+    // Legacy support for date-based notes object
+    if (currentCategory) {
+        const key = noteKey();
+        db.notes[key] = text;
+    }
+
+    save();
+    
+    // Clear the active textarea and its associated draft
+    textarea.value = '';
+    const activeCatKey = currentCategory || 'home_draft';
+    draftNotes[activeCatKey] = '';
+
+    // Reset UI to unselected "Home" state
+    currentCategory = null;
+    document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
+    document.getElementById('todoHeader').innerText = "Notes";
+    
+    renderDeck();
+    if (typeof uploadToCloud === "function") uploadToCloud();
 }
 
 function loadContent() {
     if (!currentCategory) return;
     const noteText = db.notes[noteKey()] || "";
-    textarea.value = noteText;
     const key = formatDateKey(selectedDate);
     const todos = db.todos[key] || [];
 
@@ -593,7 +597,6 @@ function renderTodos(list, noteText) {
         });
     }
 }
-
 /* [START] - Replace function commitNote() */
 // Permanent commitNote with auto-unselect tab
 function commitNote() {

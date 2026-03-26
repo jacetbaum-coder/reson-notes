@@ -493,68 +493,81 @@ return currentCategory ? formatDateKey(selectedDate)+"_"+currentCategory : null
 let draftNotes = {}; 
 
 function switchCategory(cat, btn) {
-    const activeCatKey = currentCategory || 'home_draft';
-    draftNotes[activeCatKey] = textarea.value;
+    // Save current draft in memory before switching
+    if (textarea.value.trim()) {
+        draftNotes[currentCategory || 'home_draft'] = textarea.value;
+    }
 
+    // If clicking the same tab again, unselect it
     if (currentCategory === cat) {
         currentCategory = null;
-        document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
-        document.getElementById('todoHeader').innerText = "Notes";
-        textarea.value = draftNotes['home_draft'] || '';
+        btn.classList.remove('active');
+        document.getElementById('todoHeader').innerText = "Type your notes...";
+        textarea.value = draftNotes[cat] || '';
         todoList.style.display = 'none';
         document.querySelector('.note-container').style.display = 'block';
-        renderDeck();
         return;
     }
 
+    // Normal tab switching
     document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
     currentCategory = cat;
     btn.classList.add('active');
     document.getElementById('todoHeader').innerText = btn.innerText + " List";
-    textarea.value = draftNotes[cat] || '';
-    
-    if (cat === null) {
-        todoList.style.display = 'none';
-        document.querySelector('.note-container').style.display = 'block';
-    } else {
-        document.querySelector('.note-container').style.display = 'block'; 
-        loadContent();
-    }
-    renderDeck();
+
+    // Merge all saved notes for this category + draft
+    const notesForCat = db.notes_list
+        .filter(n => n.tags.includes(cat))
+        .map(n => n.content);
+    const draft = draftNotes[cat] || '';
+    textarea.value = [...notesForCat, draft].join('\n');
+
+    if (todoList) todoList.style.display = 'none';
+    document.querySelector('.note-container').style.display = 'block';
 }
 
 function commitNote() {
     const text = textarea.value.trim();
     if (!text) return;
 
+    // Find all active tabs (bubbles with 'active')
+    const activeTabs = Array.from(document.querySelectorAll('.bubble.active'))
+        .map(b => b.dataset.cat)
+        .filter(Boolean);
+
+    // If no tab selected, default to home
+    const categories = activeTabs.length ? activeTabs : ['home'];
+
+    // Create note object
     const newNote = {
         id: Date.now(),
         date: formatDateKey(selectedDate),
-        tags: currentCategory ? [currentCategory] : [],
+        tags: categories,
         content: text
     };
 
+    // Add to main notes list
     if (!db.notes_list) db.notes_list = [];
-    db.notes_list.unshift(newNote); 
+    db.notes_list.unshift(newNote);
 
-    if (currentCategory) {
-        const key = noteKey();
-        db.notes[key] = text;
-    }
+    // Save to each category in db.notes
+    categories.forEach(cat => {
+        if (!db.notes[cat]) db.notes[cat] = [];
+        db.notes[cat].push(text);
+        draftNotes[cat] = ''; // clear draft
+    });
 
     save();
-    textarea.value = '';
-    const activeCatKey = currentCategory || 'home_draft';
-    draftNotes[activeCatKey] = '';
 
+    // Clear textarea and unselect tabs
+    textarea.value = '';
     currentCategory = null;
     document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
     document.getElementById('todoHeader').innerText = "Notes";
-    
+
     renderDeck();
     if (typeof uploadToCloud === "function") uploadToCloud();
 }
-
 function setupCalendar(){
     strip.innerHTML=''
     const year=selectedDate.getFullYear()

@@ -963,8 +963,7 @@ function openNoteViewer(note){
     viewer.style.display='block';
     setTimeout(()=>viewer.classList.add('open'),10);
 }
-    setTimeout(()=>viewer.classList.add('open'),10);
-}
+
 function deleteDeckNote(id){
     if(!db.recentlyDeleted) db.recentlyDeleted=[];
     const note = db.notes_list.find(n=>n.id===id);

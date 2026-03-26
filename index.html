@@ -491,7 +491,7 @@ return currentCategory ? formatDateKey(selectedDate)+"_"+currentCategory : null
 }
 
 function switchCategory(cat, btn) {
-    const isTyping = textarea.value.trim().length > 0;
+    const isTyping = textarea.value.trim().length > 0 && !currentCategory;
 
         if (isTyping) {
         // Only commit if textarea has actual non-empty content
@@ -515,11 +515,12 @@ function switchCategory(cat, btn) {
     if (currentCategory === cat) {
     currentCategory = null;
     todoList.style.display = 'none';
-    // leave textarea untouched
+    document.querySelector('.note-container').style.display = 'block';
 } else {
     currentCategory = cat;
     btn.classList.add('active');
     document.getElementById('todoHeader').innerText = btn.innerText + " List";
+    document.querySelector('.note-container').style.display = 'none';
     loadContent();
 }
 }
@@ -611,12 +612,7 @@ db.notes_list.unshift(newNote);
     // uploadToCloud(); // disabled (CORS issue)
 }
 // Add auto-sync after commitNote
-const originalCommitNote = commitNote;
-commitNote = function(){
-    originalCommitNote();
-    // Auto push to Cloud immediately
-    // uploadToCloud(); // disabled (CORS issue)
-};
+
 function renderDeck() {
     const deck = document.getElementById('noteDeck');
     deck.innerHTML = '';

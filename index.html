@@ -386,7 +386,7 @@ Load Latest Notes
 <div id="overlay" onclick="toggleModal()"></div>
 
 <!-- In-app Delete Confirmation Modal -->
-<div id="deleteConfirmModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:6000; display:flex; align-items:center; justify-content:center;">
+<div id="deleteConfirmModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:6000; align-items:center; justify-content:center;">
   <div style="background:white; padding:25px; border-radius:20px; max-width:320px; width:90%; text-align:center;">
     <p style="margin-bottom:20px; font-weight:600;">Are you sure you want to permanently delete this note?</p>
     <div style="display:flex; gap:10px; justify-content:center;">
@@ -522,7 +522,7 @@ function switchCategory(cat, btn) {
     document.getElementById('todoHeader').innerText = btn.innerText + " List";
     loadContent();
 }
-
+}
 function setupCalendar(){
 strip.innerHTML=''
 const year=selectedDate.getFullYear()

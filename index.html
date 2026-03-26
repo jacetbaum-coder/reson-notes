@@ -595,30 +595,80 @@ function renderTodos(list, noteText) {
 }
 
 /* [START] - Replace function commitNote() */
+// Permanent commitNote with auto-unselect tab
 function commitNote() {
     const text = textarea.value.trim();
     if (!text) return;
 
-   const newNote = {
-    id: Date.now(),
-    date: formatDateKey(selectedDate),
-    tags: currentCategory ? [currentCategory] : [],
-    content: text
-};
-if (!db.notes) db.notes = {};
-if (noteKey()) db.notes[noteKey()] = text;  // <-- ADD THIS LINE
+    const newNote = {
+        id: Date.now(),
+        date: formatDateKey(selectedDate),
+        tags: currentCategory ? [currentCategory] : [],
+        content: text
+    };
 
-if (!Array.isArray(db.notes_list)) db.notes_list = [];
-db.notes_list.unshift(newNote); 
-    
+    if (!db.notes) db.notes = {};
+    if (noteKey()) db.notes[noteKey()] = text;
+
+    if (!Array.isArray(db.notes_list)) db.notes_list = [];
+    db.notes_list.unshift(newNote); 
+
     save();
     textarea.value = '';
     renderDeck();
-    
-    // Simple cloud push
+
+    // Clear active tab after saving
+    document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
+    currentCategory = null;
+    document.getElementById('todoHeader').innerText = "Type your notes...";
+
+    // Optional cloud push
     // uploadToCloud(); // disabled (CORS issue)
 }
-// Add auto-sync after commitNote
+
+// Permanent switchCategory with draft support and safe typing
+function switchCategory(cat, btn) {
+    // Save current text as draft if typing
+    if (currentCategory && textarea.value.trim()) {
+        draftNotes[currentCategory] = textarea.value;
+    }
+
+    // If clicking the same tab again, unselect it
+    if (currentCategory === cat) {
+        currentCategory = null;
+        btn.classList.remove('active');
+        document.getElementById('todoHeader').innerText = "Type your notes...";
+        textarea.value = draftNotes[cat] || '';
+        todoList.style.display = 'none';
+        document.querySelector('.note-container').style.display = 'block';
+        return;
+    }
+
+    // If typing in empty textarea, just select tab temporarily
+    const isTyping = textarea.value.trim().length > 0 && !currentCategory;
+    if (isTyping) {
+        const oldCategory = currentCategory;
+        currentCategory = cat;
+        commitNote(); // save the note with this category
+        currentCategory = oldCategory;
+
+        btn.classList.add('active');
+        document.getElementById('todoHeader').innerText = btn.innerText + " List";
+        return; // exit early — don’t switch view
+    }
+
+    // Normal tab switching
+    document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
+    currentCategory = cat;
+    btn.classList.add('active');
+    document.getElementById('todoHeader').innerText = btn.innerText + " List";
+
+    textarea.value = draftNotes[cat] || '';
+    
+    if (todoList) todoList.style.display = 'none';
+    document.querySelector('.note-container').style.display = 'none';
+    loadContent();
+}
 
 function renderDeck() {
     const deck = document.getElementById('noteDeck');

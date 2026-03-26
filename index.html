@@ -331,7 +331,7 @@ transform:translateX(0);
 <div class="calendar-strip" id="strip"></div>
 
 <div class="filter-container">
-    <button class="bubble" style="font-weight:800; border: 2px solid var(--accent);">Tags</button>
+    <button class="bubble active" onclick="switchCategory(null,this)" style="font-weight:800; border: 2px solid var(--accent);">Home</button>
     <button class="bubble" onclick="switchCategory('todo',this)">To-do</button>
     <button class="bubble" onclick="switchCategory('work',this)">Work</button>
     <button class="bubble" onclick="switchCategory('groceries',this)">Groceries</button>
@@ -514,7 +514,9 @@ function switchCategory(cat, btn) {
     
     if (currentCategory === cat) {
     currentCategory = null;
-    todoList.style.display = 'none';
+todoList.style.display = 'none';
+textarea.value = '';
+document.querySelector('.note-container').style.display = 'block';
     document.querySelector('.note-container').style.display = 'block';
 } else {
     currentCategory = cat;
@@ -619,42 +621,15 @@ function renderDeck() {
     
     const selectedKey = formatDateKey(selectedDate);
     const deletedIds = (db.recentlyDeleted || []).map(n => n.id);
-const notesToShow = (db.notes_list || [])
-    .filter(n => {
-        if (n.date !== selectedKey || deletedIds.includes(n.id)) return false;
-        if (!currentCategory) return true;
-        return (n.tags || []).includes(currentCategory);
-    });
-    notesToShow.forEach(note => {
-    const div = document.createElement('div');
-    div.className = 'saved-note';
+const seen = new Set();
 
-const title = note.content.split('\n')[0].slice(0,40);
-const preview = note.content.split('\n').slice(1).join(' ').slice(0,80);
+const notesToShow = (db.notes_list || []).filter(n => {
+    if(seen.has(n.id)) return false;
+    seen.add(n.id);
 
-div.innerHTML = `
-<div style="display:flex;justify-content:space-between;align-items:center;">
-  <div class="saved-note-title">${(note.tags || []).join(', ') || 'General'}</div>
-  <button style="background:none;border:none;font-size:1.2rem;cursor:pointer;padding:4px;" onclick="event.stopPropagation(); openNoteMenu(event, ${note.id})">⋯</button>
-</div>
-<div class="saved-note-text"><strong>${title}</strong><br>${preview}</div>
-`;
-
-div.onclick = () => openNoteViewer(note);
-    
-    // Long-press detection for menu
-    let pressTimer;
-    div.addEventListener('mousedown', (e) => {
-        pressTimer = setTimeout(() => openNoteMenu(e, note), 500);
-    });
-    div.addEventListener('mouseup', ()=>clearTimeout(pressTimer));
-    div.addEventListener('mouseleave', ()=>clearTimeout(pressTimer));
-    div.addEventListener('touchstart', (e)=>{
-        pressTimer = setTimeout(() => openNoteMenu(e, note), 500);
-    });
-    div.addEventListener('touchend', ()=>clearTimeout(pressTimer));
-
-    deck.appendChild(div);
+    if (n.date !== selectedKey || deletedIds.includes(n.id)) return false;
+    if (!currentCategory) return true;
+    return (n.tags || []).map(t => t.toLowerCase()).includes(currentCategory);
 });
 }
 /* [END] */
@@ -916,7 +891,7 @@ Array.from(moveContainer.querySelectorAll('input[type="checkbox"]')).forEach(cb 
 
         if(!Array.isArray(note.tags)) note.tags = [];
 
-        const tag = cb.nextSibling.innerText;
+        const tag = cb.nextSibling.innerText.toLowerCase();
 
         if(cb.checked){
             if(!note.tags.includes(tag)) note.tags.push(tag);

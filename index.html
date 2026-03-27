@@ -591,29 +591,43 @@ const strip = document.getElementById('strip');
 const fullGrid = document.getElementById('fullGrid');
 const textarea = document.getElementById('noteContent');
 
-// Auto bullet continuation
-textarea.addEventListener('keydown', function(e) {
-    if (e.key === "Enter") {
-        const start = textarea.selectionStart;
-        const before = textarea.value.substring(0, start);
-        const line = before.split("\n").pop();
-        if (line.trim().startsWith("•")) {
-            e.preventDefault();
-            textarea.value = textarea.value.substring(0, start) + "\n• " + textarea.value.substring(start);
-            textarea.selectionStart = textarea.selectionEnd = start + 3;
-        }
-    }
-});
-
-let selectedDate = new Date();
-let currentCategory = null;
-
-// Initialize Database correctly
+// Initialize Database - Ensure it's a clean structure
 let db = JSON.parse(localStorage.getItem('reson_db')) || { notes_list: [], recentlyDeleted: [] };
 if (!db.notes_list) db.notes_list = [];
 if (!db.recentlyDeleted) db.recentlyDeleted = [];
 
+let selectedDate = new Date();
+let currentCategory = null;
+
 const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+// --- CRITICAL FIX: MERGE EXISTING MESSY DATA ---
+// This runs once on load to "smush" your existing duplicate cards together
+function cleanupDuplicates() {
+    let cleanedList = [];
+    let seen = {};
+
+    db.notes_list.forEach(note => {
+        // We only group the categories you asked for
+        const cat = (note.tags && note.tags[0]) ? note.tags[0].toLowerCase() : "general";
+        const groupable = ['todo', 'work', 'groceries', 'errands', 'dreams'];
+        
+        if (groupable.includes(cat)) {
+            const identifier = `${note.date}_${cat}`;
+            if (seen[identifier]) {
+                // If we've seen this date+cat before, add this text to the original one
+                seen[identifier].content += "\n" + note.content;
+            } else {
+                seen[identifier] = note;
+                cleanedList.push(note);
+            }
+        } else {
+            cleanedList.push(note);
+        }
+    });
+    db.notes_list = cleanedList;
+    save();
+}
 
 function formatDateKey(date) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -623,38 +637,36 @@ function save() {
     localStorage.setItem('reson_db', JSON.stringify(db));
 }
 
+// --- UPDATED COMMIT LOGIC ---
 function commitNote() {
     const text = textarea.value.trim();
     if (!text) return;
 
     const dateKey = formatDateKey(selectedDate);
-    // Fix: Default to 'general' instead of null/undefined
     const cat = currentCategory ? currentCategory.toLowerCase() : "general";
-    
-    // Categories that should merge into one card
     const groupable = ['todo', 'work', 'groceries', 'errands', 'dreams'];
 
-    if (groupable.includes(cat)) {
-        const existingNote = db.notes_list.find(n => n.date === dateKey && n.tags.includes(cat));
-        if (existingNote) {
-            existingNote.content += "\n" + text;
-            save();
-            textarea.value = '';
-            renderDeck();
-            uploadToCloud();
-            return;
-        }
+    // 1. LOOK FOR EXISTING NOTE
+    const existingNote = db.notes_list.find(n => 
+        n.date === dateKey && 
+        n.tags.map(t => t.toLowerCase()).includes(cat)
+    );
+
+    if (groupable.includes(cat) && existingNote) {
+        // 2. MERGE INTO EXISTING CARD
+        existingNote.content += "\n" + text;
+    } else {
+        // 3. CREATE NEW CARD
+        const newNote = {
+            id: Date.now(),
+            date: dateKey,
+            tags: [cat],
+            content: text,
+            checkedIndices: [] 
+        };
+        db.notes_list.unshift(newNote);
     }
 
-    const newNote = {
-        id: Date.now(),
-        date: dateKey,
-        tags: [cat],
-        content: text,
-        checkedIndices: [] // Standardized name
-    };
-
-    db.notes_list.unshift(newNote);
     save();
     textarea.value = '';
     renderDeck();
@@ -668,7 +680,7 @@ function renderDeck() {
     
     const filtered = db.notes_list.filter(n => {
         const dateMatch = n.date === key;
-        const catMatch = !currentCategory || n.tags.includes(currentCategory.toLowerCase());
+        const catMatch = !currentCategory || n.tags.map(t => t.toLowerCase()).includes(currentCategory.toLowerCase());
         const isDeleted = db.recentlyDeleted.some(dn => dn.id === n.id);
         return dateMatch && catMatch && !isDeleted;
     });
@@ -681,7 +693,6 @@ function renderDeck() {
         let checklistHTML = '<div class="card-checklist">';
         
         lines.forEach((lineText, index) => {
-            // Fix: Standardized to use checkedIndices
             const isChecked = note.checkedIndices && note.checkedIndices.includes(index);
             checklistHTML += `
                 <div class="checklist-item" onclick="event.stopPropagation(); toggleCheck(${note.id}, ${index})">
@@ -692,9 +703,12 @@ function renderDeck() {
         });
         checklistHTML += '</div>';
 
+        // Title fix: prevent "undefined"
+        const displayTag = (note.tags && note.tags[0]) ? note.tags[0] : 'general';
+
         card.innerHTML = `
             <button class="note-menu-btn" onclick="event.stopPropagation(); openNoteMenu(event, ${note.id})">⋮</button>
-            <span class="saved-note-title">${note.tags[0] || 'general'}</span>
+            <span class="saved-note-title">${displayTag}</span>
             ${checklistHTML}
         `;
         
@@ -706,8 +720,6 @@ function renderDeck() {
 function toggleCheck(noteId, lineIndex) {
     const note = db.notes_list.find(n => n.id === noteId);
     if (!note) return;
-
-    // Fix: Use the same property name (checkedIndices) as the renderer
     if (!note.checkedIndices) note.checkedIndices = [];
 
     const foundIndex = note.checkedIndices.indexOf(lineIndex);
@@ -720,25 +732,6 @@ function toggleCheck(noteId, lineIndex) {
     save();
     renderDeck();
     uploadToCloud();
-}
-
-function switchCategory(cat, btn) {
-    if (currentCategory === cat) {
-        currentCategory = null;
-        btn.classList.remove('active');
-        btn.style.border = "none";
-        document.getElementById('todoHeader').innerText = "Notes";
-    } else {
-        document.querySelectorAll('.bubble').forEach(b => {
-            b.classList.remove('active');
-            b.style.border = "none";
-        });
-        currentCategory = cat;
-        btn.classList.add('active');
-        btn.style.border = "2px solid var(--accent)";
-        document.getElementById('todoHeader').innerText = btn.innerText + " List";
-    }
-    renderDeck();
 }
 
 function setupCalendar() {
@@ -764,6 +757,30 @@ function setupCalendar() {
     }
 }
 
+// Click away for dots menu
+window.addEventListener('mousedown', (e) => {
+    const menu = document.getElementById('noteMenu');
+    if (menu && menu.style.display === 'block' && !menu.contains(e.target) && !e.target.classList.contains('note-menu-btn')) {
+        menu.style.display = 'none';
+    }
+});
+
+function switchCategory(cat, btn) {
+    if (currentCategory === cat) {
+        currentCategory = null;
+        btn.classList.remove('active');
+        btn.style.border = "none";
+        document.getElementById('todoHeader').innerText = "Notes";
+    } else {
+        document.querySelectorAll('.bubble').forEach(b => { b.classList.remove('active'); b.style.border = "none"; });
+        currentCategory = cat;
+        btn.classList.add('active');
+        btn.style.border = "2px solid var(--accent)";
+        document.getElementById('todoHeader').innerText = btn.innerText + " List";
+    }
+    renderDeck();
+}
+
 function toggleModal() {
     const m = document.getElementById('calModal');
     const o = document.getElementById('overlay');
@@ -780,9 +797,7 @@ function renderHeatmap() {
     const month = selectedDate.getMonth();
     const firstDay = new Date(year, month, 1).getDay();
     const days = new Date(year, month + 1, 0).getDate();
-
     document.getElementById('modalMonthTitle').innerText = selectedDate.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
-
     for (let p = 0; p < firstDay; p++) grid.appendChild(document.createElement('div'));
     for (let i = 1; i <= days; i++) {
         const d = new Date(year, month, i);
@@ -797,7 +812,6 @@ function renderHeatmap() {
     }
 }
 
-// Fullscreen Viewer logic
 let activeNote = null;
 function openNoteViewer(note) {
     activeNote = note;
@@ -821,7 +835,24 @@ function closeNoteViewer() {
 
 function saveViewerEdit() { closeNoteViewer(); uploadToCloud(); }
 
-// Settings & Navigation
+function openNoteMenu(event, noteId) {
+    const menu = document.getElementById('noteMenu');
+    const rect = event.target.getBoundingClientRect();
+    menu.style.display = 'block';
+    menu.style.top = (rect.bottom + window.scrollY + 5) + 'px';
+    menu.style.left = (rect.right - 150) + 'px';
+    menu.innerHTML = `<button onclick="deleteNote(${noteId})" style="width:100%; text-align:left; background:none; border:none; color:red; padding:10px; cursor:pointer; font-weight:bold;">Delete Note</button>`;
+}
+
+function deleteNote(id) {
+    const idx = db.notes_list.findIndex(n => n.id === id);
+    const note = db.notes_list.splice(idx, 1)[0];
+    db.recentlyDeleted.unshift(note);
+    save();
+    renderDeck();
+    document.getElementById('noteMenu').style.display = 'none';
+}
+
 function showSettings() {
     document.querySelector('header').style.display = 'none';
     document.getElementById('strip').style.display = 'none';
@@ -862,33 +893,13 @@ function restoreNote(id) {
     renderDeletedNotes();
 }
 
-function openNoteMenu(event, noteId) {
-    const menu = document.getElementById('noteMenu');
-    const rect = event.target.getBoundingClientRect();
-    menu.style.display = 'block';
-    menu.style.top = (rect.bottom + window.scrollY + 5) + 'px';
-    menu.style.left = (rect.right - 150) + 'px';
-    menu.innerHTML = `<button onclick="deleteNote(${noteId})" style="width:100%; text-align:left; background:none; border:none; color:red; padding:10px; cursor:pointer; font-weight:bold;">Delete Note</button>`;
+function insertBullet() {
+    const start = textarea.selectionStart;
+    textarea.value = textarea.value.slice(0, start) + "• " + textarea.value.slice(start);
+    textarea.focus();
+    textarea.selectionStart = textarea.selectionEnd = start + 2;
 }
 
-function deleteNote(id) {
-    const idx = db.notes_list.findIndex(n => n.id === id);
-    const note = db.notes_list.splice(idx, 1)[0];
-    db.recentlyDeleted.unshift(note);
-    save();
-    renderDeck();
-    document.getElementById('noteMenu').style.display = 'none';
-}
-
-// Click away for menu
-window.addEventListener('mousedown', (e) => {
-    const menu = document.getElementById('noteMenu');
-    if (menu.style.display === 'block' && !menu.contains(e.target) && !e.target.classList.contains('note-menu-btn')) {
-        menu.style.display = 'none';
-    }
-});
-
-// Cloud Sync (Simplified for R2)
 const R2_URL = "https://pub-66479d392b224c95a6cb0e230ac238bb.r2.dev/notes_db.json";
 async function uploadToCloud() {
     try {
@@ -907,6 +918,7 @@ async function syncWithCloud() {
         if (data.notes_list) {
             db.notes_list = data.notes_list;
             save();
+            cleanupDuplicates(); // Run cleanup on cloud sync too
             renderDeck();
             alert("Synced!");
         }
@@ -914,15 +926,10 @@ async function syncWithCloud() {
 }
 
 function jumpToToday() { selectedDate = new Date(); setupCalendar(); renderDeck(); }
-function insertBullet() {
-    const start = textarea.selectionStart;
-    textarea.value = textarea.value.slice(0, start) + "• " + textarea.value.slice(start);
-    textarea.focus();
-    textarea.selectionStart = textarea.selectionEnd = start + 2;
-}
 
-// Start app
+// --- START APP ---
 document.addEventListener("DOMContentLoaded", () => {
+    cleanupDuplicates(); // Fixes old messy data immediately
     setupCalendar();
     renderDeck();
 });

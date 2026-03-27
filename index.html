@@ -495,32 +495,39 @@ let draftNotes = {};
 function switchCategory(cat, btn) {
     // Save current draft in memory before switching
     if (textarea.value.trim()) {
-        draftNotes[currentCategory || 'home_draft'] = textarea.value;
-    }
+    // Always save draft under currentCategory or 'home_draft'
+    draftNotes[currentCategory || 'home_draft'] = textarea.value;
+}
 
-    // If clicking the same tab again, unselect it
-    if (currentCategory === cat) {
-        currentCategory = null;
-        btn.classList.remove('active');
-        document.getElementById('todoHeader').innerText = "Type your notes...";
-        textarea.value = draftNotes[cat] || '';
-        todoList.style.display = 'none';
-        document.querySelector('.note-container').style.display = 'block';
-        return;
-    }
+// If clicking the same tab again, unselect it
+if (currentCategory === cat) {
+    currentCategory = null;
+    btn.classList.remove('active');
+    document.getElementById('todoHeader').innerText = "Type your notes...";
+    // Preserve live text if no draft exists
+    textarea.value = draftNotes[cat] || textarea.value;
+    todoList.style.display = 'none';
+    document.querySelector('.note-container').style.display = 'block';
+    return;
+}
 
-    // Normal tab switching
-    document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
-    currentCategory = cat;
-    btn.classList.add('active');
-    document.getElementById('todoHeader').innerText = btn.innerText + " List";
+// Normal tab switching
+document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
+currentCategory = cat;
+btn.classList.add('active');
+document.getElementById('todoHeader').innerText = btn.innerText + " List";
 
-    // Merge all saved notes for this category + draft
-    const notesForCat = db.notes_list
-        .filter(n => n.tags.includes(cat))
-        .map(n => n.content);
-    const draft = draftNotes[cat] || '';
-    textarea.value = [...notesForCat, draft].join('\n');
+// Merge all saved notes for this category + draft
+const notesForCat = db.notes_list
+    .filter(n => n.tags.includes(cat))
+    .map(n => n.content);
+// Use existing textarea value if no draft exists
+const draft = draftNotes[cat] || textarea.value;
+textarea.value = [...notesForCat, draft].join('\n');
+
+// Do NOT hide .note-container or todoList while typing
+// Removed todoList.style.display = 'none';
+// Removed document.querySelector('.note-container').style.display = 'block';
 
     if (todoList) todoList.style.display = 'none';
     document.querySelector('.note-container').style.display = 'block';

@@ -89,14 +89,14 @@ header { width:100%; max-width:500px; display:flex; flex-direction:column; align
 }
 .bubble.active { background: var(--accent); color: white; border: 2px solid white !important; }
 
-/* SAVED NOTES DECK - Positioned above input box */
 #noteDeck {
     width: 100%;
     max-width: 500px;
     display: grid;
     grid-template-columns: 1fr 1fr; 
     gap: 12px;
-    margin-bottom: 20px;
+    margin-top: 15px; /* Added spacing */
+    margin-bottom: 15px; /* Added spacing */
 }
 
 .saved-note {
@@ -118,7 +118,6 @@ header { width:100%; max-width:500px; display:flex; flex-direction:column; align
 .checklist-text { font-size: 0.85rem; color: #444; line-height: 1.3; }
 .checklist-text.done { text-decoration: line-through; color: #aaa; }
 
-/* INPUT BOX */
 .note-container {
     width: 100%;
     max-width: 500px;
@@ -127,6 +126,7 @@ header { width:100%; max-width:500px; display:flex; flex-direction:column; align
     padding: 25px;
     position: relative;
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    margin-bottom: 15px; /* Space for when deck is below */
 }
 
 textarea {
@@ -155,7 +155,6 @@ textarea {
     box-shadow: 0 6px 20px rgba(0,0,0,0.3);
 }
 
-/* NOTE VIEWER - Pop-up Modal (Not Fullscreen) */
 #noteViewer {
     position: fixed;
     top: 50%;
@@ -192,7 +191,6 @@ textarea {
     font-weight: bold;
 }
 
-/* CALENDAR MODAL */
 #calModal {
     display: none;
     position: fixed;
@@ -233,17 +231,16 @@ textarea {
 <div class="calendar-strip" id="strip"></div>
 
 <div class="filter-container">
-    <button class="bubble active" onclick="switchCategory(null,this)">Home</button>
+    <button id="homeBubble" class="bubble active" onclick="switchCategory(null,this)">Home</button>
     <button class="bubble" onclick="switchCategory('todo',this)">To-do</button>
     <button class="bubble" onclick="switchCategory('work',this)">Work</button>
     <button class="bubble" onclick="switchCategory('groceries',this)">Groceries</button>
     <button class="bubble" onclick="switchCategory('errands',this)">Errands</button>
 </div>
 
-<!-- SAVED NOTES (Note Deck) ABOVE INPUT -->
+<!-- Both elements are now siblings, renderDeck will handle their order -->
 <div id="noteDeck"></div>
 
-<!-- INPUT BOX -->
 <div class="note-container">
     <div style="display:flex;gap:10px;margin-bottom:10px;">
         <button onclick="insertBullet()" style="border:none;background:#e8f5e9;border-radius:8px;padding:6px 10px;font-weight:700;cursor:pointer;">•</button>
@@ -264,7 +261,6 @@ textarea {
     </div>
 </div>
 
-<!-- MODAL VIEWER -->
 <div id="noteViewer">
     <button id="noteViewerClose" onclick="closeNoteViewer()">×</button>
     <textarea id="noteViewerContent"></textarea>
@@ -289,6 +285,7 @@ let currentCategory = null;
 const strip = document.getElementById('strip');
 const textarea = document.getElementById('noteContent');
 const deck = document.getElementById('noteDeck');
+const noteContainer = document.querySelector('.note-container');
 
 function formatDateKey(date) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -298,7 +295,6 @@ function save() {
     localStorage.setItem('reson_db', JSON.stringify(db));
 }
 
-// 1. CLEANUP DUPLICATES
 function cleanupData() {
     let cleaned = [];
     let seen = {};
@@ -318,7 +314,6 @@ function cleanupData() {
     save();
 }
 
-// 2. SAVE NOTE
 function commitNote() {
     const text = textarea.value.trim();
     if (!text) return;
@@ -337,10 +332,19 @@ function commitNote() {
     uploadToCloud();
 }
 
-// 3. RENDER SAVED NOTES
 function renderDeck() {
     deck.innerHTML = '';
     const key = formatDateKey(selectedDate);
+    
+    // POSITIONING LOGIC:
+    if (currentCategory === null) {
+        // Home: Input block first, Deck second (below)
+        noteContainer.parentNode.insertBefore(noteContainer, deck);
+    } else {
+        // Categories: Deck first (above), Input block second
+        noteContainer.parentNode.insertBefore(deck, noteContainer);
+    }
+
     const filtered = db.notes_list.filter(n => {
         const dMatch = n.date === key;
         const cMatch = !currentCategory || n.tags[0].toLowerCase() === currentCategory.toLowerCase();
@@ -377,7 +381,6 @@ function toggleLine(id, idx) {
     renderDeck();
 }
 
-// 4. NOTE VIEWER (MODAL)
 let activeNote = null;
 function openNoteViewer(note) {
     activeNote = note;
@@ -397,7 +400,6 @@ function closeNoteViewer() {
     activeNote = null;
 }
 
-// 5. CALENDAR & TABS
 function setupCalendar() {
     strip.innerHTML = '';
     const year = selectedDate.getFullYear();
@@ -421,6 +423,9 @@ function switchCategory(cat, btn) {
     document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
     if (currentCategory === cat) currentCategory = null;
     else { currentCategory = cat; btn.classList.add('active'); }
+    
+    if (currentCategory === null) document.getElementById('homeBubble').classList.add('active');
+    
     renderDeck();
 }
 
@@ -486,6 +491,7 @@ function showMain() {
     document.getElementById('noteDeck').style.display = 'grid';
     document.querySelector('.note-container').style.display = 'block';
     document.querySelector('.filter-container').style.display = 'flex';
+    renderDeck();
 }
 
 function insertBullet() {

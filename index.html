@@ -496,42 +496,24 @@ function commitNote() {
     const text = textarea.value.trim();
     if (!text) return;
 
-    // Find all active tabs (bubbles with 'active')
-    const activeTabs = Array.from(document.querySelectorAll('.bubble.active'))
-        .map(b => b.dataset.cat)
-        .filter(Boolean);
-
-    // If no tab selected, default to home
-    const categories = activeTabs.length ? activeTabs : ['home'];
-
-    // Create note object
+    // Create the note object with the active category as a tag
     const newNote = {
         id: Date.now(),
         date: formatDateKey(selectedDate),
-        tags: categories,
+        tags: currentCategory ? [currentCategory] : [], // Tags it with active tab
         content: text
     };
 
-    // Add to main notes list
     if (!db.notes_list) db.notes_list = [];
-    db.notes_list.unshift(newNote);
+    db.notes_list.unshift(newNote); // Put newest note at the top
 
-    // Save to each category in db.notes
-    categories.forEach(cat => {
-        if (!db.notes[cat]) db.notes[cat] = [];
-        db.notes[cat].push(text);
-        draftNotes[cat] = ''; // clear draft
-    });
-
-    save();
-
-    // Clear textarea and unselect tabs
-    textarea.value = '';
-    currentCategory = null;
-    document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
-    document.getElementById('todoHeader').innerText = "Notes";
-
+    save(); // Save to LocalStorage
+    textarea.value = ''; // Clear typing area
+    
+    // Refresh the deck so the new note appears immediately
     renderDeck();
+    
+    // Optional: Auto-upload to cloud if you have your R2 set up
     if (typeof uploadToCloud === "function") uploadToCloud();
 }
 function setupCalendar(){
@@ -629,56 +611,76 @@ function commitNote() {
 
 /* --- FIXED CONSOLIDATED SWITCH CATEGORY --- */
 function switchCategory(cat, btn) {
-    // 1. Capture what is currently in the textarea (the "live" note)
     const currentInput = textarea.value;
 
-    // 2. If clicking the same tab again, unselect it (toggle off)
     if (currentCategory === cat) {
+        // If clicking the same active tab, turn it off (Back to "Home")
         currentCategory = null;
         btn.classList.remove('active');
+        btn.style.border = "none";
         document.getElementById('todoHeader').innerText = "Notes";
-        // Keep the text the user was typing!
-        textarea.value = currentInput;
     } else {
-        // 3. Normal tab switching
-        document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
+        // Switch to the new category
+        document.querySelectorAll('.bubble').forEach(b => {
+            b.classList.remove('active');
+            b.style.border = "none";
+        });
+        
         currentCategory = cat;
         btn.classList.add('active');
+        btn.style.border = "2px solid var(--accent)";
         document.getElementById('todoHeader').innerText = btn.innerText + " List";
-
-        // 4. PRESERVE INPUT: Do not overwrite textarea.value if the user is typing.
-        // We only change the 'currentCategory' so the Save (✔) button knows where to send it.
-        textarea.value = currentInput;
     }
 
-    // 5. Update UI Visibility
-    // We keep the note-container visible so users can finish typing
-    if (todoList) todoList.style.display = 'none';
-    document.querySelector('.note-container').style.display = 'block';
-
-    // 6. Refresh the deck to show notes already saved in this category
-    renderDeck();
+    textarea.value = currentInput; // Keep whatever user was typing
+    renderDeck(); // Update the list of notes shown below
 }
 function renderDeck() {
     const deck = document.getElementById('noteDeck');
-    deck.innerHTML = '';
+    deck.innerHTML = ''; // Clear current view
     
     const selectedKey = formatDateKey(selectedDate);
     const deletedIds = (db.recentlyDeleted || []).map(n => n.id);
-    const seen = new Set();
 
+    // Filter notes based on Date, Category, and Trash status
     const notesToShow = (db.notes_list || []).filter(n => {
-        if(seen.has(n.id)) return false;
-        if (n.date !== selectedKey || deletedIds.includes(n.id)) return false;
+        const dateMatch = n.date === selectedKey;
+        const notDeleted = !deletedIds.includes(n.id);
         
-        // If no category is selected, show everything for that day
-        if (!currentCategory) return true;
-        
-        // If a category is selected, only show notes matching that tag
-        return (n.tags || []).some(t => t.toLowerCase() === currentCategory.toLowerCase());
+        // If a category (tab) is selected, filter by that tag
+        // If no category is selected, show all notes for that day
+        const categoryMatch = !currentCategory || 
+            (n.tags && n.tags.map(t => t.toLowerCase()).includes(currentCategory.toLowerCase()));
+
+        return dateMatch && notDeleted && categoryMatch;
     });
 
-    // ... rest of your rendering code (creating elements, etc.)
+    // Create the visual "White Bubbles" for each note
+    notesToShow.forEach(note => {
+        const card = document.createElement('div');
+        card.className = 'saved-note';
+        
+        // Applying the "White Bubble" style requested
+        card.style.background = 'white'; 
+        card.style.color = 'black';
+        card.style.border = '1px solid #eee';
+
+        card.innerHTML = `
+            <div class="saved-note-title" style="color:var(--accent); font-size:0.6rem; margin-bottom:8px;">
+                ${note.tags && note.tags.length ? note.tags.join(' • ').toUpperCase() : 'GENERAL'}
+            </div>
+            <div class="saved-note-text">${note.content}</div>
+        `;
+
+        // Interaction: Single click to view, Right-click (or long press) for menu
+        card.onclick = () => openNoteViewer(note);
+        card.oncontextmenu = (e) => {
+            e.preventDefault();
+            openNoteMenu(e, note.id);
+        };
+
+        deck.appendChild(card);
+    });
 }
 function toggleModal(){
     const m=document.getElementById('calModal');

@@ -6,224 +6,138 @@
 <title>Reson Notes</title>
 
 <style>
-/* Checklist Styles */
-.card-checklist {
-    margin-top: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.checklist-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    cursor: pointer;
-}
-
-.checklist-item input {
-    width: 14px;
-    height: 14px;
-    margin-top: 2px;
-    accent-color: var(--accent);
-    cursor: pointer;
-}
-
-.checklist-text {
-    font-size: 0.85rem;
-    color: #444;
-    line-height: 1.3;
-    transition: all 0.2s;
-}
-
-.checklist-text.done {
-    text-decoration: line-through;
-    color: #aaa;
-}
 :root {
---bg:#77c98d;
---card:#ffffff;
---text:#000000;
---accent:#2d5a3a;
---muted:#666666;
---star-gold:#ffd700;
---heat-0:#f0fdf4;
---heat-1:#dcfce7;
---heat-2:#86efac;
---heat-3:#22c55e;
+    --bg:#77c98d;
+    --card:#ffffff;
+    --text:#000000;
+    --accent:#2d5a3a;
+    --muted:#666666;
+    --star-gold:#ffd700;
+    --heat-0:#f0fdf4;
+    --heat-1:#dcfce7;
+    --heat-2:#86efac;
+    --heat-3:#22c55e;
 }
 
-body{
-margin:0;
-font-family:-apple-system,system-ui,sans-serif;
-background:var(--bg);
-display:flex;
-flex-direction:column;
-align-items:center;
-padding:20px;
-min-height:100vh;
+body {
+    margin:0;
+    font-family:-apple-system,system-ui,sans-serif;
+    background:var(--bg);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:20px;
+    min-height:100vh;
 }
 
-header{width:100%;max-width:500px;display:flex;flex-direction:column;align-items:center;position:relative;margin-bottom:10px;}
-.month-label{font-size:1.2rem;font-weight:800;color:white;text-transform:uppercase;}
+header { width:100%; max-width:500px; display:flex; flex-direction:column; align-items:center; position:relative; margin-bottom:10px; }
+.month-label { font-size:1.2rem; font-weight:800; color:white; text-transform:uppercase; }
 
-#todayBtn{
-background:rgba(255,255,255,0.2);
-border:1px solid white;
-color:white;
-padding:4px 12px;
-border-radius:12px;
-font-size:0.7rem;
-font-weight:700;
-cursor:pointer;
-text-transform:uppercase;
-margin-top:5px;
-display:none;
+#todayBtn {
+    background:rgba(255,255,255,0.2);
+    border:1px solid white;
+    color:white;
+    padding:4px 12px;
+    border-radius:12px;
+    font-size:0.7rem;
+    font-weight:700;
+    cursor:pointer;
+    text-transform:uppercase;
+    margin-top:5px;
+    display:none;
 }
 
-.cal-icon-wrapper{position:absolute;right:0;top:0;}
-.cal-icon{cursor:pointer;font-size:1.4rem;background:none;border:none;}
-
-.calendar-strip{
-display:flex;
-overflow-x:auto;
-gap:12px;
-width:100%;
-max-width:500px;
-padding:15px 0;
-scrollbar-width:none;
-scroll-behavior:smooth;
+.calendar-strip {
+    display:flex;
+    overflow-x:auto;
+    gap:12px;
+    width:100%;
+    max-width:500px;
+    padding:15px 0;
+    scrollbar-width:none;
 }
+.calendar-strip::-webkit-scrollbar { display:none; }
 
-.calendar-strip::-webkit-scrollbar{display:none;}
-
-.day-card{
-min-width:65px;
-background:var(--card);
-border-radius:18px;
-padding:12px 0;
-text-align:center;
-box-shadow:0 4px 10px rgba(0,0,0,0.05);
-cursor:pointer;
-transition:0.2s;
+.day-card {
+    min-width:65px;
+    background:var(--card);
+    border-radius:18px;
+    padding:12px 0;
+    text-align:center;
+    box-shadow:0 4px 10px rgba(0,0,0,0.05);
+    cursor:pointer;
+    transition:0.2s;
 }
-
-.day-card.active{
-background:#000;
-color:white;
-transform:scale(1.05);
-}
+.day-card.active { background:#000; color:white; transform:scale(1.05); }
 
 .filter-container {
-display: flex;
-gap: 10px;
-width: 100%;
-max-width: 500px;
-margin: 15px 0;
-overflow-x: auto;
-scrollbar-width: none;
-padding-bottom: 5px;
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    max-width: 500px;
+    margin: 15px 0;
+    overflow-x: auto;
+    scrollbar-width: none;
 }
-.filter-container::-webkit-scrollbar { display: none; }
-
 .bubble {
-padding: 8px 20px;
-background: var(--card);
-border-radius: 20px;
-font-weight: 600;
-cursor: pointer;
-border: none;
-white-space: nowrap;
-box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    padding: 8px 20px;
+    background: var(--card);
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    white-space: nowrap;
 }
+.bubble.active { background: var(--accent); color: white; }
 
-.bubble.active {
-background: var(--accent);
-color: white;
-}
-
-.todo-card{
-width:100%;
-max-width:500px;
-background:#e8f5e9;
-border-radius:25px;
-padding:20px;
-margin-bottom:15px;
-display:none;
-box-sizing:border-box;
-}
-
-.todo-header{font-weight:800;margin-bottom:15px;font-size:1.1rem;}
-.todo-item{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
-.todo-item input[type="checkbox"]{width:20px;height:20px;accent-color:var(--accent);cursor:pointer;}
-.todo-text.completed{text-decoration:line-through;color:var(--muted);opacity:0.7;}
-
-.star-btn{background:none;border:none;font-size:1.3rem;cursor:pointer;color:#ccc;filter:grayscale(1);}
-.star-btn.starred{filter:grayscale(0);color:var(--star-gold);}
-
-.note-container{
-width:100%;
-max-width:500px;
-background:var(--card);
-border-radius:30px;
-padding:25px;
-box-shadow:0 10px 30px rgba(0,0,0,0.1);
-box-sizing:border-box;
-position:relative;
-}
-
-/* Note Deck Container */
-/* Note Deck Grid - Adjusted for better spacing */
+/* THE DECK GRID */
 #noteDeck {
     width: 100%;
     max-width: 500px;
     display: grid;
     grid-template-columns: 1fr 1fr; 
-    gap: 15px; /* Increased gap for a cleaner look */
-    margin-top: 25px;
+    gap: 12px;
+    margin-top: 35px;
+    padding-bottom: 100px;
 }
 
-/* The Saved Note Card - Improved Aspect Ratio */
-/* FIXED SOPHISTICATED TILES - SHORTER & COMPACT */
+/* THE NOTE CARDS (Shorter & Compact) */
 .saved-note {
     position: relative; 
     background: #ffffff;
-    padding: 12px 14px; /* Tightened padding */
+    padding: 14px;
     border-radius: 18px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-    min-height: 90px; /* MUCH SHORTER BOXES */
+    min-height: 90px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     border: 1px solid rgba(0,0,0,0.02);
     overflow: hidden;
-    transition: transform 0.2s ease;
 }
 
-/* Restore Bold Lowercase Tags */
+/* CATEGORY TAGS (Bold and Lowercase) */
 .saved-note-title {
     font-weight: 800;
     font-size: 0.75rem;
     text-transform: lowercase;
     color: var(--accent);
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     display: block;
 }
 
-/* Checklist Layout */
+/* CHECKLIST STYLING */
 .card-checklist {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
-
 .checklist-line {
     display: flex;
     align-items: center;
     gap: 10px;
     cursor: pointer;
 }
-
 .checklist-line input[type="checkbox"] {
     width: 16px;
     height: 16px;
@@ -231,204 +145,46 @@ position:relative;
     cursor: pointer;
     margin: 0;
 }
-
 .checklist-text {
     font-size: 0.9rem;
     color: #333;
     transition: all 0.2s;
 }
-
 .checklist-text.strikethrough {
     text-decoration: line-through;
     color: #aaa;
 }
 
-.saved-note {
-    min-height: auto; /* Allow box to grow with the list */
-    padding: 15px;
+/* OTHER UI ELEMENTS */
+.note-container {
+    width:100%; max-width:500px; background:var(--card); border-radius:30px; padding:25px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.1); position:relative;
+}
+textarea { width:100%; height:12vh; border:none; outline:none; resize:none; font-size:1.1rem; line-height:1.6; }
+.add-note {
+    position:absolute; bottom:-25px; right:20px; width:50px; height:50px; border-radius:50%;
+    border:none; background:black; color:white; font-size:28px; cursor:pointer; box-shadow:0 6px 20px rgba(0,0,0,0.3);
 }
 
-.saved-note-text {
-    font-size: 0.82rem; 
-    color: #444;
-    line-height: 1.35;
-    display: -webkit-box;
-    -webkit-line-clamp: 3; /* Shows only 3 lines to ensure the box stays short */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    white-space: pre-wrap;
-}
-
-/* Dots positioned higher for compact layout */
 .note-menu-btn {
-    position: absolute;
-    top: 6px;
-    right: 4px;
-    background: none !important;
-    border: none !important;
-    color: #ccc;
-    font-size: 1.1rem;
-    cursor: pointer;
-    z-index: 20;
-    padding: 5px;
+    position: absolute; top: 8px; right: 4px; background: none !important; border: none !important;
+    color: #ccc; font-size: 1.1rem; cursor: pointer; z-index: 20; padding: 5px;
 }
 
-.note-menu-btn:hover { color: #333; }
-
-/* Text filling the space naturally */
-.saved-note-text {
-    font-size: 0.95rem;
-    color: #333;
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 5; /* Shows up to 5 lines then ellipses */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    margin-top: 4px;
-}
-
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px) scale(0.95); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-textarea{
-width:100%;
-height:35vh;
-border:none;
-outline:none;
-resize:none;
-font-size:1.1rem;
-line-height:1.6;
-}
-
-.add-note{
-position:absolute;
-bottom:-25px;
-right:20px;
-width:50px;
-height:50px;
-border-radius:50%;
-border:none;
-background:black;
-color:white;
-font-size:28px;
-cursor:pointer;
-box-shadow:0 6px 20px rgba(0,0,0,0.3);
-}
-
-#overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:900;backdrop-filter:blur(4px);}
-
-/* [START] - Updated Green Modal & 2-Column Deck */
 #calModal {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 400px;
-    background: var(--bg);
-    border: 2px solid white;
-    border-radius: 30px;
-    padding: 30px;
-    z-index: 1000;
-    color: white;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+    display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 90%; max-width: 400px; background: var(--bg); border: 2px solid white; border-radius: 30px; padding: 30px; z-index: 1000; color: white;
 }
-
 .modal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center; }
-
-.circle-day {
-    aspect-ratio: 1/1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    font-size: 0.9rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: 0.2s;
-    position: relative;
-    color: #333; /* Improved visibility on green */
-}
-
+.circle-day { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.9rem; font-weight: 700; cursor: pointer; color: #333; }
 .circle-day.selected { outline: 2px solid white; outline-offset: 2px; }
 
-#noteDeck {
-    width: 100%;
-    max-width: 500px;
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* This creates the 2-column side-by-side look */
-    gap: 12px;
-    margin-top: 35px;
+#noteViewer {
+    position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:2000; display:none; padding:40px 25px;
+    transform:translateX(100%); transition:transform 0.3s cubic-bezier(.32,.72,0,.99);
 }
-/* [END] */
-.modal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;text-align:center;}
-.modal-day-label{font-size:0.6rem;color:#555;text-transform:uppercase;margin-bottom:5px;font-weight:800;}
-
-.circle-day{
-aspect-ratio:1/1;
-display:flex;
-align-items:center;
-justify-content:center;
-border-radius:50%;
-font-size:0.9rem;
-font-weight:700;
-cursor:pointer;
-transition:0.2s;
-position:relative;
-color:#333;
-}
-.circle-day.selected{outline:2px solid white;outline-offset:2px;}
-
-/* Fullscreen Note Viewer */
-#noteViewer{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:white;
-z-index:2000;
-display:none;
-overflow-y:auto;
-padding:40px 25px;
-box-sizing:border-box;
-transform:translateX(100%);
-transition:transform 0.35s cubic-bezier(.32,.72,0,.99);
-}
-
-#noteViewer.open{
-display:block;
-transform:translateX(0);
-}
-
-#noteViewerContent{
-    max-width:600px;
-    margin:auto;
-    font-size:1.2rem;
-    line-height:1.7;
-    white-space:pre-wrap;
-}
-
-#noteViewerClose {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: none;
-    border: none;
-    font-size: 2rem;
-    font-weight: 700;
-    cursor: pointer;
-    color: #2d5a3a;
-    z-index: 2100;
-    transition: transform 0.2s, color 0.2s;
-}
-#noteViewerClose:hover {
-    transform: scale(1.2);
-    color: #166534;
-}
+#noteViewer.open { display:block; transform:translateX(0); }
+#noteViewerContent { width: 100%; height: 70vh; border: none; outline: none; font-size: 1.2rem; line-height: 1.7; white-space: pre-wrap; }
 </style>
 </head>
 
@@ -668,41 +424,36 @@ function commitNote() {
     const text = textarea.value.trim();
     if (!text) return;
 
-    const dateKey = formatDateKey(selectedDate);
+    const key = formatDateKey(selectedDate);
     const cat = currentCategory ? currentCategory.toLowerCase() : "general";
-    const specialCats = ['groceries', 'todo', 'errands'];
+    const mergeCategories = ['groceries', 'todo', 'errands'];
 
-    // 1. Check if we should MERGE into an existing card
-    if (specialCats.includes(cat)) {
-        const existingNote = db.notes_list.find(n => n.date === dateKey && n.tags.includes(cat));
-        
+    // CHECK FOR EXISTING NOTE TO MERGE
+    if (mergeCategories.includes(cat)) {
+        const existingNote = db.notes_list.find(n => n.date === key && n.tags.includes(cat));
         if (existingNote) {
-            // Add new text as a new line
-            existingNote.content += "\n" + text;
+            existingNote.content += "\n" + text; // Append new item as a new line
             save();
             textarea.value = '';
             renderDeck();
-            if (typeof uploadToCloud === "function") uploadToCloud();
-            return; // Exit, we are done
+            return;
         }
     }
 
-    // 2. If no existing card to merge into, create a new one
+    // CREATE NEW NOTE IF NO MERGE FOUND
     const newNote = {
         id: Date.now(),
-        date: dateKey,
+        date: key,
         tags: [cat],
         content: text,
-        completedLines: [] // Track which lines are checked
+        checkedIndices: [] // Track which lines are strikethrough
     };
 
     db.notes_list.unshift(newNote);
     save();
     textarea.value = '';
     renderDeck();
-    if (typeof uploadToCloud === "function") uploadToCloud();
 }
-
 function renderDeck() {
     const deck = document.getElementById('noteDeck');
     deck.innerHTML = '';
@@ -746,23 +497,6 @@ function renderDeck() {
     });
 }
 
-function toggleCheck(noteId, lineIndex) {
-    const note = db.notes_list.find(n => n.id === noteId);
-    if (!note) return;
-
-    if (!note.completedLines) note.completedLines = [];
-
-    const foundIndex = note.completedLines.indexOf(lineIndex);
-    if (foundIndex > -1) {
-        note.completedLines.splice(foundIndex, 1); // Uncheck
-    } else {
-        note.completedLines.push(lineIndex); // Check
-    }
-
-    save();
-    renderDeck(); // Refresh UI instantly
-    if (typeof uploadToCloud === "function") uploadToCloud();
-}
 function setupCalendar(){
     strip.innerHTML=''
     const year=selectedDate.getFullYear()
@@ -898,16 +632,16 @@ function renderDeck() {
         const card = document.createElement('div');
         card.className = 'saved-note';
         
-        // Split content into lines for the checklist
+        // Split text by new lines to create checklist items
         const lines = note.content.split('\n').filter(l => l.trim() !== "");
-        let checklistHTML = '<div class="card-checklist">';
+        let checklistHTML = '<div style="margin-top:4px;">';
         
         lines.forEach((line, index) => {
-            const isChecked = note.checkedIndices && note.checkedIndices.includes(index);
+            const isDone = note.checkedIndices && note.checkedIndices.includes(index);
             checklistHTML += `
                 <div class="checklist-item" onclick="event.stopPropagation(); toggleCheck(${note.id}, ${index})">
-                    <input type="checkbox" ${isChecked ? 'checked' : ''}>
-                    <div class="checklist-text ${isChecked ? 'done' : ''}">${line}</div>
+                    <input type="checkbox" ${isDone ? 'checked' : ''}>
+                    <span class="checklist-text ${isDone ? 'done' : ''}">${line}</span>
                 </div>
             `;
         });
@@ -915,7 +649,7 @@ function renderDeck() {
 
         card.innerHTML = `
             <button class="note-menu-btn" onclick="event.stopPropagation(); openNoteMenu(event, ${note.id})">⋮</button>
-            <div class="saved-note-title">${note.tags.join(' • ')}</div>
+            <div class="saved-note-title">${note.tags[0]}</div>
             ${checklistHTML}
         `;
         
@@ -934,24 +668,21 @@ function toggleModal(){
     // Ensure calendar-strip stays clickable when modal is closed
     document.getElementById('strip').style.pointerEvents = isOpen ? 'auto' : 'none';
 }
-function toggleCheck(noteId, lineIndex) {
-    const note = db.notes_list.find(n => n.id === noteId);
+function toggleCheck(id, index) {
+    const note = db.notes_list.find(n => n.id === id);
     if (!note) return;
 
     if (!note.checkedIndices) note.checkedIndices = [];
-
-    const stateIndex = note.checkedIndices.indexOf(lineIndex);
-    if (stateIndex > -1) {
-        // Uncheck
-        note.checkedIndices.splice(stateIndex, 1);
+    
+    const pos = note.checkedIndices.indexOf(index);
+    if (pos > -1) {
+        note.checkedIndices.splice(pos, 1); // Uncheck (remove index)
     } else {
-        // Check
-        note.checkedIndices.push(lineIndex);
+        note.checkedIndices.push(index); // Check (add index)
     }
-
+    
     save();
-    renderDeck(); // Re-render to show strike-through instantly
-    uploadToCloud();
+    renderDeck(); // Refresh UI instantly
 }
 /* [START] - Replace function renderHeatmap() */
 function renderHeatmap() {

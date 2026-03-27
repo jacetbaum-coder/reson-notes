@@ -200,14 +200,52 @@ position:relative;
     transition: transform 0.2s ease;
 }
 
-/* Category styling: Bold and Lowercase to match tabs */
+/* Restore Bold Lowercase Tags */
 .saved-note-title {
-    font-weight: 700; /* BOLDED */
-    font-size: 0.75rem; 
-    text-transform: lowercase; /* LOWERCASE */
+    font-weight: 800;
+    font-size: 0.75rem;
+    text-transform: lowercase;
     color: var(--accent);
-    margin-bottom: 2px;
-    opacity: 1; /* Full visibility for bold look */
+    margin-bottom: 6px;
+    display: block;
+}
+
+/* Checklist Layout */
+.card-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.checklist-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.checklist-line input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    margin: 0;
+}
+
+.checklist-text {
+    font-size: 0.9rem;
+    color: #333;
+    transition: all 0.2s;
+}
+
+.checklist-text.strikethrough {
+    text-decoration: line-through;
+    color: #aaa;
+}
+
+.saved-note {
+    min-height: auto; /* Allow box to grow with the list */
+    padding: 15px;
 }
 
 .saved-note-text {
@@ -630,40 +668,100 @@ function commitNote() {
     const text = textarea.value.trim();
     if (!text) return;
 
-    const key = formatDateKey(selectedDate);
+    const dateKey = formatDateKey(selectedDate);
+    const cat = currentCategory ? currentCategory.toLowerCase() : "general";
     const specialCats = ['groceries', 'todo', 'errands'];
-    
-    // Check if we should append to an existing card
-    if (currentCategory && specialCats.includes(currentCategory.toLowerCase())) {
-        const existingNote = db.notes_list.find(n => 
-            n.date === key && 
-            n.tags.includes(currentCategory.toLowerCase())
-        );
 
+    // 1. Check if we should MERGE into an existing card
+    if (specialCats.includes(cat)) {
+        const existingNote = db.notes_list.find(n => n.date === dateKey && n.tags.includes(cat));
+        
         if (existingNote) {
+            // Add new text as a new line
             existingNote.content += "\n" + text;
             save();
             textarea.value = '';
             renderDeck();
-            uploadToCloud();
-            return;
+            if (typeof uploadToCloud === "function") uploadToCloud();
+            return; // Exit, we are done
         }
     }
 
-    // Otherwise, create a new note object
+    // 2. If no existing card to merge into, create a new one
     const newNote = {
         id: Date.now(),
-        date: key,
-        tags: currentCategory ? [currentCategory.toLowerCase()] : ["general"],
+        date: dateKey,
+        tags: [cat],
         content: text,
-        checkedIndices: [] // Track which lines are checked
+        completedLines: [] // Track which lines are checked
     };
 
     db.notes_list.unshift(newNote);
     save();
     textarea.value = '';
     renderDeck();
-    uploadToCloud();
+    if (typeof uploadToCloud === "function") uploadToCloud();
+}
+
+function renderDeck() {
+    const deck = document.getElementById('noteDeck');
+    deck.innerHTML = '';
+    const key = formatDateKey(selectedDate);
+    
+    // Filter notes for the selected date and category
+    const filtered = db.notes_list.filter(n => {
+        const dateMatch = n.date === key;
+        const catMatch = !currentCategory || n.tags.includes(currentCategory.toLowerCase());
+        const isDeleted = (db.recentlyDeleted || []).some(dn => dn.id === n.id);
+        return dateMatch && catMatch && !isDeleted;
+    });
+
+    filtered.forEach(note => {
+        const card = document.createElement('div');
+        card.className = 'saved-note';
+        
+        // Split content into lines and build the checklist HTML
+        const lines = note.content.split('\n').filter(l => l.trim() !== "");
+        let checklistHTML = '<div class="card-checklist">';
+        
+        lines.forEach((lineText, index) => {
+            const isDone = note.completedLines && note.completedLines.includes(index);
+            checklistHTML += `
+                <div class="checklist-line" onclick="event.stopPropagation(); toggleCheck(${note.id}, ${index})">
+                    <input type="checkbox" ${isDone ? 'checked' : ''}>
+                    <span class="checklist-text ${isDone ? 'strikethrough' : ''}">${lineText}</span>
+                </div>
+            `;
+        });
+        checklistHTML += '</div>';
+
+        card.innerHTML = `
+            <button class="note-menu-btn" onclick="event.stopPropagation(); openNoteMenu(event, ${note.id})">⋮</button>
+            <span class="saved-note-title">${note.tags[0]}</span>
+            ${checklistHTML}
+        `;
+        
+        card.onclick = () => openNoteViewer(note);
+        deck.appendChild(card);
+    });
+}
+
+function toggleCheck(noteId, lineIndex) {
+    const note = db.notes_list.find(n => n.id === noteId);
+    if (!note) return;
+
+    if (!note.completedLines) note.completedLines = [];
+
+    const foundIndex = note.completedLines.indexOf(lineIndex);
+    if (foundIndex > -1) {
+        note.completedLines.splice(foundIndex, 1); // Uncheck
+    } else {
+        note.completedLines.push(lineIndex); // Check
+    }
+
+    save();
+    renderDeck(); // Refresh UI instantly
+    if (typeof uploadToCloud === "function") uploadToCloud();
 }
 function setupCalendar(){
     strip.innerHTML=''

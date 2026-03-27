@@ -669,82 +669,62 @@ function commitNote() {
     if (!text) return;
 
     const dateKey = formatDateKey(selectedDate);
+    // Determine the category (default to 'general' if none selected)
     const cat = currentCategory ? currentCategory.toLowerCase() : "general";
-    const specialCats = ['groceries', 'todo', 'errands'];
+    
+    // Define which categories should "group" items together into one card
+    const groupableCategories = ['groceries', 'todo', 'errands', 'work'];
 
-    // 1. Check if we should MERGE into an existing card
-    if (specialCats.includes(cat)) {
-        const existingNote = db.notes_list.find(n => n.date === dateKey && n.tags.includes(cat));
-        
+    if (groupableCategories.includes(cat)) {
+        // Look for an existing note for this specific date and category
+        const existingNote = db.notes_list.find(n => 
+            n.date === dateKey && 
+            n.tags.includes(cat)
+        );
+
         if (existingNote) {
-            // Add new text as a new line
+            // Add the new text as a new line to the existing note
             existingNote.content += "\n" + text;
             save();
             textarea.value = '';
             renderDeck();
             if (typeof uploadToCloud === "function") uploadToCloud();
-            return; // Exit, we are done
+            
+            // Optional: Uncomment the next line if you want to stay in the tab after adding
+            // return; 
+
+            // Current behavior: Unselect tab after saving
+            document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
+            currentCategory = null;
+            document.getElementById('todoHeader').innerText = "Notes";
+            return;
         }
     }
 
-    // 2. If no existing card to merge into, create a new one
+    // If not a groupable category, or no existing note found, create a new one
     const newNote = {
         id: Date.now(),
         date: dateKey,
         tags: [cat],
         content: text,
-        completedLines: [] // Track which lines are checked
+        checkedIndices: [] // Ensure we track checkmarks for the new lines
     };
 
+    if (!Array.isArray(db.notes_list)) db.notes_list = [];
     db.notes_list.unshift(newNote);
+
     save();
     textarea.value = '';
     renderDeck();
+
+    // Clear active tab after saving (matching your current UI flow)
+    document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
+    currentCategory = null;
+    document.getElementById('todoHeader').innerText = "Notes";
+
     if (typeof uploadToCloud === "function") uploadToCloud();
 }
 
-function renderDeck() {
-    const deck = document.getElementById('noteDeck');
-    deck.innerHTML = '';
-    const key = formatDateKey(selectedDate);
-    
-    // Filter notes for the selected date and category
-    const filtered = db.notes_list.filter(n => {
-        const dateMatch = n.date === key;
-        const catMatch = !currentCategory || n.tags.includes(currentCategory.toLowerCase());
-        const isDeleted = (db.recentlyDeleted || []).some(dn => dn.id === n.id);
-        return dateMatch && catMatch && !isDeleted;
-    });
-
-    filtered.forEach(note => {
-        const card = document.createElement('div');
-        card.className = 'saved-note';
-        
-        // Split content into lines and build the checklist HTML
-        const lines = note.content.split('\n').filter(l => l.trim() !== "");
-        let checklistHTML = '<div class="card-checklist">';
-        
-        lines.forEach((lineText, index) => {
-            const isDone = note.completedLines && note.completedLines.includes(index);
-            checklistHTML += `
-                <div class="checklist-line" onclick="event.stopPropagation(); toggleCheck(${note.id}, ${index})">
-                    <input type="checkbox" ${isDone ? 'checked' : ''}>
-                    <span class="checklist-text ${isDone ? 'strikethrough' : ''}">${lineText}</span>
-                </div>
-            `;
-        });
-        checklistHTML += '</div>';
-
-        card.innerHTML = `
-            <button class="note-menu-btn" onclick="event.stopPropagation(); openNoteMenu(event, ${note.id})">⋮</button>
-            <span class="saved-note-title">${note.tags[0]}</span>
-            ${checklistHTML}
-        `;
-        
-        card.onclick = () => openNoteViewer(note);
-        deck.appendChild(card);
-    });
-}
 
 function toggleCheck(noteId, lineIndex) {
     const note = db.notes_list.find(n => n.id === noteId);
@@ -824,38 +804,6 @@ function renderTodos(list, noteText) {
         });
     }
 }
-/* [START] - Replace function commitNote() */
-// Permanent commitNote with auto-unselect tab
-function commitNote() {
-    const text = textarea.value.trim();
-    if (!text) return;
-
-    const newNote = {
-        id: Date.now(),
-        date: formatDateKey(selectedDate),
-        tags: currentCategory ? [currentCategory] : [],
-        content: text
-    };
-
-    if (!db.notes) db.notes = {};
-    if (noteKey()) db.notes[noteKey()] = text;
-
-    if (!Array.isArray(db.notes_list)) db.notes_list = [];
-    db.notes_list.unshift(newNote); 
-
-    save();
-    textarea.value = '';
-    renderDeck();
-
-    // Clear active tab after saving
-    document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
-    currentCategory = null;
-    document.getElementById('todoHeader').innerText = "Type your notes...";
-
-    // Optional cloud push
-    // uploadToCloud(); // disabled (CORS issue)
-}
-
 /* --- FIXED CONSOLIDATED SWITCH CATEGORY --- */
 function switchCategory(cat, btn) {
     const currentInput = textarea.value;

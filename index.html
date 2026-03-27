@@ -679,18 +679,6 @@ function switchCategory(cat, btn) {
         return;
     }
 
-    // If typing in empty textarea, just select tab temporarily
-    const isTyping = textarea.value.trim().length > 0 && !currentCategory;
-    if (isTyping) {
-        const oldCategory = currentCategory;
-        currentCategory = cat;
-        commitNote(); // save the note with this category
-        currentCategory = oldCategory;
-
-        btn.classList.add('active');
-        document.getElementById('todoHeader').innerText = btn.innerText + " List";
-        return; // exit early — don’t switch view
-    }
 
     // Normal tab switching
     document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));

@@ -150,34 +150,55 @@ position:relative;
 }
 
 /* The Saved Note Card - Improved Aspect Ratio */
+/* FIXED SOPHISTICATED TILES - SHORTER & COMPACT */
 .saved-note {
     position: relative; 
     background: #ffffff;
-    padding: 18px;
-    border-radius: 22px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.04);
-    aspect-ratio: 1 / 1; /* Creates a clean square/post-it look */
+    padding: 12px 14px; /* Tightened padding */
+    border-radius: 18px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    min-height: 90px; /* MUCH SHORTER BOXES */
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Keeps text inside bounds */
-    border: 1px solid rgba(0,0,0,0.03);
+    justify-content: flex-start;
+    border: 1px solid rgba(0,0,0,0.02);
+    overflow: hidden;
     transition: transform 0.2s ease;
 }
 
-/* Vertical Ellipsis Button - Absolute Positioned */
+/* Category styling: Bold and Lowercase to match tabs */
+.saved-note-title {
+    font-weight: 700; /* BOLDED */
+    font-size: 0.75rem; 
+    text-transform: lowercase; /* LOWERCASE */
+    color: var(--accent);
+    margin-bottom: 2px;
+    opacity: 1; /* Full visibility for bold look */
+}
+
+.saved-note-text {
+    font-size: 0.82rem; 
+    color: #444;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* Shows only 3 lines to ensure the box stays short */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: pre-wrap;
+}
+
+/* Dots positioned higher for compact layout */
 .note-menu-btn {
     position: absolute;
-    top: 10px;
-    right: 8px;
-    background: none !important; /* Force remove background */
-    border: none !important;     /* Force remove border */
-    color: #999;
-    font-size: 1.3rem;
+    top: 6px;
+    right: 4px;
+    background: none !important;
+    border: none !important;
+    color: #ccc;
+    font-size: 1.1rem;
     cursor: pointer;
     z-index: 20;
     padding: 5px;
-    line-height: 1;
-    transition: color 0.2s;
 }
 
 .note-menu-btn:hover { color: #333; }

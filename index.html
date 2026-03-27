@@ -589,16 +589,14 @@ Load Latest Notes
 <script>
 const strip = document.getElementById('strip');
 const fullGrid = document.getElementById('fullGrid');
-const todoItemsContainer = document.getElementById('todoItems');
 const textarea = document.getElementById('noteContent');
 
-// Auto bullet continuation for main textarea
+// Auto bullet continuation
 textarea.addEventListener('keydown', function(e) {
     if (e.key === "Enter") {
         const start = textarea.selectionStart;
         const before = textarea.value.substring(0, start);
         const line = before.split("\n").pop();
-
         if (line.trim().startsWith("•")) {
             e.preventDefault();
             textarea.value = textarea.value.substring(0, start) + "\n• " + textarea.value.substring(start);
@@ -607,23 +605,15 @@ textarea.addEventListener('keydown', function(e) {
     }
 });
 
-const todoList = document.getElementById('todoList');
-const todayBtn = document.getElementById('todayBtn');
-
 let selectedDate = new Date();
 let currentCategory = null;
 
-// Initialize Database
-let db = JSON.parse(localStorage.getItem('reson_db')) || { notes: {}, todos: {}, notes_list: [], recentlyDeleted: [] };
-let starredIds = JSON.parse(localStorage.getItem('reson_starred_ids')) || [];
+// Initialize Database correctly
+let db = JSON.parse(localStorage.getItem('reson_db')) || { notes_list: [], recentlyDeleted: [] };
+if (!db.notes_list) db.notes_list = [];
+if (!db.recentlyDeleted) db.recentlyDeleted = [];
 
 const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-function jumpToToday() {
-    selectedDate = new Date();
-    setupCalendar();
-    renderDeck();
-}
 
 function formatDateKey(date) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -631,8 +621,6 @@ function formatDateKey(date) {
 
 function save() {
     localStorage.setItem('reson_db', JSON.stringify(db));
-    localStorage.setItem('reson_starred_ids', JSON.stringify(starredIds));
-    localStorage.setItem('reson_db_backup', JSON.stringify(db));
 }
 
 function commitNote() {
@@ -640,40 +628,37 @@ function commitNote() {
     if (!text) return;
 
     const dateKey = formatDateKey(selectedDate);
+    // Fix: Default to 'general' instead of null/undefined
     const cat = currentCategory ? currentCategory.toLowerCase() : "general";
-    const groupableCategories = ['todo', 'work', 'groceries', 'errands', 'dreams'];
+    
+    // Categories that should merge into one card
+    const groupable = ['todo', 'work', 'groceries', 'errands', 'dreams'];
 
-    // Ensure notes_list exists
-    if (!Array.isArray(db.notes_list)) db.notes_list = [];
-
-    // 1. Check if we should MERGE into an existing card for this category
-    if (groupableCategories.includes(cat)) {
+    if (groupable.includes(cat)) {
         const existingNote = db.notes_list.find(n => n.date === dateKey && n.tags.includes(cat));
-        
         if (existingNote) {
             existingNote.content += "\n" + text;
             save();
             textarea.value = '';
             renderDeck();
-            if (typeof uploadToCloud === "function") uploadToCloud();
-            return; 
+            uploadToCloud();
+            return;
         }
     }
 
-    // 2. If no existing card, create a new one
     const newNote = {
         id: Date.now(),
         date: dateKey,
         tags: [cat],
         content: text,
-        checkedIndices: [] 
+        checkedIndices: [] // Standardized name
     };
 
     db.notes_list.unshift(newNote);
     save();
     textarea.value = '';
     renderDeck();
-    if (typeof uploadToCloud === "function") uploadToCloud();
+    uploadToCloud();
 }
 
 function renderDeck() {
@@ -681,12 +666,10 @@ function renderDeck() {
     deck.innerHTML = '';
     const key = formatDateKey(selectedDate);
     
-    if (!db.notes_list) db.notes_list = [];
-
     const filtered = db.notes_list.filter(n => {
         const dateMatch = n.date === key;
         const catMatch = !currentCategory || n.tags.includes(currentCategory.toLowerCase());
-        const isDeleted = (db.recentlyDeleted || []).some(dn => dn.id === n.id);
+        const isDeleted = db.recentlyDeleted.some(dn => dn.id === n.id);
         return dateMatch && catMatch && !isDeleted;
     });
 
@@ -698,6 +681,7 @@ function renderDeck() {
         let checklistHTML = '<div class="card-checklist">';
         
         lines.forEach((lineText, index) => {
+            // Fix: Standardized to use checkedIndices
             const isChecked = note.checkedIndices && note.checkedIndices.includes(index);
             checklistHTML += `
                 <div class="checklist-item" onclick="event.stopPropagation(); toggleCheck(${note.id}, ${index})">
@@ -710,7 +694,7 @@ function renderDeck() {
 
         card.innerHTML = `
             <button class="note-menu-btn" onclick="event.stopPropagation(); openNoteMenu(event, ${note.id})">⋮</button>
-            <span class="saved-note-title">${note.tags[0]}</span>
+            <span class="saved-note-title">${note.tags[0] || 'general'}</span>
             ${checklistHTML}
         `;
         
@@ -722,18 +706,20 @@ function renderDeck() {
 function toggleCheck(noteId, lineIndex) {
     const note = db.notes_list.find(n => n.id === noteId);
     if (!note) return;
+
+    // Fix: Use the same property name (checkedIndices) as the renderer
     if (!note.checkedIndices) note.checkedIndices = [];
 
     const foundIndex = note.checkedIndices.indexOf(lineIndex);
     if (foundIndex > -1) {
-        note.checkedIndices.splice(foundIndex, 1); 
+        note.checkedIndices.splice(foundIndex, 1);
     } else {
         note.checkedIndices.push(lineIndex);
     }
 
     save();
     renderDeck();
-    if (typeof uploadToCloud === "function") uploadToCloud();
+    uploadToCloud();
 }
 
 function switchCategory(cat, btn) {
@@ -763,9 +749,8 @@ function setupCalendar() {
     const todayKey = formatDateKey(new Date());
     const selectedKey = formatDateKey(selectedDate);
 
-    todayBtn.style.display = (selectedKey === todayKey) ? 'none' : 'block';
-    const headerDate = selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-    document.getElementById('monthDisplay').innerText = headerDate;
+    document.getElementById('todayBtn').style.display = (selectedKey === todayKey) ? 'none' : 'block';
+    document.getElementById('monthDisplay').innerText = selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
     for (let i = 1; i <= daysInMonth; i++) {
         const date = new Date(year, month, i);
@@ -773,19 +758,10 @@ function setupCalendar() {
         const card = document.createElement('div');
         card.className = `day-card ${isSelected ? 'active' : ''}`;
         card.innerHTML = `<div style="font-size:0.7rem;">${daysShort[date.getDay()]}</div><div style="font-weight:800;font-size:1.2rem;">${i}</div>`;
-        card.onclick = () => selectDay(date);
+        card.onclick = () => { selectedDate = date; setupCalendar(); renderDeck(); };
         strip.appendChild(card);
-
-        if (isSelected) {
-            setTimeout(() => { card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); }, 0);
-        }
+        if (isSelected) setTimeout(() => card.scrollIntoView({ behavior: 'smooth', inline: 'center' }), 0);
     }
-}
-
-function selectDay(date) {
-    selectedDate = date;
-    setupCalendar();
-    renderDeck();
 }
 
 function toggleModal() {
@@ -795,68 +771,33 @@ function toggleModal() {
     if (!isOpen) renderHeatmap();
     m.style.display = isOpen ? 'none' : 'block';
     o.style.display = isOpen ? 'none' : 'block';
-    document.getElementById('strip').style.pointerEvents = isOpen ? 'auto' : 'none';
 }
 
 function renderHeatmap() {
-    fullGrid.innerHTML = '';
+    const grid = document.getElementById('fullGrid');
+    grid.innerHTML = '';
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
     const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const days = new Date(year, month + 1, 0).getDate();
 
-    document.getElementById('modalMonthTitle').innerText = selectedDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+    document.getElementById('modalMonthTitle').innerText = selectedDate.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
 
-    for (let p = 0; p < firstDay; p++) fullGrid.appendChild(document.createElement('div'));
-
-    for (let i = 1; i <= daysInMonth; i++) {
-        const date = new Date(year, month, i);
-        const key = formatDateKey(date);
-        const noteCount = (db.notes_list || []).filter(n => n.date === key).length;
-
-        const dayEl = document.createElement('div');
-        dayEl.className = `circle-day ${key === formatDateKey(selectedDate) ? 'selected' : ''}`;
-        dayEl.innerText = i;
-
-        if (noteCount === 0) dayEl.style.backgroundColor = 'var(--heat-0)';
-        else if (noteCount === 1) dayEl.style.backgroundColor = 'var(--heat-1)';
-        else if (noteCount === 2) dayEl.style.backgroundColor = 'var(--heat-2)';
-        else if (noteCount <= 4) dayEl.style.backgroundColor = 'var(--heat-3)';
-        else dayEl.style.backgroundColor = '#166534';
-
-        dayEl.onclick = () => { selectDay(date); toggleModal(); };
-        fullGrid.appendChild(dayEl);
+    for (let p = 0; p < firstDay; p++) grid.appendChild(document.createElement('div'));
+    for (let i = 1; i <= days; i++) {
+        const d = new Date(year, month, i);
+        const k = formatDateKey(d);
+        const count = db.notes_list.filter(n => n.date === k).length;
+        const el = document.createElement('div');
+        el.className = `circle-day ${k === formatDateKey(selectedDate) ? 'selected' : ''}`;
+        el.innerText = i;
+        el.style.backgroundColor = count > 0 ? (count > 2 ? 'var(--heat-3)' : 'var(--heat-2)') : 'var(--heat-0)';
+        el.onclick = () => { selectedDate = d; setupCalendar(); renderDeck(); toggleModal(); };
+        grid.appendChild(el);
     }
 }
 
-// Cloud Logic
-const R2_URL = "https://pub-66479d392b224c95a6cb0e230ac238bb.r2.dev/notes_db.json";
-const CF_CONFIG = { apiToken: 'cfut_HevbM2ak9IG7euRSqfJJvMtfl3rmGl0loh2gkwKA55fb0f6b' };
-
-async function syncWithCloud() {
-    try {
-        const response = await fetch(R2_URL, { cache: 'no-store' });
-        if (!response.ok) throw new Error('Failed to fetch');
-        const cloudData = await response.json();
-        if (cloudData && cloudData.notes_list) {
-            db.notes_list = cloudData.notes_list;
-            save();
-            renderDeck();
-            alert("Notes loaded from cloud!");
-        }
-    } catch (e) { alert("Sync failed: " + e.message); }
-}
-
-async function uploadToCloud() {
-    try {
-        await fetch(R2_URL, {
-            method: 'PUT',
-            headers: { 'Authorization': 'Bearer ' + CF_CONFIG.apiToken, 'Content-Type': 'application/json' },
-            body: JSON.stringify(db)
-        });
-    } catch (e) { console.error("Cloud upload failed", e); }
-}
-
+// Fullscreen Viewer logic
 let activeNote = null;
 function openNoteViewer(note) {
     activeNote = note;
@@ -880,33 +821,7 @@ function closeNoteViewer() {
 
 function saveViewerEdit() { closeNoteViewer(); uploadToCloud(); }
 
-function openNoteMenu(event, noteId) {
-    const menu = document.getElementById('noteMenu');
-    const rect = event.target.getBoundingClientRect();
-    menu.style.display = 'block';
-    menu.style.top = (rect.bottom + window.scrollY + 8) + 'px';
-    menu.style.left = (rect.right - 160) + 'px'; 
-
-    menu.innerHTML = `<button id="menuDeleteBtn" style="background:none;color:#ff3b30;border:none;padding:12px;font-weight:600;width:100%;text-align:left;">Delete Note</button>`;
-    document.getElementById('menuDeleteBtn').onclick = () => {
-        const idx = db.notes_list.findIndex(n => n.id === noteId);
-        const note = db.notes_list.splice(idx, 1)[0];
-        note.deletedAt = Date.now();
-        if(!db.recentlyDeleted) db.recentlyDeleted = [];
-        db.recentlyDeleted.unshift(note);
-        save();
-        renderDeck();
-        menu.style.display = 'none';
-    };
-}
-
-window.addEventListener('mousedown', (e) => {
-    const menu = document.getElementById('noteMenu');
-    if (menu.style.display === 'block' && !menu.contains(e.target) && !e.target.classList.contains('note-menu-btn')) {
-        menu.style.display = 'none';
-    }
-});
-
+// Settings & Navigation
 function showSettings() {
     document.querySelector('header').style.display = 'none';
     document.getElementById('strip').style.display = 'none';
@@ -930,10 +845,11 @@ function showMain() {
 function renderDeletedNotes() {
     const list = document.getElementById('deletedNotesList');
     list.innerHTML = '';
-    (db.recentlyDeleted || []).forEach(note => {
+    db.recentlyDeleted.forEach(note => {
         const div = document.createElement('div');
-        div.style = "background:#f8fdf9; border:1px solid #eee; padding:10px; border-radius:10px; margin-bottom:5px; display:flex; justify-content:space-between;";
-        div.innerHTML = `<span>${note.content.substring(0,20)}...</span><button onclick="restoreNote(${note.id})">Restore</button>`;
+        div.style = "background:#fff; border:1px solid #eee; padding:10px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; color:black;";
+        div.innerHTML = `<span style="font-size:0.8rem">${note.content.substring(0,25)}...</span>
+                         <button onclick="restoreNote(${note.id})" style="background:var(--accent); color:white; border:none; padding:5px 10px; border-radius:5px;">Restore</button>`;
         list.appendChild(div);
     });
 }
@@ -946,6 +862,58 @@ function restoreNote(id) {
     renderDeletedNotes();
 }
 
+function openNoteMenu(event, noteId) {
+    const menu = document.getElementById('noteMenu');
+    const rect = event.target.getBoundingClientRect();
+    menu.style.display = 'block';
+    menu.style.top = (rect.bottom + window.scrollY + 5) + 'px';
+    menu.style.left = (rect.right - 150) + 'px';
+    menu.innerHTML = `<button onclick="deleteNote(${noteId})" style="width:100%; text-align:left; background:none; border:none; color:red; padding:10px; cursor:pointer; font-weight:bold;">Delete Note</button>`;
+}
+
+function deleteNote(id) {
+    const idx = db.notes_list.findIndex(n => n.id === id);
+    const note = db.notes_list.splice(idx, 1)[0];
+    db.recentlyDeleted.unshift(note);
+    save();
+    renderDeck();
+    document.getElementById('noteMenu').style.display = 'none';
+}
+
+// Click away for menu
+window.addEventListener('mousedown', (e) => {
+    const menu = document.getElementById('noteMenu');
+    if (menu.style.display === 'block' && !menu.contains(e.target) && !e.target.classList.contains('note-menu-btn')) {
+        menu.style.display = 'none';
+    }
+});
+
+// Cloud Sync (Simplified for R2)
+const R2_URL = "https://pub-66479d392b224c95a6cb0e230ac238bb.r2.dev/notes_db.json";
+async function uploadToCloud() {
+    try {
+        await fetch(R2_URL, {
+            method: 'PUT',
+            headers: { 'Authorization': 'Bearer cfut_HevbM2ak9IG7euRSqfJJvMtfl3rmGl0loh2gkwKA55fb0f6b', 'Content-Type': 'application/json' },
+            body: JSON.stringify(db)
+        });
+    } catch (e) { console.error("Cloud failed"); }
+}
+
+async function syncWithCloud() {
+    try {
+        const res = await fetch(R2_URL, { cache: 'no-store' });
+        const data = await res.json();
+        if (data.notes_list) {
+            db.notes_list = data.notes_list;
+            save();
+            renderDeck();
+            alert("Synced!");
+        }
+    } catch (e) { alert("Sync failed"); }
+}
+
+function jumpToToday() { selectedDate = new Date(); setupCalendar(); renderDeck(); }
 function insertBullet() {
     const start = textarea.selectionStart;
     textarea.value = textarea.value.slice(0, start) + "• " + textarea.value.slice(start);
@@ -953,7 +921,8 @@ function insertBullet() {
     textarea.selectionStart = textarea.selectionEnd = start + 2;
 }
 
-window.addEventListener("DOMContentLoaded", () => {
+// Start app
+document.addEventListener("DOMContentLoaded", () => {
     setupCalendar();
     renderDeck();
 });

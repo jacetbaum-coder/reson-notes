@@ -413,25 +413,55 @@ Load Latest Notes
 </div>
 <div class="modal-grid" id="fullGrid"></div>
 </div>
+/* Sleek iOS-style dots button */
 .note-menu-btn {
     position: absolute;
     top: 10px;
-    right: 10px;
+    right: 8px;
     background: none;
     border: none;
-    font-size: 1.2rem;
-    color: #999;
+    color: #bbb; /* Light grey */
+    font-size: 1.4rem;
     cursor: pointer;
-    padding: 5px 10px;
     line-height: 1;
+    padding: 4px 8px;
+    border-radius: 50%;
+    transition: background 0.2s, color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     z-index: 10;
 }
-.note-menu-btn:hover { color: #333; }
 
-/* Ensure the saved-note can contain the absolute button */
+.note-menu-btn:active {
+    background: rgba(0,0,0,0.05);
+    color: #666;
+}
+
+/* iOS-style Context Menu */
+#noteMenu {
+    display: none;
+    position: absolute;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(15px); /* Modern blur effect */
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 14px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    padding: 8px !important;
+    z-index: 3000;
+    min-width: 160px;
+    border: 1px solid rgba(255,255,255,0.5);
+}
+
+/* Ensure the note card handles the absolute button correctly */
 .saved-note {
     position: relative; 
-    padding-right: 35px; /* Make room so text doesn't overlap the dots */
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
 }
 <script>
 const strip=document.getElementById('strip')
@@ -673,27 +703,27 @@ function renderDeck() {
         const card = document.createElement('div');
         card.className = 'saved-note';
         card.style.background = 'white'; 
-        card.style.color = 'black';
-        card.style.border = '1px solid #eee';
+        card.style.border = '1px solid rgba(0,0,0,0.03)';
 
+        // Using horizontal dots for iOS look
         card.innerHTML = `
-            <button class="note-menu-btn">⋮</button>
-            <div class="saved-note-title" style="color:var(--accent); font-size:0.6rem; margin-bottom:8px;">
+            <button class="note-menu-btn">···</button>
+            <div class="saved-note-title">
                 ${note.tags && note.tags.length ? note.tags.join(' • ').toUpperCase() : 'GENERAL'}
             </div>
             <div class="saved-note-text">${note.content}</div>
         `;
 
-        // Click the text to view/edit
+        // Text click = open
         card.onclick = (e) => {
             if (e.target.classList.contains('note-menu-btn')) return;
             openNoteViewer(note);
         };
 
-        // Click the dots to open menu
+        // Dots click = menu
         const dotBtn = card.querySelector('.note-menu-btn');
         dotBtn.onclick = (e) => {
-            e.stopPropagation(); // Don't trigger the viewer
+            e.stopPropagation();
             openNoteMenu(e, note.id);
         };
 
@@ -886,52 +916,37 @@ function closeNoteViewer() {
 function openNoteMenu(event, noteId) {
     const menu = document.getElementById('noteMenu');
     
-    // Position the menu near the button that was clicked
+    // Get button position
     const rect = event.target.getBoundingClientRect();
     menu.style.display = 'block';
-    menu.style.top = (rect.top + window.scrollY) + 'px';
-    menu.style.left = (rect.left - 100) + 'px'; // Offset to the left
+    
+    // Position menu: centered under/above the dots
+    menu.style.top = (rect.bottom + window.scrollY + 5) + 'px';
+    menu.style.left = (rect.left - 120) + 'px'; 
 
-    // Find the note in the database
     const noteIndex = db.notes_list.findIndex(n => n.id === noteId);
     const note = db.notes_list[noteIndex];
 
-    // Build Menu Content (Delete Option)
     menu.innerHTML = `
-        <div style="padding: 5px; display: flex; flex-direction: column; gap: 5px;">
-            <button id="menuDeleteBtn" style="background: #fee2e2; color: #b91c1c; border: none; padding: 10px; border-radius: 8px; font-weight: 700; cursor: pointer; text-align: left;">
-                🗑️ Delete Note
+        <div style="display: flex; flex-direction: column;">
+            <button id="menuDeleteBtn" style="background: none; color: #ff3b30; border: none; padding: 12px; border-radius: 8px; font-weight: 500; cursor: pointer; text-align: left; font-size: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                Delete Note <span style="font-size: 1.1rem;">🗑️</span>
             </button>
         </div>
     `;
 
-    // Handle Delete Click
     document.getElementById('menuDeleteBtn').onclick = () => {
         if (!db.recentlyDeleted) db.recentlyDeleted = [];
-        
-        // Add "deletedAt" timestamp for the 30-day auto-delete rule
         note.deletedAt = Date.now();
-        
-        // Move from main list to recently deleted
         db.recentlyDeleted.unshift(note);
         db.notes_list.splice(noteIndex, 1);
         
         save();
         renderDeck();
         menu.style.display = 'none';
-        
-        // Refresh settings trash view if it happens to be open
         if (typeof renderDeletedNotes === "function") renderDeletedNotes();
     };
 }
-
-// Close menu if user clicks anywhere else
-document.addEventListener('click', (e) => {
-    const menu = document.getElementById('noteMenu');
-    if (menu && !menu.contains(e.target) && !e.target.classList.contains('note-menu-btn')) {
-        menu.style.display = 'none';
-    }
-});
 let activeNote = null;
 
 function openNoteViewer(note){

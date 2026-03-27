@@ -775,7 +775,6 @@ async function syncWithCloud() {
 }
 async function uploadToCloud() {
     try {
-        // We send the ENTIRE database (both the list and the calendar notes)
         const response = await fetch(R2_URL, {
             method: 'PUT',
             headers: {
@@ -785,13 +784,12 @@ async function uploadToCloud() {
             body: JSON.stringify(db)
         });
         if (!response.ok) throw new Error('Upload failed');
-        console.log("Mac synced everything to Cloud!");
+        console.log("Cloud Sync Successful"); // Silent log
     } catch (e) {
-        alert("Mac upload failed: " + e.message);
+        // Changed from alert to console.error so it doesn't pop up
+        console.error("Cloud sync pending: " + e.message); 
     }
 }
-let startX = 0;
-
 function openNoteViewer(text){
     const viewer = document.getElementById('noteViewer');
     const content = document.getElementById('noteViewerContent');
@@ -841,32 +839,20 @@ function insertBulletViewer(){
     ta.focus();
     ta.selectionStart = ta.selectionEnd = start + 2;
 }
-function saveViewerEdit(){
-    if(!activeNote) return;
+function saveViewerEdit() {
+    if (!activeNote) return;
 
-    const viewerContent=document.getElementById('noteViewerContent');
+    const viewerContent = document.getElementById('noteViewerContent');
     activeNote.content = viewerContent.value;
 
-    save();
-    renderDeck();
-
-    // Auto push edits to Cloud immediately
-    uploadToCloud();
+    save(); // Saves to phone memory instantly
+    renderDeck(); // Updates the UI instantly
+    uploadToCloud(); // Tries to sync to cloud once
 }
 
-// Auto-save on typing in viewer
-viewerContent.addEventListener('input', () => {
-    if(activeNote){
-        activeNote.content = viewerContent.value;
-        save();
-        renderDeck();
-        uploadToCloud();
-    }
-});
-
-// Auto-save when closing viewer
-function closeNoteViewer(){
-    if(activeNote){
+function closeNoteViewer() {
+    if (activeNote) {
+        const viewerContent = document.getElementById('noteViewerContent');
         activeNote.content = viewerContent.value;
         save();
         renderDeck();
@@ -874,8 +860,10 @@ function closeNoteViewer(){
     }
     const viewer = document.getElementById('noteViewer');
     viewer.classList.remove('open');
-    setTimeout(()=>viewer.style.display='none',350);
-    activeNote = null;
+    setTimeout(() => {
+        viewer.style.display = 'none';
+        activeNote = null;
+    }, 350);
 }
 function openNoteMenu(event, noteId){
     const menu = document.getElementById('noteMenu');

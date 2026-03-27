@@ -6,6 +6,40 @@
 <title>Reson Notes</title>
 
 <style>
+/* Checklist Styles */
+.card-checklist {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.checklist-item input {
+    width: 14px;
+    height: 14px;
+    margin-top: 2px;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+.checklist-text {
+    font-size: 0.85rem;
+    color: #444;
+    line-height: 1.3;
+    transition: all 0.2s;
+}
+
+.checklist-text.done {
+    text-decoration: line-through;
+    color: #aaa;
+}
 :root {
 --bg:#77c98d;
 --card:#ffffff;
@@ -596,25 +630,40 @@ function commitNote() {
     const text = textarea.value.trim();
     if (!text) return;
 
-    // Create the note object with the active category as a tag
+    const key = formatDateKey(selectedDate);
+    const specialCats = ['groceries', 'todo', 'errands'];
+    
+    // Check if we should append to an existing card
+    if (currentCategory && specialCats.includes(currentCategory.toLowerCase())) {
+        const existingNote = db.notes_list.find(n => 
+            n.date === key && 
+            n.tags.includes(currentCategory.toLowerCase())
+        );
+
+        if (existingNote) {
+            existingNote.content += "\n" + text;
+            save();
+            textarea.value = '';
+            renderDeck();
+            uploadToCloud();
+            return;
+        }
+    }
+
+    // Otherwise, create a new note object
     const newNote = {
         id: Date.now(),
-        date: formatDateKey(selectedDate),
-        tags: currentCategory ? [currentCategory] : [], // Tags it with active tab
-        content: text
+        date: key,
+        tags: currentCategory ? [currentCategory.toLowerCase()] : ["general"],
+        content: text,
+        checkedIndices: [] // Track which lines are checked
     };
 
-    if (!db.notes_list) db.notes_list = [];
-    db.notes_list.unshift(newNote); // Put newest note at the top
-
-    save(); // Save to LocalStorage
-    textarea.value = ''; // Clear typing area
-    
-    // Refresh the deck so the new note appears immediately
+    db.notes_list.unshift(newNote);
+    save();
+    textarea.value = '';
     renderDeck();
-    
-    // Optional: Auto-upload to cloud if you have your R2 set up
-    if (typeof uploadToCloud === "function") uploadToCloud();
+    uploadToCloud();
 }
 function setupCalendar(){
     strip.innerHTML=''
@@ -738,42 +787,41 @@ function switchCategory(cat, btn) {
 function renderDeck() {
     const deck = document.getElementById('noteDeck');
     deck.innerHTML = '';
+    const key = formatDateKey(selectedDate);
     
-    const selectedKey = formatDateKey(selectedDate);
-    const deletedIds = (db.recentlyDeleted || []).map(n => n.id);
-
-    const notesToShow = (db.notes_list || []).filter(n => {
-        const dateMatch = n.date === selectedKey;
-        const notDeleted = !deletedIds.includes(n.id);
-        const categoryMatch = !currentCategory || 
-            (n.tags && n.tags.map(t => t.toLowerCase()).includes(currentCategory.toLowerCase()));
-        return dateMatch && notDeleted && categoryMatch;
+    const filtered = db.notes_list.filter(n => {
+        const dateMatch = n.date === key;
+        const catMatch = !currentCategory || n.tags.includes(currentCategory.toLowerCase());
+        const isDeleted = (db.recentlyDeleted || []).some(dn => dn.id === n.id);
+        return dateMatch && catMatch && !isDeleted;
     });
 
-    notesToShow.forEach(note => {
+    filtered.forEach(note => {
         const card = document.createElement('div');
         card.className = 'saved-note';
+        
+        // Split content into lines for the checklist
+        const lines = note.content.split('\n').filter(l => l.trim() !== "");
+        let checklistHTML = '<div class="card-checklist">';
+        
+        lines.forEach((line, index) => {
+            const isChecked = note.checkedIndices && note.checkedIndices.includes(index);
+            checklistHTML += `
+                <div class="checklist-item" onclick="event.stopPropagation(); toggleCheck(${note.id}, ${index})">
+                    <input type="checkbox" ${isChecked ? 'checked' : ''}>
+                    <div class="checklist-text ${isChecked ? 'done' : ''}">${line}</div>
+                </div>
+            `;
+        });
+        checklistHTML += '</div>';
 
         card.innerHTML = `
-            <button class="note-menu-btn">⋮</button>
-            <div class="saved-note-title">
-                ${note.tags && note.tags.length ? note.tags.join(' • ').toUpperCase() : 'GENERAL'}
-            </div>
-            <div class="saved-note-text">${note.content}</div>
+            <button class="note-menu-btn" onclick="event.stopPropagation(); openNoteMenu(event, ${note.id})">⋮</button>
+            <div class="saved-note-title">${note.tags.join(' • ')}</div>
+            ${checklistHTML}
         `;
-
-        card.onclick = (e) => {
-            // Prevent opening note if the menu button was clicked
-            if (e.target.classList.contains('note-menu-btn')) return;
-            openNoteViewer(note);
-        };
-
-        const dotBtn = card.querySelector('.note-menu-btn');
-        dotBtn.onclick = (e) => {
-            e.stopPropagation(); // Stop from opening the note
-            openNoteMenu(e, note.id);
-        };
-
+        
+        card.onclick = () => openNoteViewer(note);
         deck.appendChild(card);
     });
 }
@@ -788,7 +836,25 @@ function toggleModal(){
     // Ensure calendar-strip stays clickable when modal is closed
     document.getElementById('strip').style.pointerEvents = isOpen ? 'auto' : 'none';
 }
+function toggleCheck(noteId, lineIndex) {
+    const note = db.notes_list.find(n => n.id === noteId);
+    if (!note) return;
 
+    if (!note.checkedIndices) note.checkedIndices = [];
+
+    const stateIndex = note.checkedIndices.indexOf(lineIndex);
+    if (stateIndex > -1) {
+        // Uncheck
+        note.checkedIndices.splice(stateIndex, 1);
+    } else {
+        // Check
+        note.checkedIndices.push(lineIndex);
+    }
+
+    save();
+    renderDeck(); // Re-render to show strike-through instantly
+    uploadToCloud();
+}
 /* [START] - Replace function renderHeatmap() */
 function renderHeatmap() {
     fullGrid.innerHTML = '';

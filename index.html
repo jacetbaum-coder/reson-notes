@@ -29,20 +29,36 @@ body {
     min-height:100vh;
 }
 
-header { width:100%; max-width:500px; display:flex; flex-direction:column; align-items:center; position:relative; margin-bottom:10px; }
-.month-label { font-size:1.2rem; font-weight:800; color:white; text-transform:uppercase; }
+header { 
+    width:100%; 
+    max-width:500px; 
+    display:flex; 
+    flex-direction:column; 
+    align-items:center; 
+    position:relative; 
+    margin-bottom:10px; 
+}
+
+.month-label { 
+    font-size:1.1rem; 
+    font-weight:800; 
+    color:white; 
+    text-transform:uppercase; 
+    text-align: center;
+}
 
 #todayBtn {
-    background:rgba(255,255,255,0.2);
-    border:1px solid white;
-    color:white;
-    padding:4px 12px;
-    border-radius:12px;
-    font-size:0.7rem;
-    font-weight:700;
-    cursor:pointer;
-    margin-top:5px;
-    display:none;
+    background: rgba(255,255,255,0.25);
+    border: 1px solid white;
+    color: white;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    cursor: pointer;
+    margin-top: 8px;
+    text-transform: uppercase;
+    display: none; /* Managed by JS */
 }
 
 .cal-icon { cursor:pointer; font-size:1.4rem; background:none; border:none; position:absolute; right:0; top:0; }
@@ -55,19 +71,27 @@ header { width:100%; max-width:500px; display:flex; flex-direction:column; align
     max-width:500px;
     padding:15px 0;
     scrollbar-width:none;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
 }
 .calendar-strip::-webkit-scrollbar { display:none; }
 
 .day-card {
-    min-width:65px;
+    min-width:60px;
     background:var(--card);
     border-radius:18px;
     padding:12px 0;
     text-align:center;
     cursor:pointer;
-    transition:0.2s;
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
 }
-.day-card.active { background:#000; color:white; transform:scale(1.05); }
+.day-card.active { 
+    background:#000; 
+    color:white; 
+    transform:scale(1.1); 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
 
 .filter-container {
     display: flex;
@@ -95,8 +119,6 @@ header { width:100%; max-width:500px; display:flex; flex-direction:column; align
     display: grid;
     grid-template-columns: 1fr 1fr; 
     gap: 12px;
-    margin-top: 15px; /* Added spacing */
-    margin-bottom: 15px; /* Added spacing */
 }
 
 .saved-note {
@@ -126,7 +148,7 @@ header { width:100%; max-width:500px; display:flex; flex-direction:column; align
     padding: 25px;
     position: relative;
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    margin-bottom: 15px; /* Space for when deck is below */
+    margin: 15px 0;
 }
 
 textarea {
@@ -223,7 +245,7 @@ textarea {
 <body>
 
 <header>
-  <div class="month-label" id="monthDisplay">March 2026</div>
+  <div class="month-label" id="monthDisplay">Loading...</div>
   <button id="todayBtn" onclick="jumpToToday()">Today</button>
   <button class="cal-icon" onclick="toggleModal()">🗓️</button>
 </header>
@@ -238,7 +260,7 @@ textarea {
     <button class="bubble" onclick="switchCategory('errands',this)">Errands</button>
 </div>
 
-<!-- Both elements are now siblings, renderDeck will handle their order -->
+<!-- Both elements are siblings, script handles order based on Home/Category -->
 <div id="noteDeck"></div>
 
 <div class="note-container">
@@ -255,9 +277,9 @@ textarea {
 </div>
 
 <div id="settingsView" style="display:none; width:100%; max-width:500px; padding: 20px 0;">
-    <h2 style="color:white">Settings</h2>
+    <h2 style="color:white; text-align: center;">Settings</h2>
     <div class="note-container">
-        <button id="loadCloudBtn" style="background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer;">Sync with Cloud</button>
+        <button id="loadCloudBtn" style="background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold;">Sync with Cloud</button>
     </div>
 </div>
 
@@ -269,7 +291,7 @@ textarea {
 
 <div id="calModal">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-        <h2 id="modalMonthTitle" style="margin:0;">MARCH 2026</h2>
+        <h2 id="modalMonthTitle" style="margin:0;">CALENDAR</h2>
         <button onclick="toggleModal()" style="background:none;border:none;color:white;font-size:1.5rem;">×</button>
     </div>
     <div class="modal-grid" id="fullGrid"></div>
@@ -288,7 +310,8 @@ const deck = document.getElementById('noteDeck');
 const noteContainer = document.querySelector('.note-container');
 
 function formatDateKey(date) {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const d = new Date(date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 function save() {
@@ -336,12 +359,10 @@ function renderDeck() {
     deck.innerHTML = '';
     const key = formatDateKey(selectedDate);
     
-    // POSITIONING LOGIC:
+    // Position logic: Home = Deck below typing, Category = Deck above typing
     if (currentCategory === null) {
-        // Home: Input block first, Deck second (below)
         noteContainer.parentNode.insertBefore(noteContainer, deck);
     } else {
-        // Categories: Deck first (above), Input block second
         noteContainer.parentNode.insertBefore(deck, noteContainer);
     }
 
@@ -405,18 +426,41 @@ function setupCalendar() {
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
     const days = new Date(year, month + 1, 0).getDate();
+    
+    // Header Display
     document.getElementById('monthDisplay').innerText = selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
     
+    // Today Button visibility logic
+    const isTodaySelected = formatDateKey(new Date()) === formatDateKey(selectedDate);
+    document.getElementById('todayBtn').style.display = isTodaySelected ? 'none' : 'block';
+
     for (let i = 1; i <= days; i++) {
         const d = new Date(year, month, i);
         const isSel = formatDateKey(d) === formatDateKey(selectedDate);
         const card = document.createElement('div');
         card.className = `day-card ${isSel ? 'active' : ''}`;
         card.innerHTML = `<div style="font-size:0.7rem;">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</div><div style="font-weight:800;font-size:1.2rem;">${i}</div>`;
-        card.onclick = () => { selectedDate = d; setupCalendar(); renderDeck(); };
+        card.onclick = () => { 
+            selectedDate = d; 
+            setupCalendar(); 
+            renderDeck(); 
+        };
         strip.appendChild(card);
-        if (isSel) card.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+        
+        // Centering logic
+        if (isSel) {
+            setTimeout(() => {
+                const scrollLeft = card.offsetLeft - (strip.offsetWidth / 2) + (card.offsetWidth / 2);
+                strip.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+            }, 10);
+        }
     }
+}
+
+function jumpToToday() {
+    selectedDate = new Date();
+    setupCalendar();
+    renderDeck();
 }
 
 function switchCategory(cat, btn) {
@@ -444,6 +488,7 @@ function renderHeatmap() {
     const y = selectedDate.getFullYear();
     const m = selectedDate.getMonth();
     const days = new Date(y, m+1, 0).getDate();
+    document.getElementById('modalMonthTitle').innerText = selectedDate.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
     for (let i = 1; i <= days; i++) {
         const d = new Date(y, m, i);
         const k = formatDateKey(d);
@@ -462,7 +507,7 @@ function openMenu(e, id) {
     menu.style.display = 'block';
     menu.style.top = (e.pageY + 10) + 'px';
     menu.style.left = (e.pageX - 100) + 'px';
-    menu.innerHTML = `<button onclick="deleteNote(${id})" style="color:red; width:100%; padding:10px; background:none; border:none; text-align:left; cursor:pointer;">Delete</button>`;
+    menu.innerHTML = `<button onclick="deleteNote(${id})" style="color:red; width:100%; padding:10px; background:none; border:none; text-align:left; cursor:pointer; font-weight:bold;">Delete</button>`;
 }
 
 function deleteNote(id) {

@@ -6,320 +6,193 @@
 <title>Reson Notes</title>
 
 <style>
-/* Checklist Styles */
-.card-checklist {
-    margin-top: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.checklist-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    cursor: pointer;
-}
-
-.checklist-item input {
-    width: 14px;
-    height: 14px;
-    margin-top: 2px;
-    accent-color: var(--accent);
-    cursor: pointer;
-}
-
-.checklist-text {
-    font-size: 0.85rem;
-    color: #444;
-    line-height: 1.3;
-    transition: all 0.2s;
-}
-
-.checklist-text.done {
-    text-decoration: line-through;
-    color: #aaa;
-}
 :root {
---bg:#77c98d;
---card:#ffffff;
---text:#000000;
---accent:#2d5a3a;
---muted:#666666;
---star-gold:#ffd700;
---heat-0:#f0fdf4;
---heat-1:#dcfce7;
---heat-2:#86efac;
---heat-3:#22c55e;
+    --bg:#77c98d;
+    --card:#ffffff;
+    --text:#000000;
+    --accent:#2d5a3a;
+    --muted:#666666;
+    --heat-0:#f0fdf4;
+    --heat-1:#dcfce7;
+    --heat-2:#86efac;
+    --heat-3:#22c55e;
 }
 
-body{
-margin:0;
-font-family:-apple-system,system-ui,sans-serif;
-background:var(--bg);
-display:flex;
-flex-direction:column;
-align-items:center;
-padding:20px;
-min-height:100vh;
+body {
+    margin:0;
+    font-family:-apple-system,system-ui,sans-serif;
+    background:var(--bg);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:20px;
+    min-height:100vh;
 }
 
-header{width:100%;max-width:500px;display:flex;flex-direction:column;align-items:center;position:relative;margin-bottom:10px;}
-.month-label{font-size:1.2rem;font-weight:800;color:white;text-transform:uppercase;}
+header { width:100%; max-width:500px; display:flex; flex-direction:column; align-items:center; position:relative; margin-bottom:10px; }
+.month-label { font-size:1.2rem; font-weight:800; color:white; text-transform:uppercase; }
 
-#todayBtn{
-background:rgba(255,255,255,0.2);
-border:1px solid white;
-color:white;
-padding:4px 12px;
-border-radius:12px;
-font-size:0.7rem;
-font-weight:700;
-cursor:pointer;
-text-transform:uppercase;
-margin-top:5px;
-display:none;
+#todayBtn {
+    background:rgba(255,255,255,0.2);
+    border:1px solid white;
+    color:white;
+    padding:4px 12px;
+    border-radius:12px;
+    font-size:0.7rem;
+    font-weight:700;
+    cursor:pointer;
+    margin-top:5px;
+    display:none;
 }
 
-.cal-icon-wrapper{position:absolute;right:0;top:0;}
-.cal-icon{cursor:pointer;font-size:1.4rem;background:none;border:none;}
+.cal-icon { cursor:pointer; font-size:1.4rem; background:none; border:none; position:absolute; right:0; top:0; }
 
-.calendar-strip{
-display:flex;
-overflow-x:auto;
-gap:12px;
-width:100%;
-max-width:500px;
-padding:15px 0;
-scrollbar-width:none;
-scroll-behavior:smooth;
+.calendar-strip {
+    display:flex;
+    overflow-x:auto;
+    gap:12px;
+    width:100%;
+    max-width:500px;
+    padding:15px 0;
+    scrollbar-width:none;
 }
+.calendar-strip::-webkit-scrollbar { display:none; }
 
-.calendar-strip::-webkit-scrollbar{display:none;}
-
-.day-card{
-min-width:65px;
-background:var(--card);
-border-radius:18px;
-padding:12px 0;
-text-align:center;
-box-shadow:0 4px 10px rgba(0,0,0,0.05);
-cursor:pointer;
-transition:0.2s;
+.day-card {
+    min-width:65px;
+    background:var(--card);
+    border-radius:18px;
+    padding:12px 0;
+    text-align:center;
+    cursor:pointer;
+    transition:0.2s;
 }
-
-.day-card.active{
-background:#000;
-color:white;
-transform:scale(1.05);
-}
+.day-card.active { background:#000; color:white; transform:scale(1.05); }
 
 .filter-container {
-display: flex;
-gap: 10px;
-width: 100%;
-max-width: 500px;
-margin: 15px 0;
-overflow-x: auto;
-scrollbar-width: none;
-padding-bottom: 5px;
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    max-width: 500px;
+    margin: 15px 0;
+    overflow-x: auto;
+    scrollbar-width: none;
 }
-.filter-container::-webkit-scrollbar { display: none; }
-
 .bubble {
-padding: 8px 20px;
-background: var(--card);
-border-radius: 20px;
-font-weight: 600;
-cursor: pointer;
-border: none;
-white-space: nowrap;
-box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    padding: 8px 20px;
+    background: var(--card);
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    white-space: nowrap;
 }
+.bubble.active { background: var(--accent); color: white; border: 2px solid white !important; }
 
-.bubble.active {
-background: var(--accent);
-color: white;
-}
-
-.todo-card{
-width:100%;
-max-width:500px;
-background:#e8f5e9;
-border-radius:25px;
-padding:20px;
-margin-bottom:15px;
-display:none;
-box-sizing:border-box;
-}
-
-.todo-header{font-weight:800;margin-bottom:15px;font-size:1.1rem;}
-.todo-item{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
-.todo-item input[type="checkbox"]{width:20px;height:20px;accent-color:var(--accent);cursor:pointer;}
-.todo-text.completed{text-decoration:line-through;color:var(--muted);opacity:0.7;}
-
-.star-btn{background:none;border:none;font-size:1.3rem;cursor:pointer;color:#ccc;filter:grayscale(1);}
-.star-btn.starred{filter:grayscale(0);color:var(--star-gold);}
-
-.note-container{
-width:100%;
-max-width:500px;
-background:var(--card);
-border-radius:30px;
-padding:25px;
-box-shadow:0 10px 30px rgba(0,0,0,0.1);
-box-sizing:border-box;
-position:relative;
-}
-
-/* Note Deck Container */
-/* Note Deck Grid - Adjusted for better spacing */
+/* SAVED NOTES DECK - Positioned above input box */
 #noteDeck {
     width: 100%;
     max-width: 500px;
     display: grid;
     grid-template-columns: 1fr 1fr; 
-    gap: 15px; /* Increased gap for a cleaner look */
-    margin-top: 25px;
+    gap: 12px;
+    margin-bottom: 20px;
 }
 
-/* The Saved Note Card - Improved Aspect Ratio */
-/* FIXED SOPHISTICATED TILES - SHORTER & COMPACT */
 .saved-note {
     position: relative; 
     background: #ffffff;
-    padding: 12px 14px; /* Tightened padding */
-    border-radius: 18px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-    min-height: 90px; /* MUCH SHORTER BOXES */
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    border: 1px solid rgba(0,0,0,0.02);
-    overflow: hidden;
-    transition: transform 0.2s ease;
-}
-
-/* Restore Bold Lowercase Tags */
-.saved-note-title {
-    font-weight: 800;
-    font-size: 0.75rem;
-    text-transform: lowercase;
-    color: var(--accent);
-    margin-bottom: 6px;
-    display: block;
-}
-
-/* Checklist Layout */
-.card-checklist {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.checklist-line {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-}
-
-.checklist-line input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    accent-color: var(--accent);
-    cursor: pointer;
-    margin: 0;
-}
-
-.checklist-text {
-    font-size: 0.9rem;
-    color: #333;
-    transition: all 0.2s;
-}
-
-.checklist-text.strikethrough {
-    text-decoration: line-through;
-    color: #aaa;
-}
-
-.saved-note {
-    min-height: auto; /* Allow box to grow with the list */
     padding: 15px;
-}
-
-.saved-note-text {
-    font-size: 0.82rem; 
-    color: #444;
-    line-height: 1.35;
-    display: -webkit-box;
-    -webkit-line-clamp: 3; /* Shows only 3 lines to ensure the box stays short */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    white-space: pre-wrap;
-}
-
-/* Dots positioned higher for compact layout */
-.note-menu-btn {
-    position: absolute;
-    top: 6px;
-    right: 4px;
-    background: none !important;
-    border: none !important;
-    color: #ccc;
-    font-size: 1.1rem;
+    border-radius: 18px;
+    min-height: 90px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(0,0,0,0.02);
     cursor: pointer;
-    z-index: 20;
-    padding: 5px;
 }
 
-.note-menu-btn:hover { color: #333; }
+.saved-note-title { font-weight: 800; font-size: 0.75rem; color: var(--accent); margin-bottom: 6px; text-transform: lowercase; }
 
-/* Text filling the space naturally */
-.saved-note-text {
-    font-size: 0.95rem;
-    color: #333;
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 5; /* Shows up to 5 lines then ellipses */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    margin-top: 4px;
+.card-checklist { display: flex; flex-direction: column; gap: 6px; }
+.checklist-item { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
+.checklist-text { font-size: 0.85rem; color: #444; line-height: 1.3; }
+.checklist-text.done { text-decoration: line-through; color: #aaa; }
+
+/* INPUT BOX */
+.note-container {
+    width: 100%;
+    max-width: 500px;
+    background: var(--card);
+    border-radius: 30px;
+    padding: 25px;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px) scale(0.95); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
+textarea {
+    width: 100%;
+    height: 35vh;
+    border: none;
+    outline: none;
+    resize: none;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    font-family: inherit;
 }
 
-textarea{
-width:100%;
-height:35vh;
-border:none;
-outline:none;
-resize:none;
-font-size:1.1rem;
-line-height:1.6;
+.add-note {
+    position: absolute;
+    bottom: -25px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: none;
+    background: black;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
 }
 
-.add-note{
-position:absolute;
-bottom:-25px;
-right:20px;
-width:50px;
-height:50px;
-border-radius:50%;
-border:none;
-background:black;
-color:white;
-font-size:28px;
-cursor:pointer;
-box-shadow:0 6px 20px rgba(0,0,0,0.3);
+/* NOTE VIEWER - Pop-up Modal (Not Fullscreen) */
+#noteViewer {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    background: white;
+    z-index: 3000;
+    display: none;
+    padding: 25px;
+    border-radius: 30px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
 }
 
-#overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:900;backdrop-filter:blur(4px);}
+#noteViewerContent {
+    width: 100%;
+    height: 35vh;
+    border: none;
+    outline: none;
+    resize: none;
+    font-size: 1.1rem;
+    font-family: inherit;
+}
 
-/* [START] - Updated Green Modal & 2-Column Deck */
+#noteViewerClose {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* CALENDAR MODAL */
 #calModal {
     display: none;
     position: fixed;
@@ -332,309 +205,90 @@ box-shadow:0 6px 20px rgba(0,0,0,0.3);
     border: 2px solid white;
     border-radius: 30px;
     padding: 30px;
-    z-index: 1000;
+    z-index: 4000;
     color: white;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
 }
-
 .modal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center; }
-
-.circle-day {
-    aspect-ratio: 1/1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    font-size: 0.9rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: 0.2s;
-    position: relative;
-    color: #333; /* Improved visibility on green */
-}
-
+.circle-day { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.9rem; font-weight: 700; cursor: pointer; color: #333; }
 .circle-day.selected { outline: 2px solid white; outline-offset: 2px; }
 
-#noteDeck {
-    width: 100%;
-    max-width: 500px;
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* This creates the 2-column side-by-side look */
-    gap: 12px;
-    margin-top: 35px;
-}
-/* [END] */
-.modal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;text-align:center;}
-.modal-day-label{font-size:0.6rem;color:#555;text-transform:uppercase;margin-bottom:5px;font-weight:800;}
+#overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; backdrop-filter:blur(4px); }
 
-.circle-day{
-aspect-ratio:1/1;
-display:flex;
-align-items:center;
-justify-content:center;
-border-radius:50%;
-font-size:0.9rem;
-font-weight:700;
-cursor:pointer;
-transition:0.2s;
-position:relative;
-color:#333;
-}
-.circle-day.selected{outline:2px solid white;outline-offset:2px;}
+.note-menu-btn { position: absolute; top: 8px; right: 8px; background: none; border: none; color: #ccc; cursor: pointer; font-size: 1.1rem; }
 
-/* Fullscreen Note Viewer */
-#noteViewer{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:white;
-z-index:2000;
-display:none;
-overflow-y:auto;
-padding:40px 25px;
-box-sizing:border-box;
-transform:translateX(100%);
-transition:transform 0.35s cubic-bezier(.32,.72,0,.99);
-}
+#bottomTabs { position:fixed; bottom:0; left:0; width:100%; background:white; display:flex; justify-content:space-around; padding:10px 0; z-index:5000; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+#bottomTabs button { background:none; border:none; font-weight:700; cursor:pointer; flex:1; }
 
-#noteViewer.open{
-display:block;
-transform:translateX(0);
-}
-
-#noteViewerContent{
-    max-width:600px;
-    margin:auto;
-    font-size:1.2rem;
-    line-height:1.7;
-    white-space:pre-wrap;
-}
-
-#noteViewerClose {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: none;
-    border: none;
-    font-size: 2rem;
-    font-weight: 700;
-    cursor: pointer;
-    color: #2d5a3a;
-    z-index: 2100;
-    transition: transform 0.2s, color 0.2s;
-}
-#noteViewerClose:hover {
-    transform: scale(1.2);
-    color: #166534;
-}
+#noteMenu { display: none; position: absolute; background: white; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 6000; padding: 5px; min-width: 120px; }
 </style>
 </head>
+<body>
 
-<div id="noteMenu" style="display:none;position:absolute;background:white;border-radius:15px;box-shadow:0 5px 20px rgba(0,0,0,0.2);padding:15px;z-index:3000;min-width:150px;">
-    <!-- removed header -->
-    <div id="moveTabsContainer" style="display:flex;flex-direction:column;gap:5px;"></div>
-    <button id="deleteNoteBtn" style="margin-top:10px;background:#f87171;color:white;border:none;padding:6px 10px;border-radius:8px;cursor:pointer;">Delete</button>
-</div>
 <header>
   <div class="month-label" id="monthDisplay">March 2026</div>
   <button id="todayBtn" onclick="jumpToToday()">Today</button>
-  <div class="cal-icon-wrapper">
-    <button class="cal-icon" onclick="toggleModal()">🗓️</button>
-  </div>
+  <button class="cal-icon" onclick="toggleModal()">🗓️</button>
 </header>
+
 <div class="calendar-strip" id="strip"></div>
 
 <div class="filter-container">
-    <button class="bubble active" onclick="switchCategory(null,this)" style="font-weight:800; border: 2px solid var(--accent);">Home</button>
+    <button class="bubble active" onclick="switchCategory(null,this)">Home</button>
     <button class="bubble" onclick="switchCategory('todo',this)">To-do</button>
     <button class="bubble" onclick="switchCategory('work',this)">Work</button>
     <button class="bubble" onclick="switchCategory('groceries',this)">Groceries</button>
     <button class="bubble" onclick="switchCategory('errands',this)">Errands</button>
-    <button class="bubble" onclick="switchCategory('dreams',this)">Dreams</button>
 </div>
 
-<div class="todo-card" id="todoList">
-<div class="todo-header" id="todoHeader">To-do List</div>
-<div id="todoItems"></div>
-</div>
-
-<div class="note-container">
-<div style="display:flex;gap:10px;margin-bottom:10px;">
-<button onclick="insertBullet()" style="border:none;background:#e8f5e9;border-radius:8px;padding:6px 10px;font-weight:700;cursor:pointer;">•</button>
-</div>
-<textarea id="noteContent" placeholder="Type your notes..."></textarea>
-<button class="add-note" onclick="commitNote()">✔</button>
-</div>
-
+<!-- SAVED NOTES (Note Deck) ABOVE INPUT -->
 <div id="noteDeck"></div>
 
-<div id="bottomTabs" style="position:fixed;bottom:0;left:0;width:100%;background:white;display:flex;justify-content:space-around;padding:0;box-shadow:0 -2px 10px rgba(0,0,0,0.1);z-index:5000;">
-    <button onclick="showMain()" style="flex:1; padding:15px 0; background:none; border:none; font-weight:700; cursor:pointer;">Notes</button>
-    <button onclick="showSettings()" style="flex:1; padding:15px 0; background:none; border:none; font-weight:700; cursor:pointer;">Settings</button>
+<!-- INPUT BOX -->
+<div class="note-container">
+    <div style="display:flex;gap:10px;margin-bottom:10px;">
+        <button onclick="insertBullet()" style="border:none;background:#e8f5e9;border-radius:8px;padding:6px 10px;font-weight:700;cursor:pointer;">•</button>
+    </div>
+    <textarea id="noteContent" placeholder="Type your notes..."></textarea>
+    <button class="add-note" onclick="commitNote()">✔</button>
 </div>
-<div id="settingsView" style="display:none; width:100%; max-width:500px; padding: 20px 0 100px 0; box-sizing: border-box; color: white;">
-    <h2 style="margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px;">Settings</h2>
-    
-    <div class="note-container" style="margin-bottom: 20px; background: white; color: black;">
-    <h3 style="margin-top:0; font-size: 1rem;">Cloud Backup</h3>
-    <p style="font-size: 0.8rem; color: var(--muted); margin-bottom: 15px;">
-        Keep your notes safe in the cloud. Use the buttons below to save or load your latest notes.
-    </p>
-    <div style="display:flex; gap:10px;">
-        <button onclick="uploadToCloud()" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:10px; cursor:pointer; font-weight:700; font-size: 0.8rem;">
-            Save Notes Now
-        </button>
-       <button id="loadCloudBtn" style="background:var(--accent); color:white; border:none; padding:12px 20px; border-radius:10px; cursor:pointer; font-weight:700; font-size:0.9rem; display:inline-block; min-width:120px; text-align:center;">
-Load Latest Notes
-</button>
+
+<div id="bottomTabs">
+    <button onclick="showMain()">Notes</button>
+    <button onclick="showSettings()">Settings</button>
+</div>
+
+<div id="settingsView" style="display:none; width:100%; max-width:500px; padding: 20px 0;">
+    <h2 style="color:white">Settings</h2>
+    <div class="note-container">
+        <button id="loadCloudBtn" style="background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer;">Sync with Cloud</button>
     </div>
 </div>
 
-    <div class="note-container" style="background: white; color: black;">
-        <h3 style="margin-top:0; font-size: 1rem;">Recently Deleted</h3>
-        <div id="deletedNotesList" style="display:flex; flex-direction:column; gap:12px; margin-top: 15px;">
-            <p style="color:var(--muted); font-size:0.8rem;">Trash is empty.</p>
-        </div>
-    </div>
-</div>
-<div id="overlay" onclick="toggleModal()"></div>
-
-<!-- In-app Delete Confirmation Modal -->
-<div id="deleteConfirmModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:6000; align-items:center; justify-content:center;">
-  <div style="background:white; padding:25px; border-radius:20px; max-width:320px; width:90%; text-align:center;">
-    <p style="margin-bottom:20px; font-weight:600;">Are you sure you want to permanently delete this note?</p>
-    <div style="display:flex; gap:10px; justify-content:center;">
-      <button id="cancelDeleteBtn" style="padding:8px 16px; border:none; border-radius:10px; background:#ccc; font-weight:700; cursor:pointer;">Cancel</button>
-      <button id="confirmDeleteBtn" style="padding:8px 16px; border:none; border-radius:10px; background:#f87171; color:white; font-weight:700; cursor:pointer;">Delete</button>
-    </div>
-  </div>
-</div>
-
+<!-- MODAL VIEWER -->
 <div id="noteViewer">
     <button id="noteViewerClose" onclick="closeNoteViewer()">×</button>
     <textarea id="noteViewerContent"></textarea>
-<button onclick="saveViewerEdit()" style="margin-top:20px;padding:10px 18px;border:none;border-radius:10px;background:#2d5a3a;color:white;font-weight:700;cursor:pointer;">Save</button>
+    <button onclick="closeNoteViewer()" style="margin-top:15px; width:100%; padding:12px; background:var(--accent); color:white; border:none; border-radius:15px; font-weight:700; cursor:pointer;">Save & Close</button>
 </div>
 
 <div id="calModal">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;">
-<h2 id="modalMonthTitle" style="margin:0;letter-spacing:2px;">MARCH 2026</h2>
-<button onclick="toggleModal()" style="background:none;border:none;color:white;font-size:1.5rem;cursor:pointer;">×</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h2 id="modalMonthTitle" style="margin:0;">MARCH 2026</h2>
+        <button onclick="toggleModal()" style="background:none;border:none;color:white;font-size:1.5rem;">×</button>
+    </div>
+    <div class="modal-grid" id="fullGrid"></div>
 </div>
-<div class="modal-grid">
-<div class="modal-day-label">S</div><div class="modal-day-label">M</div><div class="modal-day-label">T</div>
-<div class="modal-day-label">W</div><div class="modal-day-label">T</div><div class="modal-day-label">F</div><div class="modal-day-label">S</div>
-</div>
-<div class="modal-grid" id="fullGrid"></div>
-</div>
-<style>
-/* 1. Fixes the Shorter Note Boxes */
-.saved-note {
-    position: relative; 
-    background: #ffffff;
-    padding: 12px 14px; /* Tighter padding to save space */
-    border-radius: 18px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    min-height: 90px;   /* Significantly shorter than before */
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    border: 1px solid rgba(0,0,0,0.02);
-    overflow: hidden;
-}
 
-.saved-note-text {
-    font-size: 0.82rem;
-    color: #444;
-    line-height: 1.3;
-    display: -webkit-box;
-    -webkit-line-clamp: 3; /* Only shows 3 lines to keep the box short */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    margin-top: 2px;
-}
+<div id="noteMenu"></div>
+<div id="overlay" onclick="closeAllModals()"></div>
 
-/* 2. Sleek iOS-style dots button (Absolute Positioned) */
-.note-menu-btn {
-    position: absolute;
-    top: 8px;
-    right: 6px;
-    background: none !important;
-    border: none !important;
-    color: #ccc; 
-    font-size: 1.2rem;
-    cursor: pointer;
-    line-height: 1;
-    padding: 4px 8px;
-    z-index: 10;
-}
-
-/* 3. iOS-style Blur Context Menu */
-#noteMenu {
-    display: none;
-    position: absolute;
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border-radius: 14px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-    padding: 8px !important;
-    z-index: 3000;
-    min-width: 160px;
-    border: 1px solid rgba(255,255,255,0.5);
-}
-</style>
 <script>
-const strip = document.getElementById('strip');
-const fullGrid = document.getElementById('fullGrid');
-const textarea = document.getElementById('noteContent');
-
-// 1. Initialize Database
 let db = JSON.parse(localStorage.getItem('reson_db')) || { notes_list: [], recentlyDeleted: [] };
-if (!db.notes_list) db.notes_list = [];
-if (!db.recentlyDeleted) db.recentlyDeleted = [];
-
 let selectedDate = new Date();
 let currentCategory = null;
-
-const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-// 2. CRITICAL: Cleanup duplicates and lowercase all tags for consistency
-function cleanupDuplicates() {
-    let cleanedList = [];
-    let seen = {};
-
-    db.notes_list.forEach(note => {
-        // Standardize tag to lowercase
-        if (note.tags && note.tags.length > 0) {
-            note.tags = note.tags.map(t => t.toLowerCase());
-        } else {
-            note.tags = ['general'];
-        }
-
-        const cat = note.tags[0];
-        const groupable = ['todo', 'work', 'groceries', 'errands', 'dreams'];
-        
-        if (groupable.includes(cat)) {
-            const identifier = `${note.date}_${cat}`;
-            if (seen[identifier]) {
-                // If we've seen this card today, merge the text
-                if (!seen[identifier].content.includes(note.content)) {
-                    seen[identifier].content += "\n" + note.content;
-                }
-            } else {
-                seen[identifier] = note;
-                cleanedList.push(note);
-            }
-        } else {
-            cleanedList.push(note);
-        }
-    });
-    db.notes_list = cleanedList;
-    save();
-}
+const strip = document.getElementById('strip');
+const textarea = document.getElementById('noteContent');
+const deck = document.getElementById('noteDeck');
 
 function formatDateKey(date) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -644,194 +298,92 @@ function save() {
     localStorage.setItem('reson_db', JSON.stringify(db));
 }
 
-// 3. SAVING NOTES (Merging logic)
+// 1. CLEANUP DUPLICATES
+function cleanupData() {
+    let cleaned = [];
+    let seen = {};
+    db.notes_list.forEach(n => {
+        let cat = n.tags[0].toLowerCase();
+        let key = n.date + "_" + cat;
+        if (['todo','work','groceries','errands'].includes(cat)) {
+            if (seen[key]) {
+                if (!seen[key].content.includes(n.content)) seen[key].content += "\n" + n.content;
+            } else {
+                seen[key] = n;
+                cleaned.push(n);
+            }
+        } else cleaned.push(n);
+    });
+    db.notes_list = cleaned;
+    save();
+}
+
+// 2. SAVE NOTE
 function commitNote() {
     const text = textarea.value.trim();
     if (!text) return;
-
     const dateKey = formatDateKey(selectedDate);
-    // Standardize category to lowercase
     const cat = currentCategory ? currentCategory.toLowerCase() : "general";
-    const groupable = ['todo', 'work', 'groceries', 'errands', 'dreams'];
-
-    // Find if a card for this category already exists today
-    const existingNote = db.notes_list.find(n => 
-        n.date === dateKey && 
-        n.tags.includes(cat)
-    );
-
-    if (groupable.includes(cat) && existingNote) {
-        // Add to the existing card
-        existingNote.content += "\n" + text;
+    
+    const existing = db.notes_list.find(n => n.date === dateKey && n.tags[0].toLowerCase() === cat);
+    if (existing && ['todo','work','groceries','errands'].includes(cat)) {
+        existing.content += "\n" + text;
     } else {
-        // Create a new card
-        const newNote = {
-            id: Date.now(),
-            date: dateKey,
-            tags: [cat],
-            content: text,
-            checkedIndices: [] 
-        };
-        db.notes_list.unshift(newNote);
+        db.notes_list.unshift({ id: Date.now(), date: dateKey, tags: [cat], content: text, checkedIndices: [] });
     }
-
     save();
     textarea.value = '';
     renderDeck();
     uploadToCloud();
 }
 
-// 4. DISPLAYING NOTES (Filtering logic)
+// 3. RENDER SAVED NOTES
 function renderDeck() {
-    const deck = document.getElementById('noteDeck');
-    if (!deck) return;
     deck.innerHTML = '';
-    
     const key = formatDateKey(selectedDate);
-    
     const filtered = db.notes_list.filter(n => {
-        const dateMatch = n.date === key;
-        const isDeleted = db.recentlyDeleted.some(dn => dn.id === n.id);
-        
-        // Tab Filtering logic
-        let catMatch = true;
-        if (currentCategory) {
-            // Only show notes that contain the active category tag
-            catMatch = n.tags.includes(currentCategory.toLowerCase());
-        }
-        
-        return dateMatch && catMatch && !isDeleted;
+        const dMatch = n.date === key;
+        const cMatch = !currentCategory || n.tags[0].toLowerCase() === currentCategory.toLowerCase();
+        return dMatch && cMatch;
     });
 
     filtered.forEach(note => {
         const card = document.createElement('div');
         card.className = 'saved-note';
-        
-        const lines = note.content.split('\n').filter(l => l.trim() !== "");
-        let checklistHTML = '<div class="card-checklist">';
-        
-        lines.forEach((lineText, index) => {
-            const isChecked = note.checkedIndices && note.checkedIndices.includes(index);
-            checklistHTML += `
-                <div class="checklist-item" onclick="event.stopPropagation(); toggleCheck(${note.id}, ${index})">
-                    <input type="checkbox" ${isChecked ? 'checked' : ''}>
-                    <div class="checklist-text ${isChecked ? 'done' : ''}">${lineText}</div>
-                </div>
-            `;
+        let lines = note.content.split('\n').filter(l => l.trim() !== "");
+        let html = `<button class="note-menu-btn" onclick="event.stopPropagation(); openMenu(event, ${note.id})">⋮</button>`;
+        html += `<span class="saved-note-title">${note.tags[0]}</span><div class="card-checklist">`;
+        lines.forEach((l, i) => {
+            const done = note.checkedIndices && note.checkedIndices.includes(i);
+            html += `<div class="checklist-item" onclick="event.stopPropagation(); toggleLine(${note.id}, ${i})">
+                        <input type="checkbox" ${done ? 'checked' : ''}>
+                        <div class="checklist-text ${done ? 'done' : ''}">${l}</div>
+                     </div>`;
         });
-        checklistHTML += '</div>';
-
-        card.innerHTML = `
-            <button class="note-menu-btn" onclick="event.stopPropagation(); openNoteMenu(event, ${note.id})">⋮</button>
-            <span class="saved-note-title">${note.tags[0]}</span>
-            ${checklistHTML}
-        `;
-        
+        html += `</div>`;
+        card.innerHTML = html;
         card.onclick = () => openNoteViewer(note);
         deck.appendChild(card);
     });
 }
 
-function toggleCheck(noteId, lineIndex) {
-    const note = db.notes_list.find(n => n.id === noteId);
-    if (!note) return;
-    if (!note.checkedIndices) note.checkedIndices = [];
-
-    const foundIndex = note.checkedIndices.indexOf(lineIndex);
-    if (foundIndex > -1) {
-        note.checkedIndices.splice(foundIndex, 1);
-    } else {
-        note.checkedIndices.push(lineIndex);
-    }
-
+function toggleLine(id, idx) {
+    const n = db.notes_list.find(x => x.id === id);
+    if (!n.checkedIndices) n.checkedIndices = [];
+    const pos = n.checkedIndices.indexOf(idx);
+    if (pos > -1) n.checkedIndices.splice(pos, 1);
+    else n.checkedIndices.push(idx);
     save();
     renderDeck();
-    uploadToCloud();
 }
 
-// 5. TABS & NAVIGATION
-function switchCategory(cat, btn) {
-    if (currentCategory === cat) {
-        currentCategory = null;
-        btn.classList.remove('active');
-        btn.style.border = "none";
-        document.getElementById('todoHeader').innerText = "Notes";
-    } else {
-        document.querySelectorAll('.bubble').forEach(b => { 
-            b.classList.remove('active'); 
-            b.style.border = "none"; 
-        });
-        currentCategory = cat;
-        btn.classList.add('active');
-        btn.style.border = "2px solid var(--accent)";
-        document.getElementById('todoHeader').innerText = btn.innerText + " List";
-    }
-    renderDeck();
-}
-
-function setupCalendar() {
-    strip.innerHTML = '';
-    const year = selectedDate.getFullYear();
-    const month = selectedDate.getMonth();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const todayKey = formatDateKey(new Date());
-    const selectedKey = formatDateKey(selectedDate);
-
-    document.getElementById('todayBtn').style.display = (selectedKey === todayKey) ? 'none' : 'block';
-    document.getElementById('monthDisplay').innerText = selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-
-    for (let i = 1; i <= daysInMonth; i++) {
-        const date = new Date(year, month, i);
-        const isSelected = formatDateKey(date) === selectedKey;
-        const card = document.createElement('div');
-        card.className = `day-card ${isSelected ? 'active' : ''}`;
-        card.innerHTML = `<div style="font-size:0.7rem;">${daysShort[date.getDay()]}</div><div style="font-weight:800;font-size:1.2rem;">${i}</div>`;
-        card.onclick = () => { selectedDate = date; setupCalendar(); renderDeck(); };
-        strip.appendChild(card);
-        if (isSelected) setTimeout(() => card.scrollIntoView({ behavior: 'smooth', inline: 'center' }), 0);
-    }
-}
-
-// 6. UI MODALS & VIEWER
-function toggleModal() {
-    const m = document.getElementById('calModal');
-    const o = document.getElementById('overlay');
-    const isOpen = m.style.display === 'block';
-    if (!isOpen) renderHeatmap();
-    m.style.display = isOpen ? 'none' : 'block';
-    o.style.display = isOpen ? 'none' : 'block';
-}
-
-function renderHeatmap() {
-    const grid = document.getElementById('fullGrid');
-    grid.innerHTML = '';
-    const year = selectedDate.getFullYear();
-    const month = selectedDate.getMonth();
-    const firstDay = new Date(year, month, 1).getDay();
-    const days = new Date(year, month + 1, 0).getDate();
-    document.getElementById('modalMonthTitle').innerText = selectedDate.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
-    for (let p = 0; p < firstDay; p++) grid.appendChild(document.createElement('div'));
-    for (let i = 1; i <= days; i++) {
-        const d = new Date(year, month, i);
-        const k = formatDateKey(d);
-        const count = db.notes_list.filter(n => n.date === k).length;
-        const el = document.createElement('div');
-        el.className = `circle-day ${k === formatDateKey(selectedDate) ? 'selected' : ''}`;
-        el.innerText = i;
-        el.style.backgroundColor = count > 0 ? (count > 2 ? 'var(--heat-3)' : 'var(--heat-2)') : 'var(--heat-0)';
-        el.onclick = () => { selectedDate = d; setupCalendar(); renderDeck(); toggleModal(); };
-        grid.appendChild(el);
-    }
-}
-
+// 4. NOTE VIEWER (MODAL)
 let activeNote = null;
 function openNoteViewer(note) {
     activeNote = note;
-    const viewer = document.getElementById('noteViewer');
-    const content = document.getElementById('noteViewerContent');
-    content.value = note.content;
-    viewer.style.display = 'block';
-    setTimeout(() => viewer.classList.add('open'), 10);
+    document.getElementById('noteViewerContent').value = note.content;
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('noteViewer').style.display = 'block';
 }
 
 function closeNoteViewer() {
@@ -840,78 +392,107 @@ function closeNoteViewer() {
         save();
         renderDeck();
     }
-    const viewer = document.getElementById('noteViewer');
-    viewer.classList.remove('open');
-    setTimeout(() => { viewer.style.display = 'none'; activeNote = null; }, 350);
+    document.getElementById('noteViewer').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+    activeNote = null;
 }
 
-function saveViewerEdit() { closeNoteViewer(); uploadToCloud(); }
+// 5. CALENDAR & TABS
+function setupCalendar() {
+    strip.innerHTML = '';
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth();
+    const days = new Date(year, month + 1, 0).getDate();
+    document.getElementById('monthDisplay').innerText = selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    
+    for (let i = 1; i <= days; i++) {
+        const d = new Date(year, month, i);
+        const isSel = formatDateKey(d) === formatDateKey(selectedDate);
+        const card = document.createElement('div');
+        card.className = `day-card ${isSel ? 'active' : ''}`;
+        card.innerHTML = `<div style="font-size:0.7rem;">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</div><div style="font-weight:800;font-size:1.2rem;">${i}</div>`;
+        card.onclick = () => { selectedDate = d; setupCalendar(); renderDeck(); };
+        strip.appendChild(card);
+        if (isSel) card.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+    }
+}
 
-function openNoteMenu(event, noteId) {
+function switchCategory(cat, btn) {
+    document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
+    if (currentCategory === cat) currentCategory = null;
+    else { currentCategory = cat; btn.classList.add('active'); }
+    renderDeck();
+}
+
+function toggleModal() {
+    const m = document.getElementById('calModal');
+    const o = document.getElementById('overlay');
+    const open = m.style.display === 'block';
+    if (!open) renderHeatmap();
+    m.style.display = open ? 'none' : 'block';
+    o.style.display = open ? 'none' : 'block';
+}
+
+function renderHeatmap() {
+    const grid = document.getElementById('fullGrid');
+    grid.innerHTML = '';
+    const y = selectedDate.getFullYear();
+    const m = selectedDate.getMonth();
+    const days = new Date(y, m+1, 0).getDate();
+    for (let i = 1; i <= days; i++) {
+        const d = new Date(y, m, i);
+        const k = formatDateKey(d);
+        const count = db.notes_list.filter(n => n.date === k).length;
+        const el = document.createElement('div');
+        el.className = `circle-day ${k === formatDateKey(selectedDate) ? 'selected' : ''}`;
+        el.innerText = i;
+        el.style.backgroundColor = count > 0 ? 'var(--heat-2)' : 'var(--heat-0)';
+        el.onclick = () => { selectedDate = d; setupCalendar(); renderDeck(); toggleModal(); };
+        grid.appendChild(el);
+    }
+}
+
+function openMenu(e, id) {
     const menu = document.getElementById('noteMenu');
-    const rect = event.target.getBoundingClientRect();
     menu.style.display = 'block';
-    menu.style.top = (rect.bottom + window.scrollY + 5) + 'px';
-    menu.style.left = (rect.right - 150) + 'px';
-    menu.innerHTML = `<button onclick="deleteNote(${noteId})" style="width:100%; text-align:left; background:none; border:none; color:red; padding:10px; cursor:pointer; font-weight:bold;">Delete Note</button>`;
+    menu.style.top = (e.pageY + 10) + 'px';
+    menu.style.left = (e.pageX - 100) + 'px';
+    menu.innerHTML = `<button onclick="deleteNote(${id})" style="color:red; width:100%; padding:10px; background:none; border:none; text-align:left; cursor:pointer;">Delete</button>`;
 }
 
 function deleteNote(id) {
-    const idx = db.notes_list.findIndex(n => n.id === id);
-    const note = db.notes_list.splice(idx, 1)[0];
-    db.recentlyDeleted.unshift(note);
+    db.notes_list = db.notes_list.filter(n => n.id !== id);
     save();
     renderDeck();
     document.getElementById('noteMenu').style.display = 'none';
 }
 
-// 7. SETTINGS
+function closeAllModals() {
+    document.getElementById('calModal').style.display = 'none';
+    document.getElementById('noteViewer').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('noteMenu').style.display = 'none';
+}
+
 function showSettings() {
-    document.querySelector('header').style.display = 'none';
-    document.getElementById('strip').style.display = 'none';
-    document.querySelector('.filter-container').style.display = 'none';
-    document.querySelector('.note-container').style.display = 'none';
-    document.getElementById('noteDeck').style.display = 'none';
     document.getElementById('settingsView').style.display = 'block';
-    renderDeletedNotes();
+    document.getElementById('noteDeck').style.display = 'none';
+    document.querySelector('.note-container').style.display = 'none';
+    document.querySelector('.filter-container').style.display = 'none';
 }
 
 function showMain() {
-    document.querySelector('header').style.display = 'flex';
-    document.getElementById('strip').style.display = 'flex';
-    document.querySelector('.filter-container').style.display = 'flex';
-    document.querySelector('.note-container').style.display = 'block';
-    document.getElementById('noteDeck').style.display = 'grid';
     document.getElementById('settingsView').style.display = 'none';
-    renderDeck();
+    document.getElementById('noteDeck').style.display = 'grid';
+    document.querySelector('.note-container').style.display = 'block';
+    document.querySelector('.filter-container').style.display = 'flex';
 }
 
-function renderDeletedNotes() {
-    const list = document.getElementById('deletedNotesList');
-    list.innerHTML = '';
-    db.recentlyDeleted.forEach(note => {
-        const div = document.createElement('div');
-        div.style = "background:#fff; border:1px solid #eee; padding:10px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; color:black;";
-        div.innerHTML = `<span style="font-size:0.8rem">${note.content.substring(0,25)}...</span>
-                         <button onclick="restoreNote(${note.id})" style="background:var(--accent); color:white; border:none; padding:5px 10px; border-radius:5px;">Restore</button>`;
-        list.appendChild(div);
-    });
-}
-
-function restoreNote(id) {
-    const idx = db.recentlyDeleted.findIndex(n => n.id === id);
-    const note = db.recentlyDeleted.splice(idx, 1)[0];
-    db.notes_list.unshift(note);
-    save();
-    renderDeletedNotes();
-}
-
-// 8. HELPERS & CLOUD
 function insertBullet() {
-    const start = textarea.selectionStart;
-    textarea.value = textarea.value.slice(0, start) + "• " + textarea.value.slice(start);
+    const s = textarea.selectionStart;
+    textarea.value = textarea.value.slice(0,s) + "• " + textarea.value.slice(s);
     textarea.focus();
-    textarea.selectionStart = textarea.selectionEnd = start + 2;
+    textarea.selectionStart = textarea.selectionEnd = s + 2;
 }
 
 const R2_URL = "https://pub-66479d392b224c95a6cb0e230ac238bb.r2.dev/notes_db.json";
@@ -922,53 +503,24 @@ async function uploadToCloud() {
             headers: { 'Authorization': 'Bearer cfut_HevbM2ak9IG7euRSqfJJvMtfl3rmGl0loh2gkwKA55fb0f6b', 'Content-Type': 'application/json' },
             body: JSON.stringify(db)
         });
-    } catch (e) { console.error("Cloud failed"); }
+    } catch (e) {}
 }
 
 async function syncWithCloud() {
     try {
         const res = await fetch(R2_URL, { cache: 'no-store' });
         const data = await res.json();
-        if (data.notes_list) {
-            db.notes_list = data.notes_list;
-            save();
-            cleanupDuplicates(); 
-            renderDeck();
-            alert("Synced!");
-        }
+        if (data.notes_list) { db.notes_list = data.notes_list; save(); cleanupData(); renderDeck(); alert("Synced!"); }
     } catch (e) { alert("Sync failed"); }
 }
 
-function jumpToToday() { selectedDate = new Date(); setupCalendar(); renderDeck(); }
-
-// 9. START APP
 document.addEventListener("DOMContentLoaded", () => {
-    cleanupDuplicates(); // Runs cleanup once to fix old data
+    cleanupData();
     setupCalendar();
     renderDeck();
 });
 
 document.getElementById('loadCloudBtn').onclick = syncWithCloud;
-
-textarea.addEventListener('keydown', function(e){
-    if(e.key === "Enter"){
-        const start = textarea.selectionStart;
-        const before = textarea.value.substring(0,start);
-        const line = before.split("\n").pop();
-        if(line.trim().startsWith("•")){
-            e.preventDefault();
-            textarea.value = textarea.value.substring(0,start) + "\n• " + textarea.value.substring(start);
-            textarea.selectionStart = textarea.selectionEnd = start + 3;
-        }
-    }
-});
-
-window.addEventListener('mousedown', (e) => {
-    const menu = document.getElementById('noteMenu');
-    if (menu && menu.style.display === 'block' && !menu.contains(e.target) && !e.target.classList.contains('note-menu-btn')) {
-        menu.style.display = 'none';
-    }
-});
 </script>
 </body>
 </html>

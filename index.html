@@ -413,7 +413,26 @@ Load Latest Notes
 </div>
 <div class="modal-grid" id="fullGrid"></div>
 </div>
+.note-menu-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: #999;
+    cursor: pointer;
+    padding: 5px 10px;
+    line-height: 1;
+    z-index: 10;
+}
+.note-menu-btn:hover { color: #333; }
 
+/* Ensure the saved-note can contain the absolute button */
+.saved-note {
+    position: relative; 
+    padding-right: 35px; /* Make room so text doesn't overlap the dots */
+}
 <script>
 const strip=document.getElementById('strip')
 const fullGrid=document.getElementById('fullGrid')
@@ -637,45 +656,44 @@ function switchCategory(cat, btn) {
 }
 function renderDeck() {
     const deck = document.getElementById('noteDeck');
-    deck.innerHTML = ''; // Clear current view
+    deck.innerHTML = '';
     
     const selectedKey = formatDateKey(selectedDate);
     const deletedIds = (db.recentlyDeleted || []).map(n => n.id);
 
-    // Filter notes based on Date, Category, and Trash status
     const notesToShow = (db.notes_list || []).filter(n => {
         const dateMatch = n.date === selectedKey;
         const notDeleted = !deletedIds.includes(n.id);
-        
-        // If a category (tab) is selected, filter by that tag
-        // If no category is selected, show all notes for that day
         const categoryMatch = !currentCategory || 
             (n.tags && n.tags.map(t => t.toLowerCase()).includes(currentCategory.toLowerCase()));
-
         return dateMatch && notDeleted && categoryMatch;
     });
 
-    // Create the visual "White Bubbles" for each note
     notesToShow.forEach(note => {
         const card = document.createElement('div');
         card.className = 'saved-note';
-        
-        // Applying the "White Bubble" style requested
         card.style.background = 'white'; 
         card.style.color = 'black';
         card.style.border = '1px solid #eee';
 
         card.innerHTML = `
+            <button class="note-menu-btn">⋮</button>
             <div class="saved-note-title" style="color:var(--accent); font-size:0.6rem; margin-bottom:8px;">
                 ${note.tags && note.tags.length ? note.tags.join(' • ').toUpperCase() : 'GENERAL'}
             </div>
             <div class="saved-note-text">${note.content}</div>
         `;
 
-        // Interaction: Single click to view, Right-click (or long press) for menu
-        card.onclick = () => openNoteViewer(note);
-        card.oncontextmenu = (e) => {
-            e.preventDefault();
+        // Click the text to view/edit
+        card.onclick = (e) => {
+            if (e.target.classList.contains('note-menu-btn')) return;
+            openNoteViewer(note);
+        };
+
+        // Click the dots to open menu
+        const dotBtn = card.querySelector('.note-menu-btn');
+        dotBtn.onclick = (e) => {
+            e.stopPropagation(); // Don't trigger the viewer
             openNoteMenu(e, note.id);
         };
 
@@ -865,87 +883,53 @@ function closeNoteViewer() {
         activeNote = null;
     }, 350);
 }
-function openNoteMenu(event, noteId){
+function openNoteMenu(event, noteId) {
     const menu = document.getElementById('noteMenu');
-    const moveContainer = document.getElementById('moveTabsContainer');
-    const card = event.target.closest('.saved-note');
-    const rect = card.getBoundingClientRect();
-
-    const note = (db.notes_list || []).find(n => n.id === noteId); // <-- define note immediately
-
-    // Position menu near cursor but keep inside viewport
-    menu.style.left = `${rect.right - 130}px`;
-menu.style.top = `${rect.top + 10}px`;
-    menu.style.display = 'block';
-    menu.style.minWidth = '120px';
-    menu.style.maxHeight = '220px';
-    menu.style.overflowY = 'auto';
-    menu.style.padding = '10px';
-
-    // Populate categories
-    moveContainer.innerHTML = '';
-    document.querySelectorAll('.bubble').forEach(b => {
-        if(b.innerText==='Tags') return; // skip Tags placeholder
-        const cb = document.createElement('input');
-        cb.type='checkbox';
-        cb.id='move_'+b.innerText;
-        cb.checked = (note.tags || []).includes(b.innerText);
-
-        const label = document.createElement('label');
-        label.htmlFor = cb.id;
-        label.innerText = b.innerText;
-        label.style.cursor='pointer';
-
-        const div = document.createElement('div');
-        div.appendChild(cb);
-        div.appendChild(label);
-        moveContainer.appendChild(div);
-    });
-
-    // Delete button
-    const deleteBtn = document.getElementById('deleteNoteBtn');
-    deleteBtn.onclick = () => {
-    const noteIndex = (db.notes_list || []).findIndex(n => n.id === noteId);
-    if(noteIndex === -1) return;
-
-    const note = db.notes_list[noteIndex];
-    if(!db.recentlyDeleted) db.recentlyDeleted = [];
-    note.deletedAt = Date.now();
-    db.recentlyDeleted.unshift(note);
-
-    db.notes_list.splice(noteIndex, 1);
-    save();
-    renderDeck();
-    renderDeletedNotes(); // Update the Recently Deleted panel if open
-    menu.style.display='none';
-};
-    // Handle category moves
     
-Array.from(moveContainer.querySelectorAll('input[type="checkbox"]')).forEach(cb => {
-    cb.onchange = () => {
-        if(!note) return;
+    // Position the menu near the button that was clicked
+    const rect = event.target.getBoundingClientRect();
+    menu.style.display = 'block';
+    menu.style.top = (rect.top + window.scrollY) + 'px';
+    menu.style.left = (rect.left - 100) + 'px'; // Offset to the left
 
-        if(!Array.isArray(note.tags)) note.tags = [];
+    // Find the note in the database
+    const noteIndex = db.notes_list.findIndex(n => n.id === noteId);
+    const note = db.notes_list[noteIndex];
 
-        const tag = cb.nextSibling.innerText.toLowerCase();
+    // Build Menu Content (Delete Option)
+    menu.innerHTML = `
+        <div style="padding: 5px; display: flex; flex-direction: column; gap: 5px;">
+            <button id="menuDeleteBtn" style="background: #fee2e2; color: #b91c1c; border: none; padding: 10px; border-radius: 8px; font-weight: 700; cursor: pointer; text-align: left;">
+                🗑️ Delete Note
+            </button>
+        </div>
+    `;
 
-        if(cb.checked){
-            if(!note.tags.includes(tag)) note.tags.push(tag);
-        } else {
-            note.tags = note.tags.filter(t => t !== tag);
-        }
-
+    // Handle Delete Click
+    document.getElementById('menuDeleteBtn').onclick = () => {
+        if (!db.recentlyDeleted) db.recentlyDeleted = [];
+        
+        // Add "deletedAt" timestamp for the 30-day auto-delete rule
+        note.deletedAt = Date.now();
+        
+        // Move from main list to recently deleted
+        db.recentlyDeleted.unshift(note);
+        db.notes_list.splice(noteIndex, 1);
+        
         save();
         renderDeck();
+        menu.style.display = 'none';
+        
+        // Refresh settings trash view if it happens to be open
+        if (typeof renderDeletedNotes === "function") renderDeletedNotes();
     };
-});
 }
-    
-// Hide menu when clicking elsewhere
-document.addEventListener('click', (e)=>{
+
+// Close menu if user clicks anywhere else
+document.addEventListener('click', (e) => {
     const menu = document.getElementById('noteMenu');
-    if(menu.style.display === 'block' && !menu.contains(e.target)){
-        menu.style.display='none';
+    if (menu && !menu.contains(e.target) && !e.target.classList.contains('note-menu-btn')) {
+        menu.style.display = 'none';
     }
 });
 let activeNote = null;

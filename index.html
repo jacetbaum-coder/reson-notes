@@ -591,7 +591,7 @@ const strip = document.getElementById('strip');
 const fullGrid = document.getElementById('fullGrid');
 const textarea = document.getElementById('noteContent');
 
-// Initialize Database - Ensure it's a clean structure
+// 1. Initialize Database
 let db = JSON.parse(localStorage.getItem('reson_db')) || { notes_list: [], recentlyDeleted: [] };
 if (!db.notes_list) db.notes_list = [];
 if (!db.recentlyDeleted) db.recentlyDeleted = [];
@@ -601,22 +601,29 @@ let currentCategory = null;
 
 const daysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-// --- CRITICAL FIX: MERGE EXISTING MESSY DATA ---
-// This runs once on load to "smush" your existing duplicate cards together
+// 2. CRITICAL: Cleanup duplicates and lowercase all tags for consistency
 function cleanupDuplicates() {
     let cleanedList = [];
     let seen = {};
 
     db.notes_list.forEach(note => {
-        // We only group the categories you asked for
-        const cat = (note.tags && note.tags[0]) ? note.tags[0].toLowerCase() : "general";
+        // Standardize tag to lowercase
+        if (note.tags && note.tags.length > 0) {
+            note.tags = note.tags.map(t => t.toLowerCase());
+        } else {
+            note.tags = ['general'];
+        }
+
+        const cat = note.tags[0];
         const groupable = ['todo', 'work', 'groceries', 'errands', 'dreams'];
         
         if (groupable.includes(cat)) {
             const identifier = `${note.date}_${cat}`;
             if (seen[identifier]) {
-                // If we've seen this date+cat before, add this text to the original one
-                seen[identifier].content += "\n" + note.content;
+                // If we've seen this card today, merge the text
+                if (!seen[identifier].content.includes(note.content)) {
+                    seen[identifier].content += "\n" + note.content;
+                }
             } else {
                 seen[identifier] = note;
                 cleanedList.push(note);
@@ -637,26 +644,27 @@ function save() {
     localStorage.setItem('reson_db', JSON.stringify(db));
 }
 
-// --- UPDATED COMMIT LOGIC ---
+// 3. SAVING NOTES (Merging logic)
 function commitNote() {
     const text = textarea.value.trim();
     if (!text) return;
 
     const dateKey = formatDateKey(selectedDate);
+    // Standardize category to lowercase
     const cat = currentCategory ? currentCategory.toLowerCase() : "general";
     const groupable = ['todo', 'work', 'groceries', 'errands', 'dreams'];
 
-    // 1. LOOK FOR EXISTING NOTE
+    // Find if a card for this category already exists today
     const existingNote = db.notes_list.find(n => 
         n.date === dateKey && 
-        n.tags.map(t => t.toLowerCase()).includes(cat)
+        n.tags.includes(cat)
     );
 
     if (groupable.includes(cat) && existingNote) {
-        // 2. MERGE INTO EXISTING CARD
+        // Add to the existing card
         existingNote.content += "\n" + text;
     } else {
-        // 3. CREATE NEW CARD
+        // Create a new card
         const newNote = {
             id: Date.now(),
             date: dateKey,
@@ -673,15 +681,25 @@ function commitNote() {
     uploadToCloud();
 }
 
+// 4. DISPLAYING NOTES (Filtering logic)
 function renderDeck() {
     const deck = document.getElementById('noteDeck');
+    if (!deck) return;
     deck.innerHTML = '';
+    
     const key = formatDateKey(selectedDate);
     
     const filtered = db.notes_list.filter(n => {
         const dateMatch = n.date === key;
-        const catMatch = !currentCategory || n.tags.map(t => t.toLowerCase()).includes(currentCategory.toLowerCase());
         const isDeleted = db.recentlyDeleted.some(dn => dn.id === n.id);
+        
+        // Tab Filtering logic
+        let catMatch = true;
+        if (currentCategory) {
+            // Only show notes that contain the active category tag
+            catMatch = n.tags.includes(currentCategory.toLowerCase());
+        }
+        
         return dateMatch && catMatch && !isDeleted;
     });
 
@@ -703,12 +721,9 @@ function renderDeck() {
         });
         checklistHTML += '</div>';
 
-        // Title fix: prevent "undefined"
-        const displayTag = (note.tags && note.tags[0]) ? note.tags[0] : 'general';
-
         card.innerHTML = `
             <button class="note-menu-btn" onclick="event.stopPropagation(); openNoteMenu(event, ${note.id})">⋮</button>
-            <span class="saved-note-title">${displayTag}</span>
+            <span class="saved-note-title">${note.tags[0]}</span>
             ${checklistHTML}
         `;
         
@@ -734,6 +749,26 @@ function toggleCheck(noteId, lineIndex) {
     uploadToCloud();
 }
 
+// 5. TABS & NAVIGATION
+function switchCategory(cat, btn) {
+    if (currentCategory === cat) {
+        currentCategory = null;
+        btn.classList.remove('active');
+        btn.style.border = "none";
+        document.getElementById('todoHeader').innerText = "Notes";
+    } else {
+        document.querySelectorAll('.bubble').forEach(b => { 
+            b.classList.remove('active'); 
+            b.style.border = "none"; 
+        });
+        currentCategory = cat;
+        btn.classList.add('active');
+        btn.style.border = "2px solid var(--accent)";
+        document.getElementById('todoHeader').innerText = btn.innerText + " List";
+    }
+    renderDeck();
+}
+
 function setupCalendar() {
     strip.innerHTML = '';
     const year = selectedDate.getFullYear();
@@ -757,30 +792,7 @@ function setupCalendar() {
     }
 }
 
-// Click away for dots menu
-window.addEventListener('mousedown', (e) => {
-    const menu = document.getElementById('noteMenu');
-    if (menu && menu.style.display === 'block' && !menu.contains(e.target) && !e.target.classList.contains('note-menu-btn')) {
-        menu.style.display = 'none';
-    }
-});
-
-function switchCategory(cat, btn) {
-    if (currentCategory === cat) {
-        currentCategory = null;
-        btn.classList.remove('active');
-        btn.style.border = "none";
-        document.getElementById('todoHeader').innerText = "Notes";
-    } else {
-        document.querySelectorAll('.bubble').forEach(b => { b.classList.remove('active'); b.style.border = "none"; });
-        currentCategory = cat;
-        btn.classList.add('active');
-        btn.style.border = "2px solid var(--accent)";
-        document.getElementById('todoHeader').innerText = btn.innerText + " List";
-    }
-    renderDeck();
-}
-
+// 6. UI MODALS & VIEWER
 function toggleModal() {
     const m = document.getElementById('calModal');
     const o = document.getElementById('overlay');
@@ -853,6 +865,7 @@ function deleteNote(id) {
     document.getElementById('noteMenu').style.display = 'none';
 }
 
+// 7. SETTINGS
 function showSettings() {
     document.querySelector('header').style.display = 'none';
     document.getElementById('strip').style.display = 'none';
@@ -893,6 +906,7 @@ function restoreNote(id) {
     renderDeletedNotes();
 }
 
+// 8. HELPERS & CLOUD
 function insertBullet() {
     const start = textarea.selectionStart;
     textarea.value = textarea.value.slice(0, start) + "• " + textarea.value.slice(start);
@@ -918,7 +932,7 @@ async function syncWithCloud() {
         if (data.notes_list) {
             db.notes_list = data.notes_list;
             save();
-            cleanupDuplicates(); // Run cleanup on cloud sync too
+            cleanupDuplicates(); 
             renderDeck();
             alert("Synced!");
         }
@@ -927,14 +941,34 @@ async function syncWithCloud() {
 
 function jumpToToday() { selectedDate = new Date(); setupCalendar(); renderDeck(); }
 
-// --- START APP ---
+// 9. START APP
 document.addEventListener("DOMContentLoaded", () => {
-    cleanupDuplicates(); // Fixes old messy data immediately
+    cleanupDuplicates(); // Runs cleanup once to fix old data
     setupCalendar();
     renderDeck();
 });
 
 document.getElementById('loadCloudBtn').onclick = syncWithCloud;
+
+textarea.addEventListener('keydown', function(e){
+    if(e.key === "Enter"){
+        const start = textarea.selectionStart;
+        const before = textarea.value.substring(0,start);
+        const line = before.split("\n").pop();
+        if(line.trim().startsWith("•")){
+            e.preventDefault();
+            textarea.value = textarea.value.substring(0,start) + "\n• " + textarea.value.substring(start);
+            textarea.selectionStart = textarea.selectionEnd = start + 3;
+        }
+    }
+});
+
+window.addEventListener('mousedown', (e) => {
+    const menu = document.getElementById('noteMenu');
+    if (menu && menu.style.display === 'block' && !menu.contains(e.target) && !e.target.classList.contains('note-menu-btn')) {
+        menu.style.display = 'none';
+    }
+});
 </script>
 </body>
 </html>

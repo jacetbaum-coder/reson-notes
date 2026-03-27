@@ -669,45 +669,38 @@ function commitNote() {
     if (!text) return;
 
     const dateKey = formatDateKey(selectedDate);
-    // Determine the category (default to 'general' if none selected)
     const cat = currentCategory ? currentCategory.toLowerCase() : "general";
     
-    // Define which categories should "group" items together into one card
-    const groupableCategories = ['groceries', 'todo', 'errands', 'work'];
+    // These categories will always MERGE into one card per day
+    const groupableCategories = ['todo', 'work', 'groceries', 'errands', 'dreams'];
 
     if (groupableCategories.includes(cat)) {
-        // Look for an existing note for this specific date and category
+        // Look for an existing note for this date and category
         const existingNote = db.notes_list.find(n => 
             n.date === dateKey && 
             n.tags.includes(cat)
         );
 
         if (existingNote) {
-            // Add the new text as a new line to the existing note
+            // Add new text as a new line to the existing card
             existingNote.content += "\n" + text;
             save();
             textarea.value = '';
             renderDeck();
             if (typeof uploadToCloud === "function") uploadToCloud();
             
-            // Optional: Uncomment the next line if you want to stay in the tab after adding
-            // return; 
-
-            // Current behavior: Unselect tab after saving
-            document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
-            currentCategory = null;
-            document.getElementById('todoHeader').innerText = "Notes";
-            return;
+            // Return early so we don't create a new card
+            return; 
         }
     }
 
-    // If not a groupable category, or no existing note found, create a new one
+    // Otherwise, create a brand new note/card
     const newNote = {
         id: Date.now(),
         date: dateKey,
         tags: [cat],
         content: text,
-        checkedIndices: [] // Ensure we track checkmarks for the new lines
+        checkedIndices: [] 
     };
 
     if (!Array.isArray(db.notes_list)) db.notes_list = [];
@@ -717,7 +710,7 @@ function commitNote() {
     textarea.value = '';
     renderDeck();
 
-    // Clear active tab after saving (matching your current UI flow)
+    // UI Reset: Unselect the active category bubble
     document.querySelectorAll('.bubble').forEach(b => b.classList.remove('active'));
     currentCategory = null;
     document.getElementById('todoHeader').innerText = "Notes";
@@ -725,7 +718,48 @@ function commitNote() {
     if (typeof uploadToCloud === "function") uploadToCloud();
 }
 
+function renderDeck() {
+    const deck = document.getElementById('noteDeck');
+    deck.innerHTML = '';
+    const key = formatDateKey(selectedDate);
+    
+    // Filter notes for the selected date and category
+    const filtered = db.notes_list.filter(n => {
+        const dateMatch = n.date === key;
+        const catMatch = !currentCategory || n.tags.includes(currentCategory.toLowerCase());
+        const isDeleted = (db.recentlyDeleted || []).some(dn => dn.id === n.id);
+        return dateMatch && catMatch && !isDeleted;
+    });
 
+    filtered.forEach(note => {
+        const card = document.createElement('div');
+        card.className = 'saved-note';
+        
+        // Split text into lines to create the checklist
+        const lines = note.content.split('\n').filter(l => l.trim() !== "");
+        let checklistHTML = '<div class="card-checklist">';
+        
+        lines.forEach((line, index) => {
+            const isChecked = note.checkedIndices && note.checkedIndices.includes(index);
+            checklistHTML += `
+                <div class="checklist-item" onclick="event.stopPropagation(); toggleCheck(${note.id}, ${index})">
+                    <input type="checkbox" ${isChecked ? 'checked' : ''}>
+                    <div class="checklist-text ${isChecked ? 'done' : ''}">${line}</div>
+                </div>
+            `;
+        });
+        checklistHTML += '</div>';
+
+        card.innerHTML = `
+            <button class="note-menu-btn" onclick="event.stopPropagation(); openNoteMenu(event, ${note.id})">⋮</button>
+            <div class="saved-note-title">${note.tags.join(' • ')}</div>
+            ${checklistHTML}
+        `;
+        
+        card.onclick = () => openNoteViewer(note);
+        deck.appendChild(card);
+    });
+}
 function toggleCheck(noteId, lineIndex) {
     const note = db.notes_list.find(n => n.id === noteId);
     if (!note) return;
@@ -830,47 +864,7 @@ function switchCategory(cat, btn) {
     textarea.value = currentInput; // Keep whatever user was typing
     renderDeck(); // Update the list of notes shown below
 }
-function renderDeck() {
-    const deck = document.getElementById('noteDeck');
-    deck.innerHTML = '';
-    const key = formatDateKey(selectedDate);
-    
-    const filtered = db.notes_list.filter(n => {
-        const dateMatch = n.date === key;
-        const catMatch = !currentCategory || n.tags.includes(currentCategory.toLowerCase());
-        const isDeleted = (db.recentlyDeleted || []).some(dn => dn.id === n.id);
-        return dateMatch && catMatch && !isDeleted;
-    });
 
-    filtered.forEach(note => {
-        const card = document.createElement('div');
-        card.className = 'saved-note';
-        
-        // Split content into lines for the checklist
-        const lines = note.content.split('\n').filter(l => l.trim() !== "");
-        let checklistHTML = '<div class="card-checklist">';
-        
-        lines.forEach((line, index) => {
-            const isChecked = note.checkedIndices && note.checkedIndices.includes(index);
-            checklistHTML += `
-                <div class="checklist-item" onclick="event.stopPropagation(); toggleCheck(${note.id}, ${index})">
-                    <input type="checkbox" ${isChecked ? 'checked' : ''}>
-                    <div class="checklist-text ${isChecked ? 'done' : ''}">${line}</div>
-                </div>
-            `;
-        });
-        checklistHTML += '</div>';
-
-        card.innerHTML = `
-            <button class="note-menu-btn" onclick="event.stopPropagation(); openNoteMenu(event, ${note.id})">⋮</button>
-            <div class="saved-note-title">${note.tags.join(' • ')}</div>
-            ${checklistHTML}
-        `;
-        
-        card.onclick = () => openNoteViewer(note);
-        deck.appendChild(card);
-    });
-}
 function toggleModal(){
     const m=document.getElementById('calModal');
     const o=document.getElementById('overlay');

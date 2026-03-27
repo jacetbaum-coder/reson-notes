@@ -83,14 +83,13 @@ header {
     padding:12px 0;
     text-align:center;
     cursor:pointer;
-    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: 0.3s;
     flex-shrink: 0;
 }
 .day-card.active { 
     background:#000; 
     color:white; 
     transform:scale(1.1); 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 .filter-container {
@@ -117,17 +116,14 @@ header {
 .add-cat-btn {
     background: rgba(255,255,255,0.3);
     color: white;
-    width: 35px;
-    height: 35px;
+    width: 35px; height: 35px;
     border-radius: 50%;
     border: 2px solid white;
     font-size: 1.2rem;
     font-weight: bold;
     cursor: pointer;
     flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
 }
 
 #noteDeck {
@@ -147,7 +143,6 @@ header {
     display: flex;
     flex-direction: column;
     border: 1px solid rgba(0,0,0,0.02);
-    cursor: pointer;
 }
 
 .saved-note-title { font-weight: 800; font-size: 0.75rem; color: var(--accent); margin-bottom: 6px; text-transform: lowercase; }
@@ -158,96 +153,64 @@ header {
 .checklist-text.done { text-decoration: line-through; color: #aaa; }
 
 .note-container {
-    width: 100%;
-    max-width: 500px;
+    width: 100%; max-width: 500px;
     background: var(--card);
-    border-radius: 30px;
-    padding: 25px;
+    border-radius: 30px; padding: 25px;
     position: relative;
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     margin: 15px 0;
 }
 
 textarea {
-    width: 100%;
-    height: 35vh;
-    border: none;
-    outline: none;
-    resize: none;
-    font-size: 1.1rem;
-    line-height: 1.6;
-    font-family: inherit;
+    width: 100%; height: 35vh;
+    border: none; outline: none; resize: none;
+    font-size: 1.1rem; line-height: 1.6; font-family: inherit;
 }
 
 .add-note {
-    position: absolute;
-    bottom: -25px;
-    right: 20px;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    border: none;
-    background: black;
-    color: white;
-    font-size: 28px;
-    cursor: pointer;
+    position: absolute; bottom: -25px; right: 20px;
+    width: 50px; height: 50px; border-radius: 50%;
+    border: none; background: black; color: white;
+    font-size: 28px; cursor: pointer;
     box-shadow: 0 6px 20px rgba(0,0,0,0.3);
 }
 
 #noteViewer {
-    position: fixed;
-    top: 50%;
-    left: 50%;
+    position: fixed; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 500px;
-    background: white;
-    z-index: 3000;
-    display: none;
-    padding: 25px;
+    width: 90%; max-width: 500px;
+    background: white; z-index: 3000;
+    display: none; padding: 25px;
     border-radius: 30px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.4);
 }
 
 #noteViewerContent {
-    width: 100%;
-    height: 35vh;
-    border: none;
-    outline: none;
-    resize: none;
-    font-size: 1.1rem;
-    font-family: inherit;
+    width: 100%; height: 35vh;
+    border: none; outline: none; resize: none;
+    font-size: 1.1rem; font-family: inherit;
 }
 
 #noteViewerClose {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    font-weight: bold;
+    position: absolute; top: 10px; right: 15px;
+    background: none; border: none; font-size: 1.5rem;
+    cursor: pointer; font-weight: bold;
 }
 
+/* CALENDAR MODAL STYLES */
 #calModal, #catModal {
     display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
+    position: fixed; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 400px;
+    width: 90%; max-width: 400px;
     background: var(--bg);
     border: 2px solid white;
     border-radius: 30px;
-    padding: 30px;
-    z-index: 4000;
-    color: white;
+    padding: 30px; z-index: 4000; color: white;
 }
-.modal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center; }
-.circle-day { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.9rem; font-weight: 700; cursor: pointer; color: #333; transition: 0.2s;}
-.circle-day.selected { outline: 2px solid white; outline-offset: 2px; }
+
+.cal-nav-btn { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+.year-display { cursor: pointer; border-bottom: 1px dashed white; }
 
 #overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; backdrop-filter:blur(4px); }
 
@@ -257,25 +220,21 @@ textarea {
 #bottomTabs button { background:none; border:none; font-weight:700; cursor:pointer; flex:1; }
 
 #noteMenu { 
-    display: none; 
-    position: absolute; 
-    background: white; 
-    border-radius: 12px; 
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
-    z-index: 6000; 
-    padding: 8px; 
-    min-width: 120px; 
+    display: none; position: absolute; background: white; 
+    border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+    z-index: 6000; padding: 8px; min-width: 120px; 
 }
 
-#catInput {
-    width: 100%;
-    padding: 12px;
-    border-radius: 15px;
-    border: none;
-    margin: 15px 0;
-    font-size: 1rem;
-    outline: none;
-}
+/* Category Modal Elements */
+.toggle-row { display: flex; align-items: center; justify-content: space-between; margin: 15px 0; }
+.switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.3); transition: .4s; border-radius: 20px; }
+.slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--accent); }
+input:checked + .slider:before { transform: translateX(20px); }
+
+#catInput { width: 100%; padding: 12px; border-radius: 15px; border: none; margin: 5px 0; font-size: 1rem; box-sizing: border-box;}
 </style>
 </head>
 <body>
@@ -288,9 +247,7 @@ textarea {
 
 <div class="calendar-strip" id="strip"></div>
 
-<div class="filter-container" id="filterContainer">
-    <!-- Filters generated by JS -->
-</div>
+<div class="filter-container" id="filterContainer"></div>
 
 <div id="noteDeck"></div>
 
@@ -310,11 +267,34 @@ textarea {
 <!-- CATEGORY MODAL -->
 <div id="catModal">
     <h2 style="margin:0;">New Category</h2>
-    <input type="text" id="catInput" placeholder="Category name...">
-    <div style="display:flex; gap:10px;">
+    <div style="margin-top:15px;">
+        <label style="font-size: 0.8rem; opacity: 0.8;">NAME</label>
+        <input type="text" id="catInput" placeholder="Category name...">
+    </div>
+    <div class="toggle-row">
+        <span style="font-size: 0.9rem; font-weight: bold;">Group items into one card?</span>
+        <label class="switch">
+            <input type="checkbox" id="catMergeToggle" checked>
+            <span class="slider"></span>
+        </label>
+    </div>
+    <div style="display:flex; gap:10px; margin-top:10px;">
         <button onclick="closeAllModals()" style="flex:1; padding:12px; border-radius:15px; border:1px solid white; background:none; color:white; cursor:pointer; font-weight:bold;">Cancel</button>
         <button onclick="createNewCategory()" style="flex:1; padding:12px; border-radius:15px; border:none; background:white; color:var(--accent); cursor:pointer; font-weight:bold;">Create</button>
     </div>
+</div>
+
+<!-- CALENDAR MODAL -->
+<div id="calModal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <button class="cal-nav-btn" onclick="changeModalMonth(-1)">❮</button>
+        <div style="text-align: center;">
+            <div id="modalMonthTitle" style="font-weight: 800; font-size: 1.1rem;">MONTH</div>
+            <div id="modalYearTitle" class="year-display" onclick="promptYear()">2026</div>
+        </div>
+        <button class="cal-nav-btn" onclick="changeModalMonth(1)">❯</button>
+    </div>
+    <div class="modal-grid" id="fullGrid"></div>
 </div>
 
 <div id="settingsView" style="display:none; width:100%; max-width:500px; padding: 20px 0;">
@@ -330,21 +310,24 @@ textarea {
     <button onclick="closeNoteViewer()" style="margin-top:15px; width:100%; padding:12px; background:var(--accent); color:white; border:none; border-radius:15px; font-weight:700; cursor:pointer;">Save & Close</button>
 </div>
 
-<div id="calModal">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-        <h2 id="modalMonthTitle" style="margin:0;">CALENDAR</h2>
-        <button onclick="toggleModal()" style="background:none;border:none;color:white;font-size:1.5rem;">×</button>
-    </div>
-    <div class="modal-grid" id="fullGrid"></div>
-</div>
-
 <div id="noteMenu"></div>
 <div id="overlay" onclick="closeAllModals()"></div>
 
 <script>
-let db = JSON.parse(localStorage.getItem('reson_db')) || { notes_list: [], recentlyDeleted: [], custom_categories: [] };
+// --- CORE DATA ---
+let db = JSON.parse(localStorage.getItem('reson_db')) || { 
+    notes_list: [], 
+    custom_categories: [
+        { name: 'To-do', merge: true },
+        { name: 'Work', merge: true },
+        { name: 'Groceries', merge: true },
+        { name: 'Errands', merge: true }
+    ] 
+};
 let selectedDate = new Date();
+let modalViewDate = new Date(); // Track month shown in the calendar popup
 let currentCategory = null;
+
 const strip = document.getElementById('strip');
 const textarea = document.getElementById('noteContent');
 const deck = document.getElementById('noteDeck');
@@ -355,23 +338,19 @@ function formatDateKey(date) {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function save() {
-    localStorage.setItem('reson_db', JSON.stringify(db));
-}
+function save() { localStorage.setItem('reson_db', JSON.stringify(db)); }
 
-function getGroupable() {
-    const base = ['todo', 'work', 'groceries', 'errands'];
-    return [...base, ...(db.custom_categories || [])];
-}
-
+// --- MERGING LOGIC ---
 function cleanupData() {
     let cleaned = [];
     let seen = {};
-    const groupable = getGroupable();
     db.notes_list.forEach(n => {
-        let cat = n.tags[0].toLowerCase();
-        let key = n.date + "_" + cat;
-        if (groupable.includes(cat)) {
+        const catName = n.tags[0].toLowerCase();
+        const catConfig = db.custom_categories.find(c => c.name.toLowerCase() === catName);
+        
+        // If category is set to merge
+        if (catConfig && catConfig.merge) {
+            let key = n.date + "_" + catName;
             if (seen[key]) {
                 if (!seen[key].content.includes(n.content)) seen[key].content += "\n" + n.content;
             } else {
@@ -390,15 +369,16 @@ function commitNote() {
     const text = textarea.value.trim();
     if (!text) return;
     const dateKey = formatDateKey(selectedDate);
-    const cat = currentCategory ? currentCategory.toLowerCase() : "general";
+    const catName = currentCategory ? currentCategory : "general";
     
-    const groupable = getGroupable();
-    const existing = db.notes_list.find(n => n.date === dateKey && n.tags[0].toLowerCase() === cat);
+    const catConfig = db.custom_categories.find(c => c.name.toLowerCase() === catName.toLowerCase());
+    const existing = db.notes_list.find(n => n.date === dateKey && n.tags[0].toLowerCase() === catName.toLowerCase());
     
-    if (existing && groupable.includes(cat)) {
+    // Merge if category allows it
+    if (existing && catConfig && catConfig.merge) {
         existing.content += "\n" + text;
     } else {
-        db.notes_list.unshift({ id: Date.now(), date: dateKey, tags: [cat], content: text, checkedIndices: [] });
+        db.notes_list.unshift({ id: Date.now(), date: dateKey, tags: [catName], content: text, checkedIndices: [] });
     }
     save();
     textarea.value = '';
@@ -406,6 +386,7 @@ function commitNote() {
     uploadToCloud();
 }
 
+// --- RENDER ENGINE ---
 function renderDeck() {
     deck.innerHTML = '';
     const key = formatDateKey(selectedDate);
@@ -444,25 +425,105 @@ function renderDeck() {
 
 function renderFilters() {
     const container = document.getElementById('filterContainer');
-    const baseCats = [
-        { id: null, label: 'Home' },
-        { id: 'todo', label: 'To-do' },
-        { id: 'work', label: 'Work' },
-        { id: 'groceries', label: 'Groceries' },
-        { id: 'errands', label: 'Errands' }
-    ];
+    let html = `<button class="bubble ${currentCategory === null ? 'active' : ''}" onclick="switchCategory(null, this)">Home</button>`;
     
-    const custom = (db.custom_categories || []).map(cat => ({ id: cat.toLowerCase(), label: cat }));
-    const all = [...baseCats, ...custom];
+    db.custom_categories.forEach(cat => {
+        html += `<button class="bubble ${currentCategory === cat.name ? 'active' : ''}" onclick="switchCategory('${cat.name}', this)">${cat.name}</button>`;
+    });
     
-    container.innerHTML = all.map(cat => `
-        <button class="bubble ${currentCategory === cat.id ? 'active' : ''}" 
-                onclick="switchCategory('${cat.id || ''}', this)">
-            ${cat.label}
-        </button>
-    `).join('') + `<button class="add-cat-btn" onclick="openCatModal()">+</button>`;
+    html += `<button class="add-cat-btn" onclick="openCatModal()">+</button>`;
+    container.innerHTML = html;
 }
 
+// --- CALENDAR LOGIC ---
+function setupCalendar() {
+    strip.innerHTML = '';
+    // Show 30 days before and 60 days after selected date to allow scrolling
+    const rangeStart = -30;
+    const rangeEnd = 60;
+    
+    document.getElementById('monthDisplay').innerText = selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    
+    const isTodaySelected = formatDateKey(new Date()) === formatDateKey(selectedDate);
+    document.getElementById('todayBtn').style.display = isTodaySelected ? 'none' : 'block';
+
+    for (let i = rangeStart; i <= rangeEnd; i++) {
+        const d = new Date(selectedDate);
+        d.setDate(d.getDate() + i);
+        
+        const isSel = formatDateKey(d) === formatDateKey(selectedDate);
+        const card = document.createElement('div');
+        card.className = `day-card ${isSel ? 'active' : ''}`;
+        card.innerHTML = `<div style="font-size:0.7rem;">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</div><div style="font-weight:800;font-size:1.2rem;">${d.getDate()}</div>`;
+        card.onclick = () => { selectedDate = new Date(d); setupCalendar(); renderDeck(); };
+        strip.appendChild(card);
+        
+        if (isSel) {
+            setTimeout(() => {
+                const scrollLeft = card.offsetLeft - (strip.offsetWidth / 2) + (card.offsetWidth / 2);
+                strip.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+            }, 50);
+        }
+    }
+}
+
+function jumpToToday() { selectedDate = new Date(); setupCalendar(); renderDeck(); }
+
+// Modal Calendar Nav
+function changeModalMonth(dir) {
+    modalViewDate.setMonth(modalViewDate.getMonth() + dir);
+    renderHeatmap();
+}
+
+function promptYear() {
+    const year = prompt("Enter Year:", modalViewDate.getFullYear());
+    if (year && !isNaN(year)) {
+        modalViewDate.setFullYear(parseInt(year));
+        renderHeatmap();
+    }
+}
+
+function renderHeatmap() {
+    const grid = document.getElementById('fullGrid');
+    grid.innerHTML = '';
+    const y = modalViewDate.getFullYear();
+    const m = modalViewDate.getMonth();
+    
+    document.getElementById('modalMonthTitle').innerText = modalViewDate.toLocaleString('default', { month: 'long' }).toUpperCase();
+    document.getElementById('modalYearTitle').innerText = y;
+
+    const firstDay = new Date(y, m, 1).getDay();
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+
+    // Padding for first day
+    for (let p = 0; p < firstDay; p++) grid.appendChild(document.createElement('div'));
+
+    for (let i = 1; i <= daysInMonth; i++) {
+        const d = new Date(y, m, i);
+        const k = formatDateKey(d);
+        const count = db.notes_list.filter(n => n.date === k).length;
+        
+        const el = document.createElement('div');
+        el.className = `circle-day ${k === formatDateKey(selectedDate) ? 'selected' : ''}`;
+        el.innerText = i;
+        
+        // Dynamic Heatmap Colors - Now fixing the intensity scale
+        if (count === 0) el.style.backgroundColor = 'var(--heat-0)';
+        else if (count === 1) el.style.backgroundColor = 'var(--heat-1)';
+        else if (count === 2) el.style.backgroundColor = 'var(--heat-2)';
+        else el.style.backgroundColor = 'var(--heat-3)'; // 3 or more is darkest
+        
+        el.onclick = () => { 
+            selectedDate = new Date(d); 
+            setupCalendar(); 
+            renderDeck(); 
+            closeAllModals(); 
+        };
+        grid.appendChild(el);
+    }
+}
+
+// --- CATEGORY ACTIONS ---
 function openCatModal() {
     document.getElementById('overlay').style.display = 'block';
     document.getElementById('catModal').style.display = 'block';
@@ -470,18 +531,39 @@ function openCatModal() {
 }
 
 function createNewCategory() {
-    const input = document.getElementById('catInput');
-    const val = input.value.trim();
-    if (val) {
-        if (!db.custom_categories) db.custom_categories = [];
-        if (!db.custom_categories.includes(val)) {
-            db.custom_categories.push(val);
+    const name = document.getElementById('catInput').value.trim();
+    const merge = document.getElementById('catMergeToggle').checked;
+    if (name) {
+        if (!db.custom_categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+            db.custom_categories.push({ name, merge });
             save();
             renderFilters();
         }
     }
-    input.value = '';
+    document.getElementById('catInput').value = '';
     closeAllModals();
+}
+
+function switchCategory(name, btn) {
+    currentCategory = name;
+    renderFilters();
+    renderDeck();
+}
+
+// --- UTILITIES ---
+function openMenu(e, id) {
+    const menu = document.getElementById('noteMenu');
+    menu.style.display = 'block';
+    menu.style.top = (e.pageY + 10) + 'px';
+    menu.style.left = (e.pageX - 100) + 'px';
+    menu.innerHTML = `<button onclick="deleteNote(${id})" style="color:red; width:100%; padding:10px; background:none; border:none; text-align:left; cursor:pointer; font-weight:bold;">Delete</button>`;
+}
+
+function deleteNote(id) {
+    db.notes_list = db.notes_list.filter(n => n.id !== id);
+    save();
+    renderDeck();
+    document.getElementById('noteMenu').style.display = 'none';
 }
 
 function toggleLine(id, idx) {
@@ -492,6 +574,23 @@ function toggleLine(id, idx) {
     else n.checkedIndices.push(idx);
     save();
     renderDeck();
+}
+
+function closeAllModals() {
+    document.getElementById('calModal').style.display = 'none';
+    document.getElementById('catModal').style.display = 'none';
+    document.getElementById('noteViewer').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('noteMenu').style.display = 'none';
+}
+
+function toggleModal() {
+    const m = document.getElementById('calModal');
+    const o = document.getElementById('overlay');
+    modalViewDate = new Date(selectedDate);
+    renderHeatmap();
+    m.style.display = 'block';
+    o.style.display = 'block';
 }
 
 let activeNote = null;
@@ -508,121 +607,8 @@ function closeNoteViewer() {
         save();
         renderDeck();
     }
-    document.getElementById('noteViewer').style.display = 'none';
-    document.getElementById('overlay').style.display = 'none';
-    activeNote = null;
+    closeAllModals();
 }
-
-function setupCalendar() {
-    strip.innerHTML = '';
-    const year = selectedDate.getFullYear();
-    const month = selectedDate.getMonth();
-    const days = new Date(year, month + 1, 0).getDate();
-    
-    document.getElementById('monthDisplay').innerText = selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-    
-    const isTodaySelected = formatDateKey(new Date()) === formatDateKey(selectedDate);
-    document.getElementById('todayBtn').style.display = isTodaySelected ? 'none' : 'block';
-
-    for (let i = 1; i <= days; i++) {
-        const d = new Date(year, month, i);
-        const isSel = formatDateKey(d) === formatDateKey(selectedDate);
-        const card = document.createElement('div');
-        card.className = `day-card ${isSel ? 'active' : ''}`;
-        card.innerHTML = `<div style="font-size:0.7rem;">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</div><div style="font-weight:800;font-size:1.2rem;">${i}</div>`;
-        card.onclick = () => { selectedDate = d; setupCalendar(); renderDeck(); };
-        strip.appendChild(card);
-        
-        if (isSel) {
-            setTimeout(() => {
-                const scrollLeft = card.offsetLeft - (strip.offsetWidth / 2) + (card.offsetWidth / 2);
-                strip.scrollTo({ left: scrollLeft, behavior: 'smooth' });
-            }, 10);
-        }
-    }
-}
-
-function jumpToToday() {
-    selectedDate = new Date();
-    setupCalendar();
-    renderDeck();
-}
-
-function switchCategory(catId, btn) {
-    const id = catId === '' ? null : catId;
-    currentCategory = id;
-    renderFilters();
-    renderDeck();
-}
-
-function toggleModal() {
-    const m = document.getElementById('calModal');
-    const o = document.getElementById('overlay');
-    const open = m.style.display === 'block';
-    if (!open) renderHeatmap();
-    m.style.display = open ? 'none' : 'block';
-    o.style.display = open ? 'none' : 'block';
-}
-
-function renderHeatmap() {
-    const grid = document.getElementById('fullGrid');
-    grid.innerHTML = '';
-    const y = selectedDate.getFullYear();
-    const m = selectedDate.getMonth();
-    const days = new Date(y, m+1, 0).getDate();
-    document.getElementById('modalMonthTitle').innerText = selectedDate.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
-    
-    for (let i = 1; i <= days; i++) {
-        const d = new Date(y, m, i);
-        const k = formatDateKey(d);
-        const count = db.notes_list.filter(n => n.date === k).length;
-        
-        const el = document.createElement('div');
-        el.className = `circle-day ${k === formatDateKey(selectedDate) ? 'selected' : ''}`;
-        el.innerText = i;
-        
-        // Dynamic Heatmap Colors
-        if (count === 0) el.style.backgroundColor = 'var(--heat-0)';
-        else if (count === 1) el.style.backgroundColor = 'var(--heat-1)';
-        else if (count >= 2 && count <= 3) el.style.backgroundColor = 'var(--heat-2)';
-        else el.style.backgroundColor = 'var(--heat-3)';
-        
-        el.onclick = () => { selectedDate = d; setupCalendar(); renderDeck(); toggleModal(); };
-        grid.appendChild(el);
-    }
-}
-
-function openMenu(e, id) {
-    const menu = document.getElementById('noteMenu');
-    menu.style.display = 'block';
-    menu.style.top = (e.pageY + 10) + 'px';
-    menu.style.left = (e.pageX - 100) + 'px';
-    menu.innerHTML = `<button onclick="deleteNote(${id})" style="color:red; width:100%; padding:10px; background:none; border:none; text-align:left; cursor:pointer; font-weight:bold;">Delete</button>`;
-}
-
-function deleteNote(id) {
-    db.notes_list = db.notes_list.filter(n => n.id !== id);
-    save();
-    renderDeck();
-    document.getElementById('noteMenu').style.display = 'none';
-}
-
-function closeAllModals() {
-    document.getElementById('calModal').style.display = 'none';
-    document.getElementById('catModal').style.display = 'none';
-    document.getElementById('noteViewer').style.display = 'none';
-    document.getElementById('overlay').style.display = 'none';
-    document.getElementById('noteMenu').style.display = 'none';
-}
-
-// Global click listener to close the delete menu when clicking away
-window.addEventListener('mousedown', (e) => {
-    const menu = document.getElementById('noteMenu');
-    // If menu is open and we click something that isn't the menu or the menu button
-    if (menu.style.display === 'block' && !menu.contains(e.target) && !e.target.classList.contains('note-menu-btn')) {
-        menu.style.display = 'none';
-    }
-});
 
 function showSettings() {
     document.getElementById('settingsView').style.display = 'block';
@@ -646,6 +632,13 @@ function insertBullet() {
     textarea.selectionStart = textarea.selectionEnd = s + 2;
 }
 
+window.addEventListener('mousedown', (e) => {
+    const menu = document.getElementById('noteMenu');
+    if (menu.style.display === 'block' && !menu.contains(e.target) && !e.target.classList.contains('note-menu-btn')) {
+        menu.style.display = 'none';
+    }
+});
+
 const R2_URL = "https://pub-66479d392b224c95a6cb0e230ac238bb.r2.dev/notes_db.json";
 async function uploadToCloud() {
     try {
@@ -662,11 +655,11 @@ async function syncWithCloud() {
         const res = await fetch(R2_URL, { cache: 'no-store' });
         const data = await res.json();
         if (data.notes_list) { 
-            db.notes_list = data.notes_list; 
-            db.custom_categories = data.custom_categories || [];
+            db = data; 
             save(); 
             cleanupData(); 
             renderFilters();
+            setupCalendar();
             renderDeck(); 
             alert("Synced!"); 
         }

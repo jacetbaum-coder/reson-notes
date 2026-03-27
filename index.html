@@ -139,36 +139,59 @@ position:relative;
 }
 
 /* Note Deck Container */
+/* Note Deck Grid - Adjusted for better spacing */
 #noteDeck {
     width: 100%;
     max-width: 500px;
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    gap: 15px; /* Increased gap for a cleaner look */
+    margin-top: 25px;
+}
+
+/* The Saved Note Card - Improved Aspect Ratio */
+.saved-note {
+    position: relative; 
+    background: #ffffff;
+    padding: 18px;
+    border-radius: 22px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+    aspect-ratio: 1 / 1; /* Creates a clean square/post-it look */
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    margin-top: 20px;
+    overflow: hidden; /* Keeps text inside bounds */
+    border: 1px solid rgba(0,0,0,0.03);
+    transition: transform 0.2s ease;
 }
 
-/* The Saved Note Card */
-.saved-note {
-    background: #dcfce7; /* Light Pastel Green */
-    padding: 20px;
-    border-radius: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+/* Vertical Ellipsis Button - Absolute Positioned */
+.note-menu-btn {
+    position: absolute;
+    top: 10px;
+    right: 8px;
+    background: none !important; /* Force remove background */
+    border: none !important;     /* Force remove border */
+    color: #999;
+    font-size: 1.3rem;
+    cursor: pointer;
+    z-index: 20;
+    padding: 5px;
+    line-height: 1;
+    transition: color 0.2s;
 }
 
-.saved-note-title {
-    font-weight: 800;
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 5px;
-}
+.note-menu-btn:hover { color: #333; }
 
+/* Text filling the space naturally */
 .saved-note-text {
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: #333;
-    white-space: pre-wrap;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 5; /* Shows up to 5 lines then ellipses */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-top: 4px;
 }
 
 @keyframes slideUp {
@@ -702,28 +725,24 @@ function renderDeck() {
     notesToShow.forEach(note => {
         const card = document.createElement('div');
         card.className = 'saved-note';
-        card.style.background = 'white'; 
-        card.style.border = '1px solid rgba(0,0,0,0.03)';
 
-        // Using horizontal dots for iOS look
         card.innerHTML = `
-            <button class="note-menu-btn">···</button>
+            <button class="note-menu-btn">⋮</button>
             <div class="saved-note-title">
                 ${note.tags && note.tags.length ? note.tags.join(' • ').toUpperCase() : 'GENERAL'}
             </div>
             <div class="saved-note-text">${note.content}</div>
         `;
 
-        // Text click = open
         card.onclick = (e) => {
+            // Prevent opening note if the menu button was clicked
             if (e.target.classList.contains('note-menu-btn')) return;
             openNoteViewer(note);
         };
 
-        // Dots click = menu
         const dotBtn = card.querySelector('.note-menu-btn');
         dotBtn.onclick = (e) => {
-            e.stopPropagation();
+            e.stopPropagation(); // Stop from opening the note
             openNoteMenu(e, note.id);
         };
 
@@ -915,22 +934,21 @@ function closeNoteViewer() {
 }
 function openNoteMenu(event, noteId) {
     const menu = document.getElementById('noteMenu');
-    
-    // Get button position
     const rect = event.target.getBoundingClientRect();
+    
     menu.style.display = 'block';
     
-    // Position menu: centered under/above the dots
-    menu.style.top = (rect.bottom + window.scrollY + 5) + 'px';
-    menu.style.left = (rect.left - 120) + 'px'; 
+    // Position iOS-style menu below the button, aligned to the right
+    menu.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+    menu.style.left = (rect.right - 160) + 'px'; 
 
     const noteIndex = db.notes_list.findIndex(n => n.id === noteId);
     const note = db.notes_list[noteIndex];
 
     menu.innerHTML = `
         <div style="display: flex; flex-direction: column;">
-            <button id="menuDeleteBtn" style="background: none; color: #ff3b30; border: none; padding: 12px; border-radius: 8px; font-weight: 500; cursor: pointer; text-align: left; font-size: 1rem; display: flex; justify-content: space-between; align-items: center;">
-                Delete Note <span style="font-size: 1.1rem;">🗑️</span>
+            <button id="menuDeleteBtn" style="background: none; color: #ff3b30; border: none; padding: 12px; font-weight: 600; cursor: pointer; text-align: left; font-size: 0.95rem; border-radius: 10px;">
+                Delete Note
             </button>
         </div>
     `;
@@ -940,13 +958,24 @@ function openNoteMenu(event, noteId) {
         note.deletedAt = Date.now();
         db.recentlyDeleted.unshift(note);
         db.notes_list.splice(noteIndex, 1);
-        
         save();
         renderDeck();
         menu.style.display = 'none';
         if (typeof renderDeletedNotes === "function") renderDeletedNotes();
     };
 }
+
+// THE CLICK-AWAY HANDLER:
+// Closes menu if user clicks anywhere outside of the menu itself
+window.addEventListener('mousedown', (e) => {
+    const menu = document.getElementById('noteMenu');
+    // If menu is open and the click target is NOT the menu and NOT the dot button...
+    if (menu.style.display === 'block' && 
+        !menu.contains(e.target) && 
+        !e.target.classList.contains('note-menu-btn')) {
+        menu.style.display = 'none';
+    }
+});
 let activeNote = null;
 
 function openNoteViewer(note){

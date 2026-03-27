@@ -140,60 +140,73 @@ position:relative;
 
 /* Note Deck Container */
 /* Note Deck Grid - Adjusted for better spacing */
+/* Note Deck Grid - Adjusted spacing */
 #noteDeck {
     width: 100%;
     max-width: 500px;
     display: grid;
     grid-template-columns: 1fr 1fr; 
-    gap: 15px; /* Increased gap for a cleaner look */
+    gap: 12px;
     margin-top: 25px;
 }
 
-/* The Saved Note Card - Improved Aspect Ratio */
+/* The Saved Note Card - Compact & Sophisticated */
 .saved-note {
     position: relative; 
     background: #ffffff;
-    padding: 18px;
-    border-radius: 22px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.04);
-    aspect-ratio: 1 / 1; /* Creates a clean square/post-it look */
+    padding: 14px; /* Tightened padding */
+    border-radius: 18px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    min-height: 120px; /* Shorter, rectangular feel */
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Keeps text inside bounds */
-    border: 1px solid rgba(0,0,0,0.03);
-    transition: transform 0.2s ease;
+    justify-content: flex-start;
+    border: 1px solid rgba(0,0,0,0.02);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Vertical Ellipsis Button - Absolute Positioned */
+.saved-note:active {
+    transform: scale(0.98);
+    box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+}
+
+/* Sophisticated Title */
+.saved-note-title {
+    font-weight: 800;
+    font-size: 0.6rem; /* Very small and crisp */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--accent);
+    margin-bottom: 4px;
+    opacity: 0.8;
+}
+
+/* Sophisticated Small Body Text */
+.saved-note-text {
+    font-size: 0.85rem; /* Reduced for sophistication */
+    color: #444;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 4; /* Truncate after 4 lines to fit min-height */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: pre-wrap;
+}
+
+/* Adjusting the Menu Button for tighter padding */
 .note-menu-btn {
     position: absolute;
-    top: 10px;
-    right: 8px;
-    background: none !important; /* Force remove background */
-    border: none !important;     /* Force remove border */
-    color: #999;
-    font-size: 1.3rem;
+    top: 8px;
+    right: 4px;
+    background: none !important;
+    border: none !important;
+    color: #ccc;
+    font-size: 1.1rem;
     cursor: pointer;
     z-index: 20;
     padding: 5px;
-    line-height: 1;
-    transition: color 0.2s;
 }
-
-.note-menu-btn:hover { color: #333; }
-
-/* Text filling the space naturally */
-.saved-note-text {
-    font-size: 0.95rem;
-    color: #333;
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 5; /* Shows up to 5 lines then ellipses */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    margin-top: 4px;
-}
-
 @keyframes slideUp {
     from { opacity: 0; transform: translateY(20px) scale(0.95); }
     to { opacity: 1; transform: translateY(0) scale(1); }
@@ -735,14 +748,13 @@ function renderDeck() {
         `;
 
         card.onclick = (e) => {
-            // Prevent opening note if the menu button was clicked
             if (e.target.classList.contains('note-menu-btn')) return;
             openNoteViewer(note);
         };
 
         const dotBtn = card.querySelector('.note-menu-btn');
         dotBtn.onclick = (e) => {
-            e.stopPropagation(); // Stop from opening the note
+            e.stopPropagation();
             openNoteMenu(e, note.id);
         };
 

@@ -336,16 +336,13 @@ textarea {
     <div class="note-container">
         <button id="loadCloudBtn" style="background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold; margin-bottom: 12px;">Sync with Cloud</button>
         
-        <!-- This button is now INSIDE the container so it hides properly -->
+        <!-- This is the only Logout button you need -->
         <button onclick="logout()" style="background:#ff4444; color:white; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold;">
             Logout
         </button>
     </div>
 </div>
 <!-- Inside <div id="settingsView"> -->
-<button onclick="logout()" style="margin-top:20px; background:#ff4444; color:white; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold;">
-    Logout & Clear Data
-</button>
 <div id="noteViewer">
     <button id="noteViewerClose" onclick="closeNoteViewer()">×</button>
     <textarea id="noteViewerContent"></textarea>

@@ -471,24 +471,26 @@ function updateProfilePic(input) {
         reader.readAsDataURL(input.files[0]);
     }
 }
-function saveProfile() {
+async function saveProfile() {
     const newName = document.getElementById('editUsername').value.trim();
     const newPhone = document.getElementById('editPhone').value.trim();
     
     if(!newName) return alert("Username cannot be empty");
     
+    // 1. Update the Data Object
     db.profile.username = newName;
     db.profile.phone = newPhone;
     
-    // Update authHeader if username changed
-    const pass = authHeader.split(':')[1];
-    authHeader = newName + ":" + pass;
-    sessionStorage.setItem('reson_auth', authHeader);
+    // 2. Update the Auth Header (needed if username changed)
+    // We decode the old one to get the password, then re-encode with new name
+    const oldPass = atob(authHeader).split(':')[1];
+    authHeader = btoa(newName + ":" + oldPass);
+    localStorage.setItem('reson_auth', authHeader);
     
-    save(); // Local save + Cloud upload
-    alert("Profile Updated!");
+    // 3. Save locally and push to Cloud
+    save(); 
+    alert("Profile Updated & Synced!");
 }
-
 function loadProfileUI() {
     if(!db.profile) db.profile = { username: '', phone: '', pic: '' };
     document.getElementById('editUsername').value = db.profile.username || '';
@@ -856,35 +858,50 @@ async function syncWithCloud() {
     if(!authHeader) return;
     try {
         const res = await fetch(WORKER_URL, { 
-            headers: { 'Authorization': 'Basic ' + authHeader }
+            headers: { 'Authorization': 'Basic ' + authHeader },
+            cache: 'no-store'
         });
+        if (!res.ok) throw new Error("Sync failed");
+        
         const data = await res.json();
-        if (data && data.notes_list) { 
+        if (data) { 
             db = data;
             localStorage.setItem('reson_db', JSON.stringify(db));
-            loadProfileUI(); // CRITICAL: Updates your photo/username after download
-            cleanupData();
+            
+            // Force the UI to show the new data
+            loadProfileUI(); 
             renderFilters();
             renderDeck();
             setupCalendar();
+            console.log("Cloud Data Synced");
         }
-    } catch (e) { console.log("Fetch error or new user"); }
+    } catch (e) { console.log("Cloud sync error: ", e); }
 }
+// Single Initialization Block
 document.addEventListener("DOMContentLoaded", () => {
-    cleanupData();
-    renderFilters();
+    if(authHeader) {
+        document.getElementById('loginOverlay').style.display = 'none';
+        // Immediately sync to get profile pic from other devices
+        syncWithCloud().then(() => {
+            loadProfileUI();
+            cleanupData();
+        });
+    } else {
+        document.getElementById('loginOverlay').style.display = 'flex';
+    }
+    
+    // Initial UI Render
     setupCalendar();
+    renderFilters();
     renderDeck();
-if(authHeader) {
-    document.getElementById('loginOverlay').style.display = 'none';
-    syncWithCloud();
-}
 });
-document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") syncWithCloud();
-});
-document.getElementById('loadCloudBtn').onclick = syncWithCloud;
 
+// Sync when app is reopened
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && authHeader) syncWithCloud();
+});
+
+document.getElementById('loadCloudBtn').onclick = syncWithCloud;
 </script>
 </body>
 </html>

@@ -772,21 +772,6 @@ window.addEventListener('mousedown', (e) => {
     }
 });
 
-function showSettings() {
-    document.getElementById('settingsView').style.display = 'block';
-    document.getElementById('noteDeck').style.display = 'none';
-    document.querySelector('.note-container').style.display = 'none';
-    document.querySelector('.filter-container').style.display = 'none';
-}
-
-function showMain() {
-    document.getElementById('settingsView').style.display = 'none';
-    document.getElementById('noteDeck').style.display = 'grid';
-    document.querySelector('.note-container').style.display = 'block';
-    document.querySelector('.filter-container').style.display = 'flex';
-    renderDeck();
-}
-
 function insertBullet() {
     const s = textarea.selectionStart;
     textarea.value = textarea.value.slice(0,s) + "• " + textarea.value.slice(s);

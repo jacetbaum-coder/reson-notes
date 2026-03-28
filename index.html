@@ -404,8 +404,7 @@ input:checked + .sld:before { transform: translateX(16px); }
         </div>
     </div>
 
-    <div class="set-sec">
-        <<div class="set-sec">
+   <div class="set-sec">
         <h3>Account Security</h3>
         <div class="set-row">
             <div style="flex:1"><label>Email</label><input type="text" id="editEm" placeholder="email@link.com"></div>
@@ -413,7 +412,7 @@ input:checked + .sld:before { transform: translateX(16px); }
         <div class="set-row">
             <div style="flex:1">
                 <label>Password</label>
-                <button class="btn-sml" style="width:100%; background:#f5f5f5; border:1px solid #ddd; padding:10px; text-align:center;" onclick="promptPasswordChange()">Change Password</button>
+                <button class="btn-sml" style="width:100%; background:#f5f5f5; border:1px solid #ddd; padding:10px; text-align:center; font-family:inherit;" onclick="promptPasswordChange()">Change Password</button>
             </div>
         </div>
         <div class="set-row">
@@ -594,23 +593,20 @@ async function saveProfile() {
         return;
     }
 
-    // Update the database object
+    // Update database
     db.profile.username = combinedName;
     db.profile.email = newEmail;
     db.profile.twoStep = document.getElementById('edit2Step').checked;
 
-    // Update the Auth Header to reflect the potentially new Username
+    // Update Auth Header with the (potentially new) name, keeping same password
     try {
-        let currentPass = "";
-        if (authHeader) {
-            const decoded = atob(authHeader);
-            currentPass = decoded.includes(':') ? decoded.split(':')[1] : decoded;
-        }
+        const decoded = atob(authHeader).split(':');
+        const currentPass = decoded[1];
         authHeader = btoa(combinedName + ":" + currentPass);
         localStorage.setItem('reson_auth', authHeader);
     } catch(e) { console.error("Header update failed", e); }
 
-    save(); // This saves to LocalStorage and Uploads to Cloud
+    save(); 
     loadProfileUI(); 
     closeEditProfile();
     showToast("Changes Saved!");

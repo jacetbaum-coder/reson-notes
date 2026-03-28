@@ -360,7 +360,31 @@ textarea {
 </div>
 <!-- END OF SETTINGS/PROFILE UI -->
 
-<!-- Rest of your Modals (noteViewer, calModal, catModal, etc.) remain same as your code -->
+<!-- Overlay for all modals -->
+<div id="overlay" onclick="closeAllModals()"></div>
+
+<!-- Note Viewer Modal -->
+<div id="noteViewer">
+    <button id="noteViewerClose" onclick="closeNoteViewer()">×</button>
+    <textarea id="noteViewerContent"></textarea>
+</div>
+
+<!-- Calendar Heatmap Modal -->
+<div id="calModal">
+    <h3 id="modalMonthTitle" style="text-align:center; margin-top:0;">MONTH</h3>
+    <div class="modal-grid" id="fullGrid"></div>
+    <button onclick="closeAllModals()" style="width:100%; margin-top:20px; background:white; color:black; border:none; padding:10px; border-radius:10px; font-weight:bold;">Close</button>
+</div>
+
+<!-- Category Creator Modal -->
+<div id="catModal">
+    <h3 style="margin-top:0;">New Category</h3>
+    <input type="text" id="catInput" placeholder="Category Name...">
+    <button onclick="createNewCategory()" style="width:100%; background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; font-weight:bold;">Create</button>
+</div>
+
+<!-- Context Menu for Deleting -->
+<div id="noteMenu"></div>
 
 <script>
 // --- CORE DATA CONFIG ---
@@ -464,7 +488,25 @@ function loadProfileUI() {
     }
 }
 
-// --- MODIFIED EXISTING FUNCTIONS ---
+function showSettings() {
+    loadProfileUI(); // Fill inputs when opening settings
+    document.getElementById('settingsView').style.display = 'block';
+    document.getElementById('noteDeck').style.display = 'none';
+    document.querySelector('.note-container').style.display = 'none';
+    document.querySelector('.filter-container').style.display = 'none';
+    document.querySelector('.calendar-strip').style.display = 'none';
+    document.querySelector('header').style.display = 'none';
+}
+
+function showMain() {
+    document.getElementById('settingsView').style.display = 'none';
+    document.getElementById('noteDeck').style.display = 'grid';
+    document.querySelector('.note-container').style.display = 'block';
+    document.querySelector('.filter-container').style.display = 'flex';
+    document.querySelector('.calendar-strip').style.display = 'flex';
+    document.querySelector('header').style.display = 'flex';
+    renderDeck();
+}
 
 
 // Ensure your existing uploadToCloud and syncWithCloud stay the same 

@@ -287,11 +287,12 @@ textarea {
 
 <body>
 <!-- UPDATED LOGIN/REGISTER OVERLAY -->
+<!-- START OF LOGIN/REGISTER UI -->
 <div id="loginOverlay">
-    <div class="login-box" id="authBox">
+    <div class="login-box">
         <h2 style="color:var(--accent)" id="authTitle">Reson Notes</h2>
         
-        <!-- Registration Fields (Hidden by default) -->
+        <!-- Field only shows when registering -->
         <div id="registerFields" style="display:none;">
             <input type="tel" id="phoneInput" placeholder="Phone Number (for recovery)">
         </div>
@@ -301,11 +302,12 @@ textarea {
         
         <button id="authBtn" onclick="handleAuth()">Sign In</button>
         
-        <p id="toggleText" style="font-size: 0.8rem; color: var(--accent); margin-top: 15px; cursor:pointer; font-weight:bold;" onclick="toggleAuthMode()">
+        <p id="toggleText" style="font-size: 0.75rem; color: var(--accent); margin-top: 15px; cursor:pointer; font-weight:bold;" onclick="toggleAuthMode()">
             Need an account? Register here.
         </p>
     </div>
 </div>
+<!-- END OF LOGIN/REGISTER UI -->
 
 <header>
   <div class="month-label" id="monthDisplay">Loading...</div>
@@ -333,31 +335,30 @@ textarea {
 </div>
 
 <!-- UPDATED SETTINGS/PROFILE VIEW -->
+<!-- START OF SETTINGS/PROFILE UI -->
 <div id="settingsView" style="display:none; width:100%; max-width:500px; padding: 20px 0;">
-    <h2 style="color:white; text-align: center;">Profile & Settings</h2>
-    
+    <h2 style="color:white; text-align: center;">Profile</h2>
     <div class="note-container" style="text-align:center;">
-        <!-- Profile Pic Display -->
-        <div style="position:relative; width:100px; height:100px; margin: 0 auto 15px;">
-            <img id="profileDisplay" src="https://via.placeholder.com/100" style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:3px solid var(--accent);">
-            <label for="picUpload" style="position:absolute; bottom:0; right:0; background:black; color:white; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px;">📷</label>
+        
+        <!-- Profile Pic Area -->
+        <div style="position:relative; width:80px; height:80px; margin: 0 auto 15px;">
+            <img id="profileDisplay" src="https://via.placeholder.com/80" style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:2px solid var(--accent);">
+            <label for="picUpload" style="position:absolute; bottom:0; right:0; background:black; color:white; border-radius:50%; width:25px; height:25px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px;">📷</label>
             <input type="file" id="picUpload" style="display:none" accept="image/*" onchange="updateProfilePic(this)">
         </div>
 
-        <input type="text" id="editUsername" placeholder="Username" style="width:90%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
-        <input type="tel" id="editPhone" placeholder="Recovery Phone" style="width:90%; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
+        <input type="text" id="editUsername" placeholder="Username" style="width:85%; padding:10px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd; outline:none;">
+        <input type="tel" id="editPhone" placeholder="Recovery Phone" style="width:85%; padding:10px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd; outline:none;">
         
-        <button onclick="saveProfile()" style="background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold; margin-bottom: 20px;">Save Changes</button>
+        <button onclick="saveProfile()" style="background:var(--accent); color:white; border:none; padding:10px; border-radius:10px; cursor:pointer; font-weight:bold; width:85%; margin-bottom:20px;">Save Profile</button>
         
-        <hr style="opacity:0.2; margin: 20px 0;">
+        <hr style="opacity:0.1; margin-bottom:20px;">
 
-        <button id="loadCloudBtn" style="background:#eee; color:#333; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold; margin-bottom: 12px;">Sync with Cloud</button>
-        
-        <button onclick="logout()" style="background:#ff4444; color:white; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold;">
-            Logout
-        </button>
+        <button id="loadCloudBtn" style="background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold; margin-bottom: 12px;">Sync with Cloud</button>
+        <button onclick="logout()" style="background:#ff4444; color:white; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold;">Logout</button>
     </div>
 </div>
+<!-- END OF SETTINGS/PROFILE UI -->
 
 <!-- Rest of your Modals (noteViewer, calModal, catModal, etc.) remain same as your code -->
 
@@ -565,10 +566,17 @@ function showMain() {
 <script>
 const WORKER_URL = "https://reson-api.jacetbaum.workers.dev"; 
 // We use sessionStorage so that closing the tab logs you out automatically
-let db = JSON.parse(sessionStorage.getItem('reson_db')) || { notes_list: [], custom_categories: [] };
+// --- START OF DB INITIALIZATION ---
+let db = JSON.parse(sessionStorage.getItem('reson_db')) || { 
+    notes_list: [], 
+    custom_categories: [],
+    profile: { username: '', phone: '', pic: '' } 
+};
 let authHeader = sessionStorage.getItem('reson_auth'); 
 let selectedDate = new Date();
 let currentCategory = null;
+let isRegistering = false; 
+// --- END OF DB INITIALIZATION ---
 const strip = document.getElementById('strip');
 const textarea = document.getElementById('noteContent');
 const deck = document.getElementById('noteDeck');
@@ -576,16 +584,6 @@ const noteContainer = document.querySelector('.note-container');
 function formatDateKey(date) {
     const d = new Date(date);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-function handleLogin() {
-    const user = document.getElementById('usernameInput').value.trim();
-    const pass = document.getElementById('passwordInput').value.trim();
-    if(!user || !pass) return alert("Please enter both credentials");
-    
-    authHeader = user + ":" + pass;
-    sessionStorage.setItem('reson_auth', authHeader);
-    document.getElementById('loginOverlay').style.display = 'none';
-    syncWithCloud(); 
 }
 
 function logout() {
@@ -934,6 +932,77 @@ document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") syncWithCloud();
 });
 document.getElementById('loadCloudBtn').onclick = syncWithCloud;
+
+// --- START OF NEW PROFILE & AUTH LOGIC ---
+
+function toggleAuthMode() {
+    isRegistering = !isRegistering;
+    document.getElementById('authTitle').innerText = isRegistering ? "Create Account" : "Reson Notes";
+    document.getElementById('authBtn').innerText = isRegistering ? "Register" : "Sign In";
+    document.getElementById('registerFields').style.display = isRegistering ? "block" : "none";
+    document.getElementById('toggleText').innerText = isRegistering ? "Back to Login" : "Need an account? Register here.";
+}
+
+async function handleAuth() {
+    const user = document.getElementById('usernameInput').value.trim();
+    const pass = document.getElementById('passwordInput').value.trim();
+    const phone = document.getElementById('phoneInput').value.trim();
+
+    if(!user || !pass) return alert("Please fill in username and passcode");
+    if(isRegistering && !phone) return alert("Phone number required for recovery");
+
+    authHeader = user + ":" + pass;
+    sessionStorage.setItem('reson_auth', authHeader);
+
+    if(isRegistering) {
+        db.profile = { username: user, phone: phone, pic: '' };
+        await uploadToCloud(); 
+    }
+
+    document.getElementById('loginOverlay').style.display = 'none';
+    syncWithCloud();
+}
+
+function updateProfilePic(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const base64 = e.target.result;
+            document.getElementById('profileDisplay').src = base64;
+            db.profile.pic = base64;
+            save(); 
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function saveProfile() {
+    const newName = document.getElementById('editUsername').value.trim();
+    const newPhone = document.getElementById('editPhone').value.trim();
+    if(!newName) return alert("Username required");
+
+    db.profile.username = newName;
+    db.profile.phone = newPhone;
+    
+    // Update auth header in case username changed
+    const currentPass = authHeader.split(':')[1];
+    authHeader = newName + ":" + currentPass;
+    sessionStorage.setItem('reson_auth', authHeader);
+    
+    save();
+    alert("Profile Updated!");
+}
+
+// Modify your existing showSettings() by adding these lines to populate fields:
+const oldShowSettings = showSettings;
+showSettings = function() {
+    oldShowSettings();
+    document.getElementById('editUsername').value = db.profile?.username || '';
+    document.getElementById('editPhone').value = db.profile?.phone || '';
+    if(db.profile?.pic) document.getElementById('profileDisplay').src = db.profile.pic;
+}
+
+// --- END OF NEW PROFILE & AUTH LOGIC ---
 </script>
 </body>
 </html>

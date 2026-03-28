@@ -466,25 +466,6 @@ function loadProfileUI() {
 
 // --- MODIFIED EXISTING FUNCTIONS ---
 
-function showSettings() {
-    loadProfileUI(); // Fill inputs when opening settings
-    document.getElementById('settingsView').style.display = 'block';
-    document.getElementById('noteDeck').style.display = 'none';
-    document.querySelector('.note-container').style.display = 'none';
-    document.querySelector('.filter-container').style.display = 'none';
-    document.querySelector('.calendar-strip').style.display = 'none';
-    document.querySelector('header').style.display = 'none';
-}
-
-function showMain() {
-    document.getElementById('settingsView').style.display = 'none';
-    document.getElementById('noteDeck').style.display = 'grid';
-    document.querySelector('.note-container').style.display = 'block';
-    document.querySelector('.filter-container').style.display = 'flex';
-    document.querySelector('.calendar-strip').style.display = 'flex';
-    document.querySelector('header').style.display = 'flex';
-    renderDeck();
-}
 
 // Ensure your existing uploadToCloud and syncWithCloud stay the same 
 // as they already handle the entire 'db' object which now includes 'profile'.

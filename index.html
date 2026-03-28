@@ -371,10 +371,17 @@ let db = JSON.parse(sessionStorage.getItem('reson_db')) || {
     profile: { username: '', phone: '', pic: '' } 
 };
 let authHeader = sessionStorage.getItem('reson_auth'); 
+let selectedDate = new Date();
+let currentCategory = null;
 let isRegistering = false;
+let activeNote = null;
+
+const strip = document.getElementById('strip');
+const textarea = document.getElementById('noteContent');
+const deck = document.getElementById('noteDeck');
+const noteContainer = document.querySelector('.note-container');
 
 // --- AUTH LOGIC ---
-
 function toggleAuthMode() {
     isRegistering = !isRegistering;
     const title = document.getElementById('authTitle');
@@ -407,7 +414,6 @@ async function handleAuth() {
     sessionStorage.setItem('reson_auth', authHeader);
 
     if(isRegistering) {
-        // Initialize profile data for new user
         db.profile = { username: user, phone: phone, pic: '' };
         await uploadToCloud();
     }
@@ -485,23 +491,6 @@ function showMain() {
 
 // ... (Paste all your other existing functions: setupCalendar, renderDeck, etc.) ...
 
-const WORKER_URL = "https://reson-api.jacetbaum.workers.dev"; 
-// We use sessionStorage so that closing the tab logs you out automatically
-// --- START OF DB INITIALIZATION ---
-let db = JSON.parse(sessionStorage.getItem('reson_db')) || { 
-    notes_list: [], 
-    custom_categories: [],
-    profile: { username: '', phone: '', pic: '' } 
-};
-let authHeader = sessionStorage.getItem('reson_auth'); 
-let selectedDate = new Date();
-let currentCategory = null;
-let isRegistering = false; 
-// --- END OF DB INITIALIZATION ---
-const strip = document.getElementById('strip');
-const textarea = document.getElementById('noteContent');
-const deck = document.getElementById('noteDeck');
-const noteContainer = document.querySelector('.note-container');
 function formatDateKey(date) {
     const d = new Date(date);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -854,76 +843,6 @@ document.addEventListener("visibilitychange", () => {
 });
 document.getElementById('loadCloudBtn').onclick = syncWithCloud;
 
-// --- START OF NEW PROFILE & AUTH LOGIC ---
-
-function toggleAuthMode() {
-    isRegistering = !isRegistering;
-    document.getElementById('authTitle').innerText = isRegistering ? "Create Account" : "Reson Notes";
-    document.getElementById('authBtn').innerText = isRegistering ? "Register" : "Sign In";
-    document.getElementById('registerFields').style.display = isRegistering ? "block" : "none";
-    document.getElementById('toggleText').innerText = isRegistering ? "Back to Login" : "Need an account? Register here.";
-}
-
-async function handleAuth() {
-    const user = document.getElementById('usernameInput').value.trim();
-    const pass = document.getElementById('passwordInput').value.trim();
-    const phone = document.getElementById('phoneInput').value.trim();
-
-    if(!user || !pass) return alert("Please fill in username and passcode");
-    if(isRegistering && !phone) return alert("Phone number required for recovery");
-
-    authHeader = user + ":" + pass;
-    sessionStorage.setItem('reson_auth', authHeader);
-
-    if(isRegistering) {
-        db.profile = { username: user, phone: phone, pic: '' };
-        await uploadToCloud(); 
-    }
-
-    document.getElementById('loginOverlay').style.display = 'none';
-    syncWithCloud();
-}
-
-function updateProfilePic(input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const base64 = e.target.result;
-            document.getElementById('profileDisplay').src = base64;
-            db.profile.pic = base64;
-            save(); 
-        };
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-
-function saveProfile() {
-    const newName = document.getElementById('editUsername').value.trim();
-    const newPhone = document.getElementById('editPhone').value.trim();
-    if(!newName) return alert("Username required");
-
-    db.profile.username = newName;
-    db.profile.phone = newPhone;
-    
-    // Update auth header in case username changed
-    const currentPass = authHeader.split(':')[1];
-    authHeader = newName + ":" + currentPass;
-    sessionStorage.setItem('reson_auth', authHeader);
-    
-    save();
-    alert("Profile Updated!");
-}
-
-// Modify your existing showSettings() by adding these lines to populate fields:
-const oldShowSettings = showSettings;
-showSettings = function() {
-    oldShowSettings();
-    document.getElementById('editUsername').value = db.profile?.username || '';
-    document.getElementById('editPhone').value = db.profile?.phone || '';
-    if(db.profile?.pic) document.getElementById('profileDisplay').src = db.profile.pic;
-}
-
-// --- END OF NEW PROFILE & AUTH LOGIC ---
 </script>
 </body>
 </html>

@@ -619,9 +619,9 @@ async function saveProfile() {
     db.profile.email = newEmail;
     db.profile.twoStep = document.getElementById('edit2Step').checked;
 
-    // REMOVE the "Update Auth Header" section that was here
-    
-    save(); // This saves to localStorage and triggers uploadToCloud()
+    // We removed the block that changes authHeader here
+
+    save(); // This triggers localStorage save AND cloud upload
     loadProfileUI(); 
     closeEditProfile();
     showToast("Changes Saved!");
@@ -1069,49 +1069,65 @@ async function syncWithCloud() {
             headers: { 'Authorization': 'Basic ' + authHeader },
             cache: 'no-store'
         });
+        
         if (!res.ok) throw new Error("Sync failed");
         
         const data = await res.json();
-if (data) { 
-    // Merge cloud data with a default structure so you don't lose fields
-    db = {
-        notes_list: data.notes_list || [],
-        custom_categories: data.custom_categories || [],
-        profile: data.profile || db.profile // Keep local profile if cloud is empty
-    };
-    localStorage.setItem('reson_db', JSON.stringify(db));
-    
-    loadProfileUI(); 
-    renderFilters();
-    renderDeck();
-    setupCalendar();
+
+        // Check if data exists and isn't just an empty object
+        if (data && (data.notes_list || data.profile)) { 
+            // SMART MERGE: 
+            // We combine the cloud data with our local data so nothing gets deleted
+            db = {
+                notes_list: data.notes_list || [],
+                custom_categories: data.custom_categories || [],
+                profile: { 
+                    ...db.profile,         // Keep current local fields (like a new pic)
+                    ...(data.profile || {}) // Overwrite with cloud data if it exists
+                }
+            };
+            
+            localStorage.setItem('reson_db', JSON.stringify(db));
+            
+            // Force the UI to update with the fresh cloud data
+            loadProfileUI(); 
+            renderFilters();
+            renderDeck();
+            setupCalendar();
+            console.log("Cloud Data Synced Successfully");
+        }
+    } catch (e) { 
+        console.log("Cloud sync error: ", e); 
+    }
 }
-    } catch (e) { console.log("Cloud sync error: ", e); }
-}
-// Single Initialization Block
+
+// --- APP INITIALIZATION ---
 document.addEventListener("DOMContentLoaded", () => {
     if(authHeader) {
+        // 1. Hide login and show what we have in LocalStorage immediately
         document.getElementById('loginOverlay').style.display = 'none';
-        // Immediately sync to get profile pic from other devices
+        loadProfileUI();
+        renderFilters();
+        setupCalendar();
+        renderDeck();
+        
+        // 2. Then pull the latest from the cloud in the background
         syncWithCloud().then(() => {
-            loadProfileUI();
             cleanupData();
         });
     } else {
         document.getElementById('loginOverlay').style.display = 'flex';
     }
-    
-    // Initial UI Render
-    setupCalendar();
-    renderFilters();
-    renderDeck();
 });
 
-// Sync when app is reopened
+// Sync when app is reopened (switching tabs or unlocking phone)
 document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible" && authHeader) syncWithCloud();
+    if (document.visibilityState === "visible" && authHeader) {
+        syncWithCloud();
+    }
 });
 
+// Manual sync button in settings
 document.getElementById('loadCloudBtn').onclick = syncWithCloud;
 </script>
 </body>

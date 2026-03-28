@@ -167,12 +167,7 @@ header {
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     margin: 15px 0;
 }
-.input-group { display: flex; gap: 8px; align-items: flex-end; width: 100%; }
-.input-group input { flex: 1; }
-.verify-badge { font-size: 0.6rem; color: #22c55e; font-weight: 800; display: none; }
-.hidden-step { display: none; background: #f9f9f9; padding: 15px; border-radius: 12px; margin-top: 10px; border: 1px dashed #ddd; }
-.btn-verify { background: var(--accent); color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
-.btn-verify:disabled { background: #ccc; }
+
 textarea {
     width: 100%;
     height: 35vh;
@@ -407,40 +402,18 @@ input:checked + .sld:before { transform: translateX(16px); }
     </div>
 
     <div class="set-sec">
-    <h3>Account Security</h3>
-    
-    <!-- Email Section -->
-    <label>Email Address</label>
-    <div class="input-group">
-        <input type="text" id="editEm" placeholder="email@link.com">
-        <button id="verifyEmailBtn" class="btn-verify" onclick="startEmailVerify()">Verify/Change</button>
-    </div>
-    <div id="emailVerifyStep" class="hidden-step">
-        <p style="font-size:0.7rem; color:#666; margin-top:0;">Enter the 6-digit code sent to your email:</p>
-        <div class="input-group">
-            <input type="text" id="emailCode" placeholder="000000" maxlength="6">
-            <button class="btn-verify" onclick="confirmEmailCode()">Confirm</button>
+        <h3>Account Security</h3>
+        <div class="set-row">
+            <div style="flex:1"><label>Email</label><input type="text" id="editEm" placeholder="email@link.com"></div>
+        </div>
+        <div class="set-row">
+            <div style="flex:1"><label>New Password</label><input type="password" id="editPw" placeholder="Leave blank to keep current"></div>
+        </div>
+        <div class="set-row">
+            <span style="font-size:0.8rem; font-weight:700;">2-Step Verifications</span>
+            <label class="sw"><input type="checkbox" id="edit2Step"><span class="sld"></span></label>
         </div>
     </div>
-
-    <!-- Password Section -->
-    <div style="margin-top:15px;">
-        <label>Password</label>
-        <button id="changePwBtn" class="btn-sml" style="width:100%; padding:10px;" onclick="togglePwFields()">Change Password</button>
-        
-        <div id="pwFields" class="hidden-step">
-            <div style="margin-bottom:10px;">
-                <label>New Password</label>
-                <input type="password" id="newPw1" placeholder="Min 6 characters">
-            </div>
-            <div style="margin-bottom:10px;">
-                <label>Confirm New Password</label>
-                <input type="password" id="newPw2" placeholder="Repeat password">
-            </div>
-            <button class="btn-verify" style="width:100%" onclick="updatePassword()">Update Password</button>
-        </div>
-    </div>
-</div>
 
     <div class="set-sec" style="border:none;">
         <h3>Support Access</h3>
@@ -952,124 +925,7 @@ async function uploadToCloud() {
         });
     } catch (e) { console.error("Cloud Sync Failed", e); }
 }
-// --- EMAIL & PASSWORD SECURITY LOGIC ---
 
-function togglePwFields() {
-    const fields = document.getElementById('pwFields');
-    const btn = document.getElementById('changePwBtn');
-    if (fields.style.display === 'block') {
-        fields.style.display = 'none';
-        btn.innerText = "Change Password";
-    } else {
-        fields.style.display = 'block';
-        btn.innerText = "Cancel Change";
-    }
-}
-
-async function startEmailVerify() {
-    const email = document.getElementById('editEm').value.trim();
-    if (!email || !email.includes('@')) return alert("Please enter a valid email");
-
-    const btn = document.getElementById('verifyEmailBtn');
-    btn.disabled = true;
-    btn.innerText = "Sending...";
-
-    try {
-        // This calls your worker to trigger an email
-        const res = await fetch(`${WORKER_URL}/send-verification`, {
-            method: 'POST',
-            headers: { 'Authorization': 'Basic ' + authHeader, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email })
-        });
-
-        // Even if your worker isn't set up yet, we show the UI
-        document.getElementById('emailVerifyStep').style.display = 'block';
-        showToast("Verification code sent!");
-    } catch (e) {
-        showToast("Failed to send code.");
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "Resend";
-    }
-}
-
-async function confirmEmailCode() {
-    const code = document.getElementById('emailCode').value.trim();
-    const email = document.getElementById('editEm').value.trim();
-    
-    if (code.length < 4) return alert("Enter valid code");
-
-    try {
-        // Verify code with worker
-        const res = await fetch(`${WORKER_URL}/verify-email`, {
-            method: 'POST',
-            headers: { 'Authorization': 'Basic ' + authHeader, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email, code: code })
-        });
-
-        db.profile.email = email;
-        db.profile.emailVerified = true;
-        save();
-        
-        document.getElementById('emailVerifyStep').style.display = 'none';
-        showToast("Email verified successfully!");
-    } catch (e) {
-        showToast("Invalid code.");
-    }
-}
-
-async function updatePassword() {
-    const p1 = document.getElementById('newPw1').value;
-    const p2 = document.getElementById('newPw2').value;
-
-    if (p1.length < 6) {
-        alert("Password must be at least 6 characters.");
-        return;
-    }
-    if (p1 !== p2) {
-        alert("Passwords do not match.");
-        return;
-    }
-
-    try {
-        // 1. Update the Auth Header for future requests
-        const user = db.profile.username || "user";
-        authHeader = btoa(user + ":" + p1);
-        localStorage.setItem('reson_auth', authHeader);
-
-        // 2. Sync to cloud
-        await uploadToCloud();
-        
-        // 3. UI Cleanup
-        document.getElementById('newPw1').value = "";
-        document.getElementById('newPw2').value = "";
-        togglePwFields();
-        showToast("Password changed successfully!");
-    } catch (e) {
-        showToast("Error updating password.");
-    }
-}
-
-// Modify your existing saveProfile to remove the old password logic 
-// and just handle the name/general settings.
-async function saveProfile() {
-    const fn = document.getElementById('editFN').value.trim();
-    const ln = document.getElementById('editLN').value.trim();
-    const combinedName = (fn + " " + ln).trim();
-    
-    if(!fn) {
-        showToast("First Name is required!");
-        return;
-    }
-
-    db.profile.username = combinedName;
-    // We don't update email or password here anymore as they have their own buttons
-    
-    save(); 
-    loadProfileUI(); 
-    closeEditProfile();
-    showToast("Profile Updated!");
-}
 async function syncWithCloud() {
     if(!authHeader) return;
     try {

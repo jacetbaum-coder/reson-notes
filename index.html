@@ -389,12 +389,12 @@ textarea {
 <script>
 // --- CORE DATA CONFIG ---
 const WORKER_URL = "https://reson-api.jacetbaum.workers.dev"; 
-let db = JSON.parse(sessionStorage.getItem('reson_db')) || { 
+let db = JSON.parse(localStorage.getItem('reson_db')) || { 
     notes_list: [], 
     custom_categories: [],
     profile: { username: '', phone: '', pic: '' } 
 };
-let authHeader = sessionStorage.getItem('reson_auth'); 
+let authHeader = localStorage.getItem('reson_auth'); 
 let selectedDate = new Date();
 let currentCategory = null;
 let isRegistering = false;
@@ -432,10 +432,10 @@ async function handleAuth() {
     const phone = document.getElementById('phoneInput').value.trim();
 
     if(!user || !pass) return alert("Enter credentials");
-    if(isRegistering && !phone) return alert("Phone number required for recovery");
-
-    authHeader = user + ":" + pass;
-    sessionStorage.setItem('reson_auth', authHeader);
+    
+    // Use Base64 encoding for the header and localStorage for persistence
+    authHeader = btoa(user + ":" + pass); 
+    localStorage.setItem('reson_auth', authHeader);
 
     if(isRegistering) {
         db.profile = { username: user, phone: phone, pic: '' };
@@ -443,24 +443,34 @@ async function handleAuth() {
     }
 
     document.getElementById('loginOverlay').style.display = 'none';
-    syncWithCloud();
+    await syncWithCloud();
+    renderDeck();
 }
-
 // --- PROFILE LOGIC ---
 
 function updateProfilePic(input) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            const base64 = e.target.result;
-            // Compress logic would go here if file is too big
-            document.getElementById('profileDisplay').src = base64;
-            db.profile.pic = base64;
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 300; // Resize to 300px width
+                const scaleSize = MAX_WIDTH / img.width;
+                canvas.width = MAX_WIDTH;
+                canvas.height = img.height * scaleSize;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                const base64 = canvas.toDataURL('image/jpeg', 0.7); // 70% quality
+                document.getElementById('profileDisplay').src = base64;
+                db.profile.pic = base64;
+            };
         };
         reader.readAsDataURL(input.files[0]);
     }
 }
-
 function saveProfile() {
     const newName = document.getElementById('editUsername').value.trim();
     const newPhone = document.getElementById('editPhone').value.trim();
@@ -540,15 +550,22 @@ function formatDateKey(date) {
 }
 
 function logout() {
-    // This ONLY removes the login 'key' and the temporary local copy.
-    // It does NOT delete anything from your Worker/Cloud database.
-    sessionStorage.clear();
+    localStorage.clear();
     location.reload(); 
 }
 
 function save() {
-    sessionStorage.setItem('reson_db', JSON.stringify(db));
+    localStorage.setItem('reson_db', JSON.stringify(db));
     uploadToCloud(); 
+}
+
+function loadProfileUI() {
+    if(!db.profile) db.profile = { username: '', phone: '', pic: '' };
+    document.getElementById('editUsername').value = db.profile.username || '';
+    document.getElementById('editPhone').value = db.profile.phone || '';
+    if(db.profile.pic) {
+        document.getElementById('profileDisplay').src = db.profile.pic;
+    }
 }
 function getGroupable() {
     const base = ['todo', 'work', 'groceries', 'errands'];
@@ -825,14 +842,13 @@ async function uploadToCloud() {
     if(!authHeader) return;
     try {
         await fetch(WORKER_URL, {
-            method: 'POST', // Changed from PUT to POST for the Worker
+            method: 'POST',
             headers: { 
-                'Authorization': authHeader, 
+                'Authorization': 'Basic ' + authHeader, 
                 'Content-Type': 'application/json' 
             },
             body: JSON.stringify(db)
         });
-        console.log("Cloud Updated");
     } catch (e) { console.error("Cloud Sync Failed", e); }
 }
 
@@ -840,19 +856,19 @@ async function syncWithCloud() {
     if(!authHeader) return;
     try {
         const res = await fetch(WORKER_URL, { 
-            headers: { 'Authorization': authHeader }, 
-            cache: 'no-store' 
+            headers: { 'Authorization': 'Basic ' + authHeader }
         });
         const data = await res.json();
         if (data && data.notes_list) { 
             db = data;
-            sessionStorage.setItem('reson_db', JSON.stringify(db));
+            localStorage.setItem('reson_db', JSON.stringify(db));
+            loadProfileUI(); // CRITICAL: Updates your photo/username after download
             cleanupData();
             renderFilters();
             renderDeck();
             setupCalendar();
         }
-    } catch (e) { console.log("New user or fetch error"); }
+    } catch (e) { console.log("Fetch error or new user"); }
 }
 document.addEventListener("DOMContentLoaded", () => {
     cleanupData();

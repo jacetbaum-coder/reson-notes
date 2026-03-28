@@ -276,6 +276,19 @@ textarea {
     font-size: 1rem;
     outline: none;
 }
+.set-sec { margin-bottom: 20px; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+.set-sec h3 { font-size: 0.8rem; color: var(--accent); text-transform: uppercase; margin-bottom: 12px; }
+.set-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 8px; }
+.set-row label { display: block; font-size: 0.7rem; font-weight: 800; color: #666; margin-bottom: 3px; }
+.set-row input { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ddd; font-size: 0.85rem; box-sizing: border-box; }
+.btn-sml { background: #eee; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+/* Toggle Switch */
+.sw { position: relative; width: 34px; height: 18px; }
+.sw input { opacity: 0; width: 0; height: 0; }
+.sld { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #ccc; border-radius: 20px; transition: .3s; }
+.sld:before { position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px; background: white; border-radius: 50%; transition: .3s; }
+input:checked + .sld { background: var(--accent); }
+input:checked + .sld:before { transform: translateX(16px); }
 /* Login Screen Style */
 #loginOverlay { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:9000; display:flex; flex-direction:column; align-items:center; justify-content:center; }
 .login-box { background:white; padding:30px; border-radius:30px; width:80%; max-width:300px; box-shadow:0 10px 30px rgba(0,0,0,0.1); text-align:center; }
@@ -353,25 +366,60 @@ textarea {
     </div>
 </div>
 
-<!-- Edit Profile Modal -->
-<div id="editProfileModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:400px; background:white; padding:30px; border-radius:30px; z-index:5000; box-shadow:0 20px 50px rgba(0,0,0,0.3);">
-    <h3 style="margin-top:0; color:var(--accent)">Edit Profile</h3>
-    
-    <div style="position:relative; width:80px; height:80px; margin: 0 auto 15px;">
-        <img id="editPicPreview" src="https://via.placeholder.com/80" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
-        <label for="picUpload" style="position:absolute; bottom:0; right:0; background:black; color:white; border-radius:50%; width:25px; height:25px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px;">📷</label>
-        <input type="file" id="picUpload" style="display:none" accept="image/*" onchange="updateProfilePic(this)">
+<div id="editProfileModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:420px; background:white; padding:20px; border-radius:25px; z-index:5000; box-shadow:0 20px 50px rgba(0,0,0,0.3); max-height: 85vh; overflow-y: auto;">
+    <div class="set-sec">
+        <h3 style="margin-top:0">My Profile</h3>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+            <img id="editPicPreview" src="" style="width:50px; height:50px; border-radius:50%; object-fit:cover; background:#eee;">
+            <button class="btn-sml" style="background:#000; color:#fff;" onclick="document.getElementById('picUpload').click()">+ Change Image</button>
+            <button class="btn-sml" onclick="db.profile.pic=''; saveProfile()">Remove</button>
+            <input type="file" id="picUpload" style="display:none" accept="image/*" onchange="updateProfilePic(this)">
+        </div>
+        <div class="set-row">
+            <div><label>First Name</label><input type="text" id="editFN"></div>
+            <div><label>Last Name</label><input type="text" id="editLN"></div>
+        </div>
     </div>
 
-    <input type="text" id="editUsername" placeholder="Username" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd; box-sizing:border-box;">
-    <input type="tel" id="editPhone" placeholder="Recovery Phone" style="width:100%; padding:12px; margin-bottom:20px; border-radius:10px; border:1px solid #ddd; box-sizing:border-box;">
-    
-    <button onclick="saveProfile()" style="background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; cursor:pointer; font-weight:bold; width:100%;">Save Changes</button>
-    <button onclick="closeEditProfile()" style="background:none; border:none; color:gray; width:100%; margin-top:10px; cursor:pointer;">Cancel</button>
+    <div class="set-sec">
+        <h3>Account Security</h3>
+        <div class="set-row">
+            <div style="flex:1"><label>Email</label><input type="text" id="editEm" placeholder="email@link.com"></div>
+            <button class="btn-sml">Change email</button>
+        </div>
+        <div class="set-row">
+            <div style="flex:1"><label>Password</label><input type="password" value="******" disabled></div>
+            <button class="btn-sml">Change password</button>
+        </div>
+        <div class="set-row">
+            <span style="font-size:0.8rem; font-weight:700;">2-Step Verifications</span>
+            <label class="sw"><input type="checkbox" checked><span class="sld"></span></label>
+        </div>
+    </div>
+
+    <div class="set-sec" style="border:none;">
+        <h3>Support Access</h3>
+        <div class="set-row">
+            <span style="font-size:0.75rem; color:#666;">Allow support access until 2026</span>
+            <label class="sw"><input type="checkbox" checked><span class="sld"></span></label>
+        </div>
+        <div class="set-row">
+            <span style="font-size:0.8rem; font-weight:700;">Sessions</span>
+            <button class="btn-sml" onclick="logout()">Log out of all devices</button>
+        </div>
+        <div class="set-row">
+            <div>
+                <span style="font-size:0.8rem; font-weight:700; color:red;">Delete my account</span>
+                <div style="font-size:0.65rem; color:#999;">Permanently remove all data</div>
+            </div>
+            <button class="btn-sml" style="color:red;">Delete Account</button>
+        </div>
+    </div>
+
+    <button onclick="saveProfile()" style="width:100%; background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; cursor:pointer; font-weight:bold;">Save Changes</button>
+    <button onclick="closeEditProfile()" style="width:100%; background:none; border:none; color:gray; margin-top:8px; cursor:pointer; font-size:0.8rem;">Cancel</button>
 </div>
 <div id="overlay" onclick="closeAllModals()"></div>
-
-<!-- Note Viewer Modal -->
 <div id="noteViewer">
     <button id="noteViewerClose" onclick="closeNoteViewer()">×</button>
     <textarea id="noteViewerContent"></textarea>
@@ -458,10 +506,14 @@ async function handleAuth() {
 function openEditProfile() {
     document.getElementById('overlay').style.display = 'block';
     document.getElementById('editProfileModal').style.display = 'block';
-    // Fill inputs with current data
-    document.getElementById('editUsername').value = db.profile.username || '';
-    document.getElementById('editPhone').value = db.profile.phone || '';
-    document.getElementById('editPicPreview').src = db.profile.pic || 'https://via.placeholder.com/80';
+    
+    // Split full username into First and Last for the UI inputs
+    const names = (db.profile.username || "").split(" ");
+    document.getElementById('editFN').value = names[0] || "";
+    document.getElementById('editLN').value = names.slice(1).join(" ") || "";
+    
+    document.getElementById('editEm').value = db.profile.email || "";
+    document.getElementById('editPicPreview').src = db.profile.pic || 'https://via.placeholder.com/50';
 }
 
 function closeEditProfile() {
@@ -493,20 +545,22 @@ function updateProfilePic(input) {
 }
 
 async function saveProfile() {
-    const newName = document.getElementById('editUsername').value.trim();
-    const newPhone = document.getElementById('editPhone').value.trim();
-    if(!newName) return alert("Username required");
+    const fn = document.getElementById('editFN').value.trim();
+    const ln = document.getElementById('editLN').value.trim();
+    const combinedName = (fn + " " + ln).trim();
+    
+    if(!fn) return alert("First Name required");
 
-    db.profile.username = newName;
-    db.profile.phone = newPhone;
+    db.profile.username = combinedName;
+    db.profile.email = document.getElementById('editEm').value;
 
     // Fix Auth Header
     const oldPass = atob(authHeader).split(':')[1];
-    authHeader = btoa(newName + ":" + oldPass);
+    authHeader = btoa(combinedName + ":" + oldPass);
     localStorage.setItem('reson_auth', authHeader);
 
-    save(); // Pushes to cloud
-    loadProfileUI(); // Updates the main screen
+    save(); 
+    loadProfileUI(); 
     closeEditProfile();
     alert("Profile Saved!");
 }

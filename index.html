@@ -2,70 +2,295 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Reson Notes</title>
 
 <style>
 :root {
-    --bg:#77c98d; --card:#ffffff; --text:#000000; --accent:#2d5a3a;
-    --muted:#666666; --heat-0:#f0fdf4; --heat-1:#dcfce7; --heat-2:#86efac; --heat-3:#22c55e;
+    --bg:#77c98d;
+    --card:#ffffff;
+    --text:#000000;
+    --accent:#2d5a3a;
+    --muted:#666666;
+    --heat-0:#f0fdf4;
+    --heat-1:#dcfce7;
+    --heat-2:#86efac;
+    --heat-3:#22c55e;
 }
 
-body { margin:0; font-family:-apple-system,system-ui,sans-serif; background:var(--bg); display:flex; flex-direction:column; align-items:center; padding:20px; min-height:100vh; }
+body {
+    margin:0;
+    font-family:-apple-system,system-ui,sans-serif;
+    background:var(--bg);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:20px;
+    min-height:100vh;
+}
 
-/* NEW: LOGIN SCREEN STYLE */
-#loginOverlay { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:9000; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-.login-box { background:white; padding:30px; border-radius:30px; width:80%; max-width:300px; box-shadow:0 10px 30px rgba(0,0,0,0.1); text-align:center; }
-.login-box input { width:100%; padding:12px; margin:10px 0; border-radius:10px; border:1px solid #ddd; box-sizing:border-box; font-size: 16px; }
-.login-box button { width:100%; padding:12px; background:var(--accent); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; }
+header { 
+    width:100%; 
+    max-width:500px; 
+    display:flex; 
+    flex-direction:column; 
+    align-items:center; 
+    position:relative; 
+    margin-bottom:10px; 
+}
 
-/* YOUR ORIGINAL STYLES */
-header { width:100%; max-width:500px; display:flex; flex-direction:column; align-items:center; position:relative; margin-bottom:10px; }
-.month-label { font-size:1.1rem; font-weight:800; color:white; text-transform:uppercase; text-align: center;}
-#todayBtn { background: rgba(255,255,255,0.25); border: 1px solid white; color: white; padding: 4px 14px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; cursor: pointer; margin-top: 8px; text-transform: uppercase; display: none;}
+.month-label { 
+    font-size:1.1rem; 
+    font-weight:800; 
+    color:white; 
+    text-transform:uppercase; 
+    text-align: center;
+}
+
+#todayBtn {
+    background: rgba(255,255,255,0.25);
+    border: 1px solid white;
+    color: white;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    cursor: pointer;
+    margin-top: 8px;
+    text-transform: uppercase;
+    display: none;
+}
+
 .cal-icon { cursor:pointer; font-size:1.4rem; background:none; border:none; position:absolute; right:0; top:0; }
-.calendar-strip { display:flex; overflow-x:auto; gap:12px; width:100%; max-width:500px; padding:15px 0; scrollbar-width:none; scroll-behavior: smooth; -webkit-overflow-scrolling: touch;}
+
+.calendar-strip {
+    display:flex;
+    overflow-x:auto;
+    gap:12px;
+    width:100%;
+    max-width:500px;
+    padding:15px 0;
+    scrollbar-width:none;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
 .calendar-strip::-webkit-scrollbar { display:none; }
-.day-card { min-width:60px; background:var(--card); border-radius:18px; padding:12px 0; text-align:center; cursor:pointer; transition: 0.3s; flex-shrink: 0;}
-.day-card.active { background:#000; color:white; transform:scale(1.1); box-shadow: 0 4px 12px rgba(0,0,0,0.2);}
-.filter-container { display: flex; gap: 10px; width: 100%; max-width: 500px; margin: 15px 0; overflow-x: auto; scrollbar-width: none; align-items: center;}
-.bubble { padding: 8px 20px; background: var(--card); border-radius: 20px; font-weight: 600; cursor: pointer; border: none; white-space: nowrap;}
+
+.day-card {
+    min-width:60px;
+    background:var(--card);
+    border-radius:18px;
+    padding:12px 0;
+    text-align:center;
+    cursor:pointer;
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+}
+.day-card.active { 
+    background:#000; 
+    color:white; 
+    transform:scale(1.1); 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.filter-container {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    max-width: 500px;
+    margin: 15px 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    align-items: center;
+}
+.bubble {
+    padding: 8px 20px;
+    background: var(--card);
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    white-space: nowrap;
+}
 .bubble.active { background: var(--accent); color: white; border: 2px solid white !important; }
-.add-cat-btn { background: rgba(255,255,255,0.3); color: white; width: 35px; height: 35px; border-radius: 50%; border: 2px solid white; font-size: 1.2rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;}
-#noteDeck { width: 100%; max-width: 500px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.saved-note { position: relative; background: #ffffff; padding: 15px; border-radius: 18px; min-height: 90px; display: flex; flex-direction: column; border: 1px solid rgba(0,0,0,0.02); cursor: pointer;}
+
+.add-cat-btn {
+    background: rgba(255,255,255,0.3);
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: 2px solid white;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#noteDeck {
+    width: 100%;
+    max-width: 500px;
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    gap: 12px;
+}
+
+.saved-note {
+    position: relative; 
+    background: #ffffff;
+    padding: 15px;
+    border-radius: 18px;
+    min-height: 90px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(0,0,0,0.02);
+    cursor: pointer;
+}
+
 .saved-note-title { font-weight: 800; font-size: 0.75rem; color: var(--accent); margin-bottom: 6px; text-transform: lowercase; }
+
 .card-checklist { display: flex; flex-direction: column; gap: 6px; }
 .checklist-item { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
 .checklist-text { font-size: 0.85rem; color: #444; line-height: 1.3; }
 .checklist-text.done { text-decoration: line-through; color: #aaa; }
-.note-container { width: 100%; max-width: 500px; background: var(--card); border-radius: 30px; padding: 25px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin: 15px 0;}
-textarea { width: 100%; height: 35vh; border: none; outline: none; resize: none; font-size: 1.1rem; line-height: 1.6; font-family: inherit;}
-.add-note { position: absolute; bottom: -25px; right: 20px; width: 50px; height: 50px; border-radius: 50%; border: none; background: black; color: white; font-size: 28px; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,0.3);}
-#noteViewer { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 500px; background: white; z-index: 8000; display: none; padding: 25px; border-radius: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
-#noteViewerContent { width: 100%; height: 35vh; border: none; outline: none; resize: none; font-size: 1.1rem; font-family: inherit; }
-#calModal, #catModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 400px; background: var(--bg); border: 2px solid white; border-radius: 30px; padding: 30px; z-index: 4000; color: white;}
+
+.note-container {
+    width: 100%;
+    max-width: 500px;
+    background: var(--card);
+    border-radius: 30px;
+    padding: 25px;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    margin: 15px 0;
+}
+
+textarea {
+    width: 100%;
+    height: 35vh;
+    border: none;
+    outline: none;
+    resize: none;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    font-family: inherit;
+}
+
+.add-note {
+    position: absolute;
+    bottom: -25px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: none;
+    background: black;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
+#noteViewer {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    background: white;
+    z-index: 3000;
+    display: none;
+    padding: 25px;
+    border-radius: 30px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+
+#noteViewerContent {
+    width: 100%;
+    height: 35vh;
+    border: none;
+    outline: none;
+    resize: none;
+    font-size: 1.1rem;
+    font-family: inherit;
+}
+
+#noteViewerClose {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#calModal, #catModal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 400px;
+    background: var(--bg);
+    border: 2px solid white;
+    border-radius: 30px;
+    padding: 30px;
+    z-index: 4000;
+    color: white;
+}
 .modal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center; }
 .circle-day { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.9rem; font-weight: 700; cursor: pointer; color: #333; transition: 0.2s;}
 .circle-day.selected { outline: 2px solid white; outline-offset: 2px; }
+
 #overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; backdrop-filter:blur(4px); }
+
 .note-menu-btn { position: absolute; top: 8px; right: 8px; background: none; border: none; color: #ccc; cursor: pointer; font-size: 1.1rem; }
+
 #bottomTabs { position:fixed; bottom:0; left:0; width:100%; background:white; display:flex; justify-content:space-around; padding:10px 0; z-index:5000; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
 #bottomTabs button { background:none; border:none; font-weight:700; cursor:pointer; flex:1; }
-#noteMenu { display: none; position: absolute; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 6000; padding: 8px; min-width: 120px; }
-#catInput { width: 100%; padding: 12px; border-radius: 15px; border: none; margin: 15px 0; font-size: 1rem; outline: none;}
+
+#noteMenu { 
+    display: none; 
+    position: absolute; 
+    background: white; 
+    border-radius: 12px; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+    z-index: 6000; 
+    padding: 8px; 
+    min-width: 120px; 
+}
+
+#catInput {
+    width: 100%;
+    padding: 12px;
+    border-radius: 15px;
+    border: none;
+    margin: 15px 0;
+    font-size: 1rem;
+    outline: none;
+}
+/* Login Screen Style */
+#loginOverlay { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:9000; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.login-box { background:white; padding:30px; border-radius:30px; width:80%; max-width:300px; box-shadow:0 10px 30px rgba(0,0,0,0.1); text-align:center; }
+.login-box input { width:100%; padding:12px; margin:10px 0; border-radius:10px; border:1px solid #ddd; box-sizing:border-box; font-size: 16px; outline: none; }
+.login-box button { width:100%; padding:12px; background:var(--accent); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; margin-top: 10px; }
 </style>
 </head>
 <body>
-
-<!-- NEW: LOGIN OVERLAY -->
 <div id="loginOverlay">
     <div class="login-box">
         <h2 style="color:var(--accent)">Reson Notes</h2>
         <input type="text" id="usernameInput" placeholder="Username">
         <input type="password" id="passwordInput" placeholder="Passcode">
-        <button onclick="login()">Sign In</button>
-        <p style="font-size: 0.7rem; color: #888; margin-top: 15px;">Login or create an account by entering any username and passcode.</p>
+        <button onclick="handleLogin()">Sign In</button>
+        <p style="font-size: 0.7rem; color: #888; margin-top: 15px;">Enter any username and passcode to sync across devices.</p>
     </div>
 </div>
 
@@ -76,7 +301,11 @@ textarea { width: 100%; height: 35vh; border: none; outline: none; resize: none;
 </header>
 
 <div class="calendar-strip" id="strip"></div>
-<div class="filter-container" id="filterContainer"></div>
+
+<div class="filter-container" id="filterContainer">
+    <!-- Filters generated by JS -->
+</div>
+
 <div id="noteDeck"></div>
 
 <div class="note-container">
@@ -105,12 +334,12 @@ textarea { width: 100%; height: 35vh; border: none; outline: none; resize: none;
 <div id="settingsView" style="display:none; width:100%; max-width:500px; padding: 20px 0;">
     <h2 style="color:white; text-align: center;">Settings</h2>
     <div class="note-container">
-        <button onclick="logout()" style="background:red; color:white; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold;">Logout</button>
+        <button id="loadCloudBtn" style="background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold;">Sync with Cloud</button>
     </div>
 </div>
 
 <div id="noteViewer">
-    <button onclick="closeAllModals()" style="position:absolute; top:10px; right:15px; background:none; border:none; font-size:1.5rem; cursor:pointer; font-weight:bold;">×</button>
+    <button id="noteViewerClose" onclick="closeNoteViewer()">×</button>
     <textarea id="noteViewerContent"></textarea>
     <button onclick="closeNoteViewer()" style="margin-top:15px; width:100%; padding:12px; background:var(--accent); color:white; border:none; border-radius:15px; font-weight:700; cursor:pointer;">Save & Close</button>
 </div>
@@ -127,20 +356,21 @@ textarea { width: 100%; height: 35vh; border: none; outline: none; resize: none;
 <div id="overlay" onclick="closeAllModals()"></div>
 
 <script>
-/** 1. CONFIGURATION & STATE **/
-const WORKER_URL = "https://reson-api.jacetbaum.workers.dev";
+const WORKER_URL = "https://reson-api.jacetbaum.workers.dev"; // Your new Worker URL
 let db = JSON.parse(localStorage.getItem('reson_db')) || { notes_list: [], custom_categories: [] };
+let authHeader = localStorage.getItem('reson_auth'); // Stores "user:pass"
 let selectedDate = new Date();
 let currentCategory = null;
-let authHeader = localStorage.getItem('reson_auth');
-
 const strip = document.getElementById('strip');
 const textarea = document.getElementById('noteContent');
 const deck = document.getElementById('noteDeck');
 const noteContainer = document.querySelector('.note-container');
 
-/** 2. AUTHENTICATION LOGIC **/
-function login() {
+function formatDateKey(date) {
+    const d = new Date(date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function handleLogin() {
     const user = document.getElementById('usernameInput').value.trim();
     const pass = document.getElementById('passwordInput').value.trim();
     if(!user || !pass) return alert("Please enter both credentials");
@@ -148,25 +378,315 @@ function login() {
     authHeader = user + ":" + pass;
     localStorage.setItem('reson_auth', authHeader);
     document.getElementById('loginOverlay').style.display = 'none';
-    syncWithCloud();
+    syncWithCloud(); // Initial fetch after logging in
 }
 
 function logout() {
     localStorage.removeItem('reson_auth');
     localStorage.removeItem('reson_db');
-    location.reload();
+    location.reload(); // Hard reset to login screen
+}
+function save() {
+    localStorage.setItem('reson_db', JSON.stringify(db));
+    uploadToCloud(); // Add this line so every local save triggers a cloud push
+}
+function getGroupable() {
+    const base = ['todo', 'work', 'groceries', 'errands'];
+    return [...base, ...(db.custom_categories || [])];
 }
 
-// Check if already logged in
-if(authHeader) document.getElementById('loginOverlay').style.display = 'none';
+function cleanupData() {
+    let cleaned = [];
+    let seen = {};
+    const groupable = getGroupable();
+    db.notes_list.forEach(n => {
+        let cat = n.tags[0].toLowerCase();
+        let key = n.date + "_" + cat;
+        if (groupable.includes(cat)) {
+            if (seen[key]) {
+                if (!seen[key].content.includes(n.content)) seen[key].content += "\n" + n.content;
+            } else {
+                seen[key] = n;
+                cleaned.push(n);
+            }
+        } else {
+            cleaned.push(n);
+        }
+    });
+    db.notes_list = cleaned;
+    save();
+}
 
-/** 3. THE SYNC BRAIN **/
+function commitNote() {
+    const text = textarea.value.trim();
+    if (!text) return;
+    const dateKey = formatDateKey(selectedDate);
+    const cat = currentCategory ? currentCategory.toLowerCase() : "general";
+    
+    const groupable = getGroupable();
+    const existing = db.notes_list.find(n => n.date === dateKey && n.tags[0].toLowerCase() === cat);
+    
+    if (existing && groupable.includes(cat)) {
+        existing.content += "\n" + text;
+    } else {
+        db.notes_list.unshift({ id: Date.now(), date: dateKey, tags: [cat], content: text, checkedIndices: [] });
+    }
+    save();
+    textarea.value = '';
+    renderDeck();
+    uploadToCloud();
+}
+
+function renderDeck() {
+    deck.innerHTML = '';
+    const key = formatDateKey(selectedDate);
+    
+    if (currentCategory === null) {
+        noteContainer.parentNode.insertBefore(noteContainer, deck);
+    } else {
+        noteContainer.parentNode.insertBefore(deck, noteContainer);
+    }
+
+    const filtered = db.notes_list.filter(n => {
+        const dMatch = n.date === key;
+        const cMatch = !currentCategory || n.tags[0].toLowerCase() === currentCategory.toLowerCase();
+        return dMatch && cMatch;
+    });
+
+    filtered.forEach(note => {
+        const card = document.createElement('div');
+        card.className = 'saved-note';
+        let lines = note.content.split('\n').filter(l => l.trim() !== "");
+        let html = `<button class="note-menu-btn" onclick="event.stopPropagation(); openMenu(event, ${note.id})">⋮</button>`;
+        html += `<span class="saved-note-title">${note.tags[0]}</span><div class="card-checklist">`;
+        lines.forEach((l, i) => {
+            const done = note.checkedIndices && note.checkedIndices.includes(i);
+            html += `<div class="checklist-item" onclick="event.stopPropagation(); toggleLine(${note.id}, ${i})">
+                        <input type="checkbox" ${done ? 'checked' : ''}>
+                        <div class="checklist-text ${done ? 'done' : ''}">${l}</div>
+                     </div>`;
+        });
+        html += `</div>`;
+        card.innerHTML = html;
+        card.onclick = () => openNoteViewer(note);
+        deck.appendChild(card);
+    });
+}
+
+function renderFilters() {
+    const container = document.getElementById('filterContainer');
+    const baseCats = [
+        { id: null, label: 'Home' },
+        { id: 'todo', label: 'To-do' },
+        { id: 'work', label: 'Work' },
+        { id: 'groceries', label: 'Groceries' },
+        { id: 'errands', label: 'Errands' }
+    ];
+    
+    const custom = (db.custom_categories || []).map(cat => ({ id: cat.toLowerCase(), label: cat }));
+    const all = [...baseCats, ...custom];
+    
+    container.innerHTML = all.map(cat => `
+        <button class="bubble ${currentCategory === cat.id ? 'active' : ''}" 
+                onclick="switchCategory('${cat.id || ''}', this)">
+            ${cat.label}
+        </button>
+    `).join('') + `<button class="add-cat-btn" onclick="openCatModal()">+</button>`;
+}
+
+function openCatModal() {
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('catModal').style.display = 'block';
+    document.getElementById('catInput').focus();
+}
+
+function createNewCategory() {
+    const input = document.getElementById('catInput');
+    const val = input.value.trim();
+    if (val) {
+        if (!db.custom_categories) db.custom_categories = [];
+        if (!db.custom_categories.includes(val)) {
+            db.custom_categories.push(val);
+            save();
+            renderFilters();
+        }
+    }
+    input.value = '';
+    closeAllModals();
+}
+
+function toggleLine(id, idx) {
+    const n = db.notes_list.find(x => x.id === id);
+    if (!n.checkedIndices) n.checkedIndices = [];
+    const pos = n.checkedIndices.indexOf(idx);
+    if (pos > -1) n.checkedIndices.splice(pos, 1);
+    else n.checkedIndices.push(idx);
+    save();
+    renderDeck();
+}
+
+let activeNote = null;
+function openNoteViewer(note) {
+    activeNote = note;
+    document.getElementById('noteViewerContent').value = note.content;
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('noteViewer').style.display = 'block';
+}
+
+function closeNoteViewer() {
+    if (activeNote) {
+        activeNote.content = document.getElementById('noteViewerContent').value;
+        save();
+        renderDeck();
+    }
+    document.getElementById('noteViewer').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+    activeNote = null;
+}
+
+function setupCalendar() {
+    strip.innerHTML = '';
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth();
+    const days = new Date(year, month + 1, 0).getDate();
+    
+    document.getElementById('monthDisplay').innerText = selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    
+    const isTodaySelected = formatDateKey(new Date()) === formatDateKey(selectedDate);
+    document.getElementById('todayBtn').style.display = isTodaySelected ? 'none' : 'block';
+
+    for (let i = 1; i <= days; i++) {
+        const d = new Date(year, month, i);
+        const isSel = formatDateKey(d) === formatDateKey(selectedDate);
+        const card = document.createElement('div');
+        card.className = `day-card ${isSel ? 'active' : ''}`;
+        card.innerHTML = `<div style="font-size:0.7rem;">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</div><div style="font-weight:800;font-size:1.2rem;">${i}</div>`;
+        card.onclick = () => { selectedDate = d; setupCalendar(); renderDeck(); };
+        strip.appendChild(card);
+        
+        if (isSel) {
+            setTimeout(() => {
+                const scrollLeft = card.offsetLeft - (strip.offsetWidth / 2) + (card.offsetWidth / 2);
+                strip.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+            }, 10);
+        }
+    }
+}
+
+function jumpToToday() {
+    selectedDate = new Date();
+    setupCalendar();
+    renderDeck();
+}
+
+function switchCategory(catId, btn) {
+    const id = catId === '' ? null : catId;
+    currentCategory = id;
+    renderFilters();
+    renderDeck();
+}
+
+function toggleModal() {
+    const m = document.getElementById('calModal');
+    const o = document.getElementById('overlay');
+    const open = m.style.display === 'block';
+    if (!open) renderHeatmap();
+    m.style.display = open ? 'none' : 'block';
+    o.style.display = open ? 'none' : 'block';
+}
+
+function renderHeatmap() {
+    const grid = document.getElementById('fullGrid');
+    grid.innerHTML = '';
+    const y = selectedDate.getFullYear();
+    const m = selectedDate.getMonth();
+    const days = new Date(y, m+1, 0).getDate();
+    document.getElementById('modalMonthTitle').innerText = selectedDate.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
+    
+    for (let i = 1; i <= days; i++) {
+        const d = new Date(y, m, i);
+        const k = formatDateKey(d);
+        const count = db.notes_list.filter(n => n.date === k).length;
+        
+        const el = document.createElement('div');
+        el.className = `circle-day ${k === formatDateKey(selectedDate) ? 'selected' : ''}`;
+        el.innerText = i;
+        
+        // Dynamic Heatmap Colors
+        if (count === 0) el.style.backgroundColor = 'var(--heat-0)';
+        else if (count === 1) el.style.backgroundColor = 'var(--heat-1)';
+        else if (count >= 2 && count <= 3) el.style.backgroundColor = 'var(--heat-2)';
+        else el.style.backgroundColor = 'var(--heat-3)';
+        
+        el.onclick = () => { selectedDate = d; setupCalendar(); renderDeck(); toggleModal(); };
+        grid.appendChild(el);
+    }
+}
+
+function openMenu(e, id) {
+    const menu = document.getElementById('noteMenu');
+    menu.style.display = 'block';
+    menu.style.top = (e.pageY + 10) + 'px';
+    menu.style.left = (e.pageX - 100) + 'px';
+    menu.innerHTML = `<button onclick="deleteNote(${id})" style="color:red; width:100%; padding:10px; background:none; border:none; text-align:left; cursor:pointer; font-weight:bold;">Delete</button>`;
+}
+
+function deleteNote(id) {
+    db.notes_list = db.notes_list.filter(n => n.id !== id);
+    save();
+    renderDeck();
+    document.getElementById('noteMenu').style.display = 'none';
+}
+
+function closeAllModals() {
+    document.getElementById('calModal').style.display = 'none';
+    document.getElementById('catModal').style.display = 'none';
+    document.getElementById('noteViewer').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('noteMenu').style.display = 'none';
+}
+
+// Global click listener to close the delete menu when clicking away
+window.addEventListener('mousedown', (e) => {
+    const menu = document.getElementById('noteMenu');
+    // If menu is open and we click something that isn't the menu or the menu button
+    if (menu.style.display === 'block' && !menu.contains(e.target) && !e.target.classList.contains('note-menu-btn')) {
+        menu.style.display = 'none';
+    }
+});
+
+function showSettings() {
+    document.getElementById('settingsView').style.display = 'block';
+    document.getElementById('noteDeck').style.display = 'none';
+    document.querySelector('.note-container').style.display = 'none';
+    document.querySelector('.filter-container').style.display = 'none';
+}
+
+function showMain() {
+    document.getElementById('settingsView').style.display = 'none';
+    document.getElementById('noteDeck').style.display = 'grid';
+    document.querySelector('.note-container').style.display = 'block';
+    document.querySelector('.filter-container').style.display = 'flex';
+    renderDeck();
+}
+
+function insertBullet() {
+    const s = textarea.selectionStart;
+    textarea.value = textarea.value.slice(0,s) + "• " + textarea.value.slice(s);
+    textarea.focus();
+    textarea.selectionStart = textarea.selectionEnd = s + 2;
+}
+
+const R2_URL = "https://pub-66479d392b224c95a6cb0e230ac238bb.r2.dev/notes_db.json";
 async function uploadToCloud() {
     if(!authHeader) return;
     try {
         await fetch(WORKER_URL, {
-            method: 'POST',
-            headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' },
+            method: 'POST', // Changed from PUT to POST for the Worker
+            headers: { 
+                'Authorization': authHeader, 
+                'Content-Type': 'application/json' 
+            },
             body: JSON.stringify(db)
         });
         console.log("Cloud Updated");
@@ -176,7 +696,10 @@ async function uploadToCloud() {
 async function syncWithCloud() {
     if(!authHeader) return;
     try {
-        const res = await fetch(WORKER_URL, { headers: { 'Authorization': authHeader }, cache: 'no-store' });
+        const res = await fetch(WORKER_URL, { 
+            headers: { 'Authorization': authHeader }, 
+            cache: 'no-store' 
+        });
         const data = await res.json();
         if (data && data.notes_list) { 
             db = data;
@@ -188,38 +711,20 @@ async function syncWithCloud() {
         }
     } catch (e) { console.log("New user or fetch error"); }
 }
-
-function saveAndSync() {
-    localStorage.setItem('reson_db', JSON.stringify(db));
-    uploadToCloud();
+document.addEventListener("DOMContentLoaded", () => {
+    cleanupData();
+    renderFilters();
+    setupCalendar();
+    renderDeck();
+if(authHeader) {
+    document.getElementById('loginOverlay').style.display = 'none';
+    syncWithCloud();
 }
-
-// Silent sync when user switches back to the tab
+});
 document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") syncWithCloud();
 });
-
-/** 4. YOUR ORIGINAL APP LOGIC (RESTORED) **/
-function formatDateKey(date) {
-    const d = new Date(date);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-function getGroupable() {
-    const base = ['todo', 'work', 'groceries', 'errands'];
-    return [...base, ...(db.custom_categories || [])];
-}
-
-function cleanupData() {
-    let cleaned = [];
-    let seen = {};
-    const groupable = getGroupable();
-    (db.notes_list || []).forEach(n => {
-        let cat = n.tags[0].toLowerCase();
-        let key = n.date + "_" + cat;
-        if (groupable.includes(cat)) {
-            if (seen[key]) {
-                if (!seen[key].content.includes(n.content)) seen[key].content += "\n" + n.content;
-            } else {
-                seen[key] = n;
-                cleaned.push(n);
+document.getElementById('loadCloudBtn').onclick = syncWithCloud;
+</script>
+</body>
+</html>

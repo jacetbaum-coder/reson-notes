@@ -294,38 +294,18 @@ input:checked + .sld:before { transform: translateX(16px); }
 .login-box { background:white; padding:30px; border-radius:30px; width:80%; max-width:300px; box-shadow:0 10px 30px rgba(0,0,0,0.1); text-align:center; }
 .login-box input { width:100%; padding:12px; margin:10px 0; border-radius:10px; border:1px solid #ddd; box-sizing:border-box; font-size: 16px; outline: none; }
 .login-box button { width:100%; padding:12px; background:var(--accent); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; margin-top: 10px; }
-/* Custom In-App Toast Notification */
-#toast {
-    position: fixed;
-    bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.85);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 30px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    z-index: 9999;
-    display: none;
-    animation: fadeInOut 2.5s ease-in-out;
-}
-@keyframes fadeInOut {
-    0% { opacity: 0; bottom: 60px; }
-    20% { opacity: 1; bottom: 80px; }
-    80% { opacity: 1; bottom: 80px; }
-    100% { opacity: 0; bottom: 60px; }
-}
 </style>
 </head>
-<body>
-<div id="toast">Changes Saved!</div>
+<!-- Replace your existing <body> content with this updated version -->
 
+<body>
 <!-- UPDATED LOGIN/REGISTER OVERLAY -->
+<!-- START OF LOGIN/REGISTER UI -->
 <div id="loginOverlay">
     <div class="login-box">
         <h2 style="color:var(--accent)" id="authTitle">Reson Notes</h2>
         
+        <!-- Field only shows when registering -->
         <div id="registerFields" style="display:none;">
             <input type="tel" id="phoneInput" placeholder="Phone Number (for recovery)">
         </div>
@@ -340,7 +320,7 @@ input:checked + .sld:before { transform: translateX(16px); }
         </p>
     </div>
 </div>
-</div>
+<!-- END OF LOGIN/REGISTER UI -->
 
 <header>
   <div class="month-label" id="monthDisplay">Loading...</div>
@@ -401,24 +381,19 @@ input:checked + .sld:before { transform: translateX(16px); }
         </div>
     </div>
 
-   <div class="set-sec">
+    <div class="set-sec">
         <h3>Account Security</h3>
         <div class="set-row">
-            <div style="flex:1">
-                <label>Email</label>
-                <!-- Flex container to put input and button side-by-side -->
-                <div style="display:flex; gap:8px; align-items: center;">
-                    <input type="text" id="editEm" placeholder="email@link.com" style="flex:1; margin-bottom:0;">
-                    <button id="verifyBadge" class="btn-sml" onclick="sendVerificationEmail()" style="background:var(--accent); color:white; border:none;">Verify</button>
-                </div>
-            </div>
+            <div style="flex:1"><label>Email</label><input type="text" id="editEm" placeholder="email@link.com"></div>
+            <button class="btn-sml">Change email</button>
         </div>
         <div class="set-row">
-            <div style="flex:1"><label>New Password</label><input type="password" id="editPw" placeholder="Leave blank to keep current"></div>
+            <div style="flex:1"><label>Password</label><input type="password" value="******" disabled></div>
+            <button class="btn-sml">Change password</button>
         </div>
         <div class="set-row">
             <span style="font-size:0.8rem; font-weight:700;">2-Step Verifications</span>
-            <label class="sw"><input type="checkbox" id="edit2Step"><span class="sld"></span></label>
+            <label class="sw"><input type="checkbox" checked><span class="sld"></span></label>
         </div>
     </div>
 
@@ -437,7 +412,7 @@ input:checked + .sld:before { transform: translateX(16px); }
                 <span style="font-size:0.8rem; font-weight:700; color:red;">Delete my account</span>
                 <div style="font-size:0.65rem; color:#999;">Permanently remove all data</div>
             </div>
-            <button class="btn-sml" style="color:red;" onclick="deleteAccount()">Delete Account</button>
+            <button class="btn-sml" style="color:red;">Delete Account</button>
         </div>
     </div>
 
@@ -473,7 +448,7 @@ const WORKER_URL = "https://reson-api.jacetbaum.workers.dev";
 let db = JSON.parse(localStorage.getItem('reson_db')) || { 
     notes_list: [], 
     custom_categories: [],
-    profile: { username: '', phone: '', pic: '', emailVerified: false }
+    profile: { username: '', phone: '', pic: '' } 
 };
 let authHeader = localStorage.getItem('reson_auth'); 
 let selectedDate = new Date();
@@ -506,13 +481,7 @@ function toggleAuthMode() {
         regFields.style.display = "none";
     }
 }
-function showToast(message) {
-    const toast = document.getElementById('toast');
-    toast.innerText = message;
-    toast.style.display = 'block';
-    // Hide it again after the animation finishes
-    setTimeout(() => { toast.style.display = 'none'; }, 2500);
-}
+
 async function handleAuth() {
     const user = document.getElementById('usernameInput').value.trim();
     const pass = document.getElementById('passwordInput').value.trim();
@@ -538,17 +507,15 @@ function openEditProfile() {
     document.getElementById('overlay').style.display = 'block';
     document.getElementById('editProfileModal').style.display = 'block';
     
+    // Split full username into First and Last for the UI inputs
     const names = (db.profile.username || "").split(" ");
     document.getElementById('editFN').value = names[0] || "";
     document.getElementById('editLN').value = names.slice(1).join(" ") || "";
     
-    // Fill the email and clear the password field visually
     document.getElementById('editEm').value = db.profile.email || "";
-    document.getElementById('editPw').value = "";
-    document.getElementById('edit2Step').checked = db.profile.twoStep || false;
-    
     document.getElementById('editPicPreview').src = db.profile.pic || 'https://via.placeholder.com/50';
 }
+
 function closeEditProfile() {
     document.getElementById('overlay').style.display = 'none';
     document.getElementById('editProfileModal').style.display = 'none';
@@ -580,49 +547,31 @@ function updateProfilePic(input) {
 async function saveProfile() {
     const fn = document.getElementById('editFN').value.trim();
     const ln = document.getElementById('editLN').value.trim();
-    const newEmail = document.getElementById('editEm').value.trim();
-    const newPw = document.getElementById('editPw').value.trim();
     const combinedName = (fn + " " + ln).trim();
     
-    if(!fn) {
-        showToast("First Name is required!");
-        return;
-    }
-    // Un-verify if the email address was changed
-    if(newEmail !== db.profile.email) {
-        db.profile.emailVerified = false;
-    }
-    db.profile.email = newEmail;
-    db.profile.username = combinedName;
-    db.profile.email = newEmail;
-    if(document.getElementById('edit2Step')) {
-        db.profile.twoStep = document.getElementById('edit2Step').checked;
-    }
+    if(!fn) return alert("First Name required");
 
-    // Update Auth Header safely
-    try {
-        let currentPass = "";
-        if (authHeader) {
-            const decoded = atob(authHeader);
-            currentPass = decoded.includes(':') ? decoded.split(':')[1] : decoded;
-        }
-        const passwordToUse = newPw !== "" ? newPw : currentPass;
-        authHeader = btoa(combinedName + ":" + passwordToUse);
-        localStorage.setItem('reson_auth', authHeader);
-    } catch(e) { console.error("Header update failed", e); }
+    db.profile.username = combinedName;
+    db.profile.email = document.getElementById('editEm').value;
+
+    // Fix Auth Header
+    const oldPass = atob(authHeader).split(':')[1];
+    authHeader = btoa(combinedName + ":" + oldPass);
+    localStorage.setItem('reson_auth', authHeader);
 
     save(); 
     loadProfileUI(); 
     closeEditProfile();
-    showToast("Changes Saved!");
-}
-function deleteAccount() {
-    if(confirm("Permanently delete all data? This cannot be undone.")) {
-        localStorage.clear();
-        location.reload();
-    }
+    alert("Profile Saved!");
 }
 
+function loadProfileUI() {
+    if(!db.profile) db.profile = { username: '', phone: '', pic: '' };
+    document.getElementById('displayName').innerText = db.profile.username || 'User';
+    if(db.profile.pic) {
+        document.getElementById('profileDisplay').src = db.profile.pic;
+    }
+}
 
 // Navigation Logic
 function showMain() {
@@ -686,27 +635,13 @@ function save() {
 }
 
 function loadProfileUI() {
-    if(!db.profile) db.profile = { username: '', phone: '', pic: '', emailVerified: false };
-    const displayEl = document.getElementById('displayName');
-    if(displayEl) displayEl.innerText = db.profile.username || 'User';
-    const picEl = document.getElementById('profileDisplay');
-    if(picEl && db.profile.pic) picEl.src = db.profile.pic;
-
-    // Email Verification Badge Logic
-    const vBtn = document.getElementById('verifyBadge');
-    if (vBtn) {
-        if (db.profile.emailVerified) {
-            vBtn.innerText = "Verified ✅";
-            vBtn.style.background = "#4caf50";
-            vBtn.disabled = true;
-        } else {
-            vBtn.innerText = "Verify";
-            vBtn.style.background = "var(--accent)";
-            vBtn.disabled = false;
-        }
+    if(!db.profile) db.profile = { username: '', phone: '', pic: '' };
+    document.getElementById('editUsername').value = db.profile.username || '';
+    document.getElementById('editPhone').value = db.profile.phone || '';
+    if(db.profile.pic) {
+        document.getElementById('profileDisplay').src = db.profile.pic;
     }
 }
-
 function getGroupable() {
     const base = ['todo', 'work', 'groceries', 'errands'];
     return [...base, ...(db.custom_categories || [])];
@@ -739,8 +674,10 @@ function commitNote() {
     if (!text) return;
     const dateKey = formatDateKey(selectedDate);
     const cat = currentCategory ? currentCategory.toLowerCase() : "general";
+    
     const groupable = getGroupable();
     const existing = db.notes_list.find(n => n.date === dateKey && n.tags[0].toLowerCase() === cat);
+    
     if (existing && groupable.includes(cat)) {
         existing.content += "\n" + text;
     } else {
@@ -754,16 +691,19 @@ function commitNote() {
 function renderDeck() {
     deck.innerHTML = '';
     const key = formatDateKey(selectedDate);
+    
     if (currentCategory === null) {
         noteContainer.parentNode.insertBefore(noteContainer, deck);
     } else {
         noteContainer.parentNode.insertBefore(deck, noteContainer);
     }
+
     const filtered = db.notes_list.filter(n => {
         const dMatch = n.date === key;
         const cMatch = !currentCategory || n.tags[0].toLowerCase() === currentCategory.toLowerCase();
         return dMatch && cMatch;
     });
+
     filtered.forEach(note => {
         const card = document.createElement('div');
         card.className = 'saved-note';
@@ -786,10 +726,23 @@ function renderDeck() {
 
 function renderFilters() {
     const container = document.getElementById('filterContainer');
-    const baseCats = [{ id: null, label: 'Home' }, { id: 'todo', label: 'To-do' }, { id: 'work', label: 'Work' }, { id: 'groceries', label: 'Groceries' }, { id: 'errands', label: 'Errands' }];
+    const baseCats = [
+        { id: null, label: 'Home' },
+        { id: 'todo', label: 'To-do' },
+        { id: 'work', label: 'Work' },
+        { id: 'groceries', label: 'Groceries' },
+        { id: 'errands', label: 'Errands' }
+    ];
+    
     const custom = (db.custom_categories || []).map(cat => ({ id: cat.toLowerCase(), label: cat }));
     const all = [...baseCats, ...custom];
-    container.innerHTML = all.map(cat => `<button class="bubble ${currentCategory === cat.id ? 'active' : ''}" onclick="switchCategory('${cat.id || ''}', this)">${cat.label}</button>`).join('') + `<button class="add-cat-btn" onclick="openCatModal()">+</button>`;
+    
+    container.innerHTML = all.map(cat => `
+        <button class="bubble ${currentCategory === cat.id ? 'active' : ''}" 
+                onclick="switchCategory('${cat.id || ''}', this)">
+            ${cat.label}
+        </button>
+    `).join('') + `<button class="add-cat-btn" onclick="openCatModal()">+</button>`;
 }
 
 function openCatModal() {
@@ -846,9 +799,12 @@ function setupCalendar() {
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
     const days = new Date(year, month + 1, 0).getDate();
+    
     document.getElementById('monthDisplay').innerText = selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    
     const isTodaySelected = formatDateKey(new Date()) === formatDateKey(selectedDate);
     document.getElementById('todayBtn').style.display = isTodaySelected ? 'none' : 'block';
+
     for (let i = 1; i <= days; i++) {
         const d = new Date(year, month, i);
         const isSel = formatDateKey(d) === formatDateKey(selectedDate);
@@ -857,6 +813,7 @@ function setupCalendar() {
         card.innerHTML = `<div style="font-size:0.7rem;">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</div><div style="font-weight:800;font-size:1.2rem;">${i}</div>`;
         card.onclick = () => { selectedDate = d; setupCalendar(); renderDeck(); };
         strip.appendChild(card);
+        
         if (isSel) {
             setTimeout(() => {
                 const scrollLeft = card.offsetLeft - (strip.offsetWidth / 2) + (card.offsetWidth / 2);
@@ -873,7 +830,8 @@ function jumpToToday() {
 }
 
 function switchCategory(catId, btn) {
-    currentCategory = catId === '' ? null : catId;
+    const id = catId === '' ? null : catId;
+    currentCategory = id;
     renderFilters();
     renderDeck();
 }
@@ -894,17 +852,22 @@ function renderHeatmap() {
     const m = selectedDate.getMonth();
     const days = new Date(y, m+1, 0).getDate();
     document.getElementById('modalMonthTitle').innerText = selectedDate.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
+    
     for (let i = 1; i <= days; i++) {
         const d = new Date(y, m, i);
         const k = formatDateKey(d);
         const count = db.notes_list.filter(n => n.date === k).length;
+        
         const el = document.createElement('div');
         el.className = `circle-day ${k === formatDateKey(selectedDate) ? 'selected' : ''}`;
         el.innerText = i;
+        
+        // Dynamic Heatmap Colors
         if (count === 0) el.style.backgroundColor = 'var(--heat-0)';
         else if (count === 1) el.style.backgroundColor = 'var(--heat-1)';
         else if (count >= 2 && count <= 3) el.style.backgroundColor = 'var(--heat-2)';
         else el.style.backgroundColor = 'var(--heat-3)';
+        
         el.onclick = () => { selectedDate = d; setupCalendar(); renderDeck(); toggleModal(); };
         grid.appendChild(el);
     }
@@ -933,6 +896,15 @@ function closeAllModals() {
     document.getElementById('noteMenu').style.display = 'none';
 }
 
+// Global click listener to close the delete menu when clicking away
+window.addEventListener('mousedown', (e) => {
+    const menu = document.getElementById('noteMenu');
+    // If menu is open and we click something that isn't the menu or the menu button
+    if (menu.style.display === 'block' && !menu.contains(e.target) && !e.target.classList.contains('note-menu-btn')) {
+        menu.style.display = 'none';
+    }
+});
+
 function insertBullet() {
     const s = textarea.selectionStart;
     textarea.value = textarea.value.slice(0,s) + "• " + textarea.value.slice(s);
@@ -940,12 +912,16 @@ function insertBullet() {
     textarea.selectionStart = textarea.selectionEnd = s + 2;
 }
 
+const R2_URL = "https://pub-66479d392b224c95a6cb0e230ac238bb.r2.dev/notes_db.json";
 async function uploadToCloud() {
     if(!authHeader) return;
     try {
         await fetch(WORKER_URL, {
             method: 'POST',
-            headers: { 'Authorization': 'Basic ' + authHeader, 'Content-Type': 'application/json' },
+            headers: { 
+                'Authorization': 'Basic ' + authHeader, 
+                'Content-Type': 'application/json' 
+            },
             body: JSON.stringify(db)
         });
     } catch (e) { console.error("Cloud Sync Failed", e); }
@@ -954,92 +930,51 @@ async function uploadToCloud() {
 async function syncWithCloud() {
     if(!authHeader) return;
     try {
-        const res = await fetch(WORKER_URL, { headers: { 'Authorization': 'Basic ' + authHeader }, cache: 'no-store' });
+        const res = await fetch(WORKER_URL, { 
+            headers: { 'Authorization': 'Basic ' + authHeader },
+            cache: 'no-store'
+        });
         if (!res.ok) throw new Error("Sync failed");
+        
         const data = await res.json();
         if (data) { 
             db = data;
             localStorage.setItem('reson_db', JSON.stringify(db));
+            
+            // Force the UI to show the new data
             loadProfileUI(); 
             renderFilters();
             renderDeck();
             setupCalendar();
+            console.log("Cloud Data Synced");
         }
     } catch (e) { console.log("Cloud sync error: ", e); }
 }
-
-// Event Listeners
+// Single Initialization Block
 document.addEventListener("DOMContentLoaded", () => {
     if(authHeader) {
         document.getElementById('loginOverlay').style.display = 'none';
+        // Immediately sync to get profile pic from other devices
         syncWithCloud().then(() => {
             loadProfileUI();
             cleanupData();
-            setupCalendar();
-            renderFilters();
-            renderDeck();
         });
     } else {
         document.getElementById('loginOverlay').style.display = 'flex';
     }
+    
+    // Initial UI Render
+    setupCalendar();
+    renderFilters();
+    renderDeck();
 });
 
+// Sync when app is reopened
 document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible" && authHeader) syncWithCloud();
 });
 
-window.addEventListener('mousedown', (e) => {
-    const menu = document.getElementById('noteMenu');
-    if (menu && menu.style.display === 'block' && !menu.contains(e.target) && !e.target.classList.contains('note-menu-btn')) {
-        menu.style.display = 'none';
-    }
-});
-
 document.getElementById('loadCloudBtn').onclick = syncWithCloud;
-// --- NEW EMAIL VERIFICATION FUNCTIONS ---
-async function sendVerificationEmail() {
-    const email = document.getElementById('editEm').value.trim();
-    if (!email || !email.includes('@')) return alert("Please enter a valid email first.");
-
-    showToast("Sending code...");
-    try {
-        const res = await fetch(`${WORKER_URL}/send-verification`, {
-            method: 'POST',
-            body: JSON.stringify({ email: email })
-        });
-        const data = await res.json();
-        if (data.sent) {
-            const code = prompt("Enter the 6-digit code sent to your email:");
-            if (code) verifyEmailCode(email, code);
-        } else {
-            alert("Failed to send email. Check your Resend API setup.");
-        }
-    } catch (e) {
-        console.error(e);
-        alert("Error connecting to server.");
-    }
-}
-
-async function verifyEmailCode(email, code) {
-    try {
-        const res = await fetch(`${WORKER_URL}/verify-code`, {
-            method: 'POST',
-            body: JSON.stringify({ email: email, code: code })
-        });
-        const data = await res.json();
-        if (data.success) {
-            db.profile.emailVerified = true;
-            db.profile.email = email;
-            save();
-            showToast("Email Verified! ✅");
-            loadProfileUI();
-        } else {
-            alert("Invalid code. Please try again.");
-        }
-    } catch (e) {
-        alert("Verification failed.");
-    }
-}
 </script>
 </body>
 </html>

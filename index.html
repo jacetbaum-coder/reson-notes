@@ -289,6 +289,28 @@ textarea {
 .sld:before { position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px; background: white; border-radius: 50%; transition: .3s; }
 input:checked + .sld { background: var(--accent); }
 input:checked + .sld:before { transform: translateX(16px); }
+/* Custom In-App Toast Notification */
+#toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    z-index: 9999;
+    display: none;
+    animation: fadeInOut 2.5s ease-in-out;
+}
+@keyframes fadeInOut {
+    0% { opacity: 0; bottom: 60px; }
+    20% { opacity: 1; bottom: 80px; }
+    80% { opacity: 1; bottom: 80px; }
+    100% { opacity: 0; bottom: 60px; }
+}
 /* Login Screen Style */
 #loginOverlay { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:9000; display:flex; flex-direction:column; align-items:center; justify-content:center; }
 .login-box { background:white; padding:30px; border-radius:30px; width:80%; max-width:300px; box-shadow:0 10px 30px rgba(0,0,0,0.1); text-align:center; }
@@ -299,6 +321,7 @@ input:checked + .sld:before { transform: translateX(16px); }
 <!-- Replace your existing <body> content with this updated version -->
 
 <body>
+<div id="toast">Changes Saved!</div>
 <!-- UPDATED LOGIN/REGISTER OVERLAY -->
 <!-- START OF LOGIN/REGISTER UI -->
 <div id="loginOverlay">
@@ -385,15 +408,13 @@ input:checked + .sld:before { transform: translateX(16px); }
         <h3>Account Security</h3>
         <div class="set-row">
             <div style="flex:1"><label>Email</label><input type="text" id="editEm" placeholder="email@link.com"></div>
-            <button class="btn-sml">Change email</button>
         </div>
         <div class="set-row">
-            <div style="flex:1"><label>Password</label><input type="password" value="******" disabled></div>
-            <button class="btn-sml">Change password</button>
+            <div style="flex:1"><label>New Password</label><input type="password" id="editPw" placeholder="Leave blank to keep current"></div>
         </div>
         <div class="set-row">
             <span style="font-size:0.8rem; font-weight:700;">2-Step Verifications</span>
-            <label class="sw"><input type="checkbox" checked><span class="sld"></span></label>
+            <label class="sw"><input type="checkbox" id="edit2Step"><span class="sld"></span></label>
         </div>
     </div>
 
@@ -412,7 +433,7 @@ input:checked + .sld:before { transform: translateX(16px); }
                 <span style="font-size:0.8rem; font-weight:700; color:red;">Delete my account</span>
                 <div style="font-size:0.65rem; color:#999;">Permanently remove all data</div>
             </div>
-            <button class="btn-sml" style="color:red;">Delete Account</button>
+            <button class="btn-sml" style="color:red;" onclick="deleteAccount()">Delete Account</button>
         </div>
     </div>
 
@@ -455,7 +476,19 @@ let selectedDate = new Date();
 let currentCategory = null;
 let isRegistering = false;
 let activeNote = null;
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.innerText = message;
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 2500);
+}
 
+function deleteAccount() {
+    if(confirm("Permanently delete all data? This cannot be undone.")) {
+        localStorage.clear();
+        location.reload();
+    }
+}
 const strip = document.getElementById('strip');
 const textarea = document.getElementById('noteContent');
 const deck = document.getElementById('noteDeck');
@@ -507,12 +540,14 @@ function openEditProfile() {
     document.getElementById('overlay').style.display = 'block';
     document.getElementById('editProfileModal').style.display = 'block';
     
-    // Split full username into First and Last for the UI inputs
     const names = (db.profile.username || "").split(" ");
     document.getElementById('editFN').value = names[0] || "";
     document.getElementById('editLN').value = names.slice(1).join(" ") || "";
     
     document.getElementById('editEm').value = db.profile.email || "";
+    document.getElementById('editPw').value = "";
+    document.getElementById('edit2Step').checked = db.profile.twoStep || false;
+    
     document.getElementById('editPicPreview').src = db.profile.pic || 'https://via.placeholder.com/50';
 }
 
@@ -547,30 +582,44 @@ function updateProfilePic(input) {
 async function saveProfile() {
     const fn = document.getElementById('editFN').value.trim();
     const ln = document.getElementById('editLN').value.trim();
+    const newEmail = document.getElementById('editEm').value.trim();
+    const newPw = document.getElementById('editPw').value.trim();
     const combinedName = (fn + " " + ln).trim();
     
-    if(!fn) return alert("First Name required");
+    if(!fn) {
+        showToast("First Name is required!");
+        return;
+    }
 
     db.profile.username = combinedName;
-    db.profile.email = document.getElementById('editEm').value;
+    db.profile.email = newEmail;
+    if(document.getElementById('edit2Step')) {
+        db.profile.twoStep = document.getElementById('edit2Step').checked;
+    }
 
-    // Fix Auth Header
-    const oldPass = atob(authHeader).split(':')[1];
-    authHeader = btoa(combinedName + ":" + oldPass);
-    localStorage.setItem('reson_auth', authHeader);
+    try {
+        let currentPass = "";
+        if (authHeader) {
+            const decoded = atob(authHeader);
+            currentPass = decoded.includes(':') ? decoded.split(':')[1] : decoded;
+        }
+        const passwordToUse = newPw !== "" ? newPw : currentPass;
+        authHeader = btoa(combinedName + ":" + passwordToUse);
+        localStorage.setItem('reson_auth', authHeader);
+    } catch(e) { console.error("Header update failed", e); }
 
     save(); 
     loadProfileUI(); 
     closeEditProfile();
-    alert("Profile Saved!");
+    showToast("Changes Saved!");
 }
 
 function loadProfileUI() {
     if(!db.profile) db.profile = { username: '', phone: '', pic: '' };
-    document.getElementById('displayName').innerText = db.profile.username || 'User';
-    if(db.profile.pic) {
-        document.getElementById('profileDisplay').src = db.profile.pic;
-    }
+    const displayEl = document.getElementById('displayName');
+    if(displayEl) displayEl.innerText = db.profile.username || 'User';
+    const picEl = document.getElementById('profileDisplay');
+    if(picEl && db.profile.pic) picEl.src = db.profile.pic;
 }
 
 // Navigation Logic

@@ -549,7 +549,14 @@ async function handleAuth() {
     }
 
     document.getElementById('loginOverlay').style.display = 'none';
-    await syncWithCloud();
+    
+    // If we just registered, upload the local profile first
+    if(isRegistering) {
+        await uploadToCloud();
+    } else {
+        // If we are just signing in, get the data from the cloud
+        await syncWithCloud();
+    }
     renderDeck();
 }
 // --- PROFILE LOGIC ---
@@ -607,20 +614,14 @@ async function saveProfile() {
         return;
     }
 
-    // Update database
+    // Update the database object only
     db.profile.username = combinedName;
     db.profile.email = newEmail;
     db.profile.twoStep = document.getElementById('edit2Step').checked;
 
-    // Update Auth Header with the (potentially new) name, keeping same password
-    try {
-        const decoded = atob(authHeader).split(':');
-        const currentPass = decoded[1];
-        authHeader = btoa(combinedName + ":" + currentPass);
-        localStorage.setItem('reson_auth', authHeader);
-    } catch(e) { console.error("Header update failed", e); }
-
-    save(); 
+    // REMOVE the "Update Auth Header" section that was here
+    
+    save(); // This saves to localStorage and triggers uploadToCloud()
     loadProfileUI(); 
     closeEditProfile();
     showToast("Changes Saved!");
@@ -1071,17 +1072,20 @@ async function syncWithCloud() {
         if (!res.ok) throw new Error("Sync failed");
         
         const data = await res.json();
-        if (data) { 
-            db = data;
-            localStorage.setItem('reson_db', JSON.stringify(db));
-            
-            // Force the UI to show the new data
-            loadProfileUI(); 
-            renderFilters();
-            renderDeck();
-            setupCalendar();
-            console.log("Cloud Data Synced");
-        }
+if (data) { 
+    // Merge cloud data with a default structure so you don't lose fields
+    db = {
+        notes_list: data.notes_list || [],
+        custom_categories: data.custom_categories || [],
+        profile: data.profile || db.profile // Keep local profile if cloud is empty
+    };
+    localStorage.setItem('reson_db', JSON.stringify(db));
+    
+    loadProfileUI(); 
+    renderFilters();
+    renderDeck();
+    setupCalendar();
+}
     } catch (e) { console.log("Cloud sync error: ", e); }
 }
 // Single Initialization Block

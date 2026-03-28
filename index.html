@@ -318,16 +318,14 @@ input:checked + .sld:before { transform: translateX(16px); }
 }
 </style>
 </head>
-<!-- Replace your existing <body> content with this updated version -->
-<body
+<body>
 <div id="toast">Changes Saved!</div>
+
 <!-- UPDATED LOGIN/REGISTER OVERLAY -->
-<!-- START OF LOGIN/REGISTER UI -->
 <div id="loginOverlay">
     <div class="login-box">
         <h2 style="color:var(--accent)" id="authTitle">Reson Notes</h2>
         
-        <!-- Field only shows when registering -->
         <div id="registerFields" style="display:none;">
             <input type="tel" id="phoneInput" placeholder="Phone Number (for recovery)">
         </div>
@@ -342,9 +340,6 @@ input:checked + .sld:before { transform: translateX(16px); }
         </p>
     </div>
 </div>
-<!-- END OF LOGIN/REGISTER UI -->
-
-<header>
   <div class="month-label" id="monthDisplay">Loading...</div>
   <button id="todayBtn" onclick="jumpToToday()">Today</button>
   <button class="cal-icon" onclick="toggleModal()">🗓️</button>
@@ -678,19 +673,12 @@ function save() {
 
 function loadProfileUI() {
     if(!db.profile) db.profile = { username: '', phone: '', pic: '' };
-    
-    // Update the main profile screen text
     const displayEl = document.getElementById('displayName');
     if(displayEl) displayEl.innerText = db.profile.username || 'User';
-    
-    // Update the profile picture
     const picEl = document.getElementById('profileDisplay');
     if(picEl && db.profile.pic) picEl.src = db.profile.pic;
-
-    // This part prevents the "null" error that was stopping your button from working
-    const userInp = document.getElementById('usernameInput');
-    if(userInp) userInp.value = db.profile.username || '';
 }
+
 function getGroupable() {
     const base = ['todo', 'work', 'groceries', 'errands'];
     return [...base, ...(db.custom_categories || [])];
@@ -723,10 +711,8 @@ function commitNote() {
     if (!text) return;
     const dateKey = formatDateKey(selectedDate);
     const cat = currentCategory ? currentCategory.toLowerCase() : "general";
-    
     const groupable = getGroupable();
     const existing = db.notes_list.find(n => n.date === dateKey && n.tags[0].toLowerCase() === cat);
-    
     if (existing && groupable.includes(cat)) {
         existing.content += "\n" + text;
     } else {
@@ -740,19 +726,16 @@ function commitNote() {
 function renderDeck() {
     deck.innerHTML = '';
     const key = formatDateKey(selectedDate);
-    
     if (currentCategory === null) {
         noteContainer.parentNode.insertBefore(noteContainer, deck);
     } else {
         noteContainer.parentNode.insertBefore(deck, noteContainer);
     }
-
     const filtered = db.notes_list.filter(n => {
         const dMatch = n.date === key;
         const cMatch = !currentCategory || n.tags[0].toLowerCase() === currentCategory.toLowerCase();
         return dMatch && cMatch;
     });
-
     filtered.forEach(note => {
         const card = document.createElement('div');
         card.className = 'saved-note';
@@ -775,23 +758,10 @@ function renderDeck() {
 
 function renderFilters() {
     const container = document.getElementById('filterContainer');
-    const baseCats = [
-        { id: null, label: 'Home' },
-        { id: 'todo', label: 'To-do' },
-        { id: 'work', label: 'Work' },
-        { id: 'groceries', label: 'Groceries' },
-        { id: 'errands', label: 'Errands' }
-    ];
-    
+    const baseCats = [{ id: null, label: 'Home' }, { id: 'todo', label: 'To-do' }, { id: 'work', label: 'Work' }, { id: 'groceries', label: 'Groceries' }, { id: 'errands', label: 'Errands' }];
     const custom = (db.custom_categories || []).map(cat => ({ id: cat.toLowerCase(), label: cat }));
     const all = [...baseCats, ...custom];
-    
-    container.innerHTML = all.map(cat => `
-        <button class="bubble ${currentCategory === cat.id ? 'active' : ''}" 
-                onclick="switchCategory('${cat.id || ''}', this)">
-            ${cat.label}
-        </button>
-    `).join('') + `<button class="add-cat-btn" onclick="openCatModal()">+</button>`;
+    container.innerHTML = all.map(cat => `<button class="bubble ${currentCategory === cat.id ? 'active' : ''}" onclick="switchCategory('${cat.id || ''}', this)">${cat.label}</button>`).join('') + `<button class="add-cat-btn" onclick="openCatModal()">+</button>`;
 }
 
 function openCatModal() {
@@ -848,12 +818,9 @@ function setupCalendar() {
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
     const days = new Date(year, month + 1, 0).getDate();
-    
     document.getElementById('monthDisplay').innerText = selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-    
     const isTodaySelected = formatDateKey(new Date()) === formatDateKey(selectedDate);
     document.getElementById('todayBtn').style.display = isTodaySelected ? 'none' : 'block';
-
     for (let i = 1; i <= days; i++) {
         const d = new Date(year, month, i);
         const isSel = formatDateKey(d) === formatDateKey(selectedDate);
@@ -862,7 +829,6 @@ function setupCalendar() {
         card.innerHTML = `<div style="font-size:0.7rem;">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</div><div style="font-weight:800;font-size:1.2rem;">${i}</div>`;
         card.onclick = () => { selectedDate = d; setupCalendar(); renderDeck(); };
         strip.appendChild(card);
-        
         if (isSel) {
             setTimeout(() => {
                 const scrollLeft = card.offsetLeft - (strip.offsetWidth / 2) + (card.offsetWidth / 2);
@@ -879,8 +845,7 @@ function jumpToToday() {
 }
 
 function switchCategory(catId, btn) {
-    const id = catId === '' ? null : catId;
-    currentCategory = id;
+    currentCategory = catId === '' ? null : catId;
     renderFilters();
     renderDeck();
 }
@@ -890,140 +855,4 @@ function toggleModal() {
     const o = document.getElementById('overlay');
     const open = m.style.display === 'block';
     if (!open) renderHeatmap();
-    m.style.display = open ? 'none' : 'block';
-    o.style.display = open ? 'none' : 'block';
-}
-
-function renderHeatmap() {
-    const grid = document.getElementById('fullGrid');
-    grid.innerHTML = '';
-    const y = selectedDate.getFullYear();
-    const m = selectedDate.getMonth();
-    const days = new Date(y, m+1, 0).getDate();
-    document.getElementById('modalMonthTitle').innerText = selectedDate.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
-    
-    for (let i = 1; i <= days; i++) {
-        const d = new Date(y, m, i);
-        const k = formatDateKey(d);
-        const count = db.notes_list.filter(n => n.date === k).length;
-        
-        const el = document.createElement('div');
-        el.className = `circle-day ${k === formatDateKey(selectedDate) ? 'selected' : ''}`;
-        el.innerText = i;
-        
-        // Dynamic Heatmap Colors
-        if (count === 0) el.style.backgroundColor = 'var(--heat-0)';
-        else if (count === 1) el.style.backgroundColor = 'var(--heat-1)';
-        else if (count >= 2 && count <= 3) el.style.backgroundColor = 'var(--heat-2)';
-        else el.style.backgroundColor = 'var(--heat-3)';
-        
-        el.onclick = () => { selectedDate = d; setupCalendar(); renderDeck(); toggleModal(); };
-        grid.appendChild(el);
-    }
-}
-
-function openMenu(e, id) {
-    const menu = document.getElementById('noteMenu');
-    menu.style.display = 'block';
-    menu.style.top = (e.pageY + 10) + 'px';
-    menu.style.left = (e.pageX - 100) + 'px';
-    menu.innerHTML = `<button onclick="deleteNote(${id})" style="color:red; width:100%; padding:10px; background:none; border:none; text-align:left; cursor:pointer; font-weight:bold;">Delete</button>`;
-}
-
-function deleteNote(id) {
-    db.notes_list = db.notes_list.filter(n => n.id !== id);
-    save();
-    renderDeck();
-    document.getElementById('noteMenu').style.display = 'none';
-}
-
-function closeAllModals() {
-    document.getElementById('calModal').style.display = 'none';
-    document.getElementById('catModal').style.display = 'none';
-    document.getElementById('noteViewer').style.display = 'none';
-    document.getElementById('overlay').style.display = 'none';
-    document.getElementById('noteMenu').style.display = 'none';
-}
-
-// Global click listener to close the delete menu when clicking away
-window.addEventListener('mousedown', (e) => {
-    const menu = document.getElementById('noteMenu');
-    // If menu is open and we click something that isn't the menu or the menu button
-    if (menu.style.display === 'block' && !menu.contains(e.target) && !e.target.classList.contains('note-menu-btn')) {
-        menu.style.display = 'none';
-    }
-});
-
-function insertBullet() {
-    const s = textarea.selectionStart;
-    textarea.value = textarea.value.slice(0,s) + "• " + textarea.value.slice(s);
-    textarea.focus();
-    textarea.selectionStart = textarea.selectionEnd = s + 2;
-}
-
-const R2_URL = "https://pub-66479d392b224c95a6cb0e230ac238bb.r2.dev/notes_db.json";
-async function uploadToCloud() {
-    if(!authHeader) return;
-    try {
-        await fetch(WORKER_URL, {
-            method: 'POST',
-            headers: { 
-                'Authorization': 'Basic ' + authHeader, 
-                'Content-Type': 'application/json' 
-            },
-            body: JSON.stringify(db)
-        });
-    } catch (e) { console.error("Cloud Sync Failed", e); }
-}
-
-async function syncWithCloud() {
-    if(!authHeader) return;
-    try {
-        const res = await fetch(WORKER_URL, { 
-            headers: { 'Authorization': 'Basic ' + authHeader },
-            cache: 'no-store'
-        });
-        if (!res.ok) throw new Error("Sync failed");
-        
-        const data = await res.json();
-        if (data) { 
-            db = data;
-            localStorage.setItem('reson_db', JSON.stringify(db));
-            
-            // Force the UI to show the new data
-            loadProfileUI(); 
-            renderFilters();
-            renderDeck();
-            setupCalendar();
-            console.log("Cloud Data Synced");
-        }
-    } catch (e) { console.log("Cloud sync error: ", e); }
-}
-// Single Initialization Block
-document.addEventListener("DOMContentLoaded", () => {
-    if(authHeader) {
-        document.getElementById('loginOverlay').style.display = 'none';
-        // Immediately sync to get profile pic from other devices
-        syncWithCloud().then(() => {
-            loadProfileUI();
-            cleanupData();
-        });
-    } else {
-        document.getElementById('loginOverlay').style.display = 'flex';
-    }
-    
-    // Initial UI Render
-    setupCalendar();
-    renderFilters();
-    renderDeck();
-});
-
-// Sync when app is reopened
-document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible" && authHeader) syncWithCloud();
-});
-
-document.getElementById('loadCloudBtn').onclick = syncWithCloud;
-</script>
-</body>
-</html>
+    m.style.display = open

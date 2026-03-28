@@ -340,6 +340,9 @@ input:checked + .sld:before { transform: translateX(16px); }
         </p>
     </div>
 </div>
+</div>
+
+<header>
   <div class="month-label" id="monthDisplay">Loading...</div>
   <button id="todayBtn" onclick="jumpToToday()">Today</button>
   <button class="cal-icon" onclick="toggleModal()">🗓️</button>
@@ -855,4 +858,119 @@ function toggleModal() {
     const o = document.getElementById('overlay');
     const open = m.style.display === 'block';
     if (!open) renderHeatmap();
-    m.style.display = open
+    m.style.display = open ? 'none' : 'block';
+    o.style.display = open ? 'none' : 'block';
+}
+
+function renderHeatmap() {
+    const grid = document.getElementById('fullGrid');
+    grid.innerHTML = '';
+    const y = selectedDate.getFullYear();
+    const m = selectedDate.getMonth();
+    const days = new Date(y, m+1, 0).getDate();
+    document.getElementById('modalMonthTitle').innerText = selectedDate.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
+    for (let i = 1; i <= days; i++) {
+        const d = new Date(y, m, i);
+        const k = formatDateKey(d);
+        const count = db.notes_list.filter(n => n.date === k).length;
+        const el = document.createElement('div');
+        el.className = `circle-day ${k === formatDateKey(selectedDate) ? 'selected' : ''}`;
+        el.innerText = i;
+        if (count === 0) el.style.backgroundColor = 'var(--heat-0)';
+        else if (count === 1) el.style.backgroundColor = 'var(--heat-1)';
+        else if (count >= 2 && count <= 3) el.style.backgroundColor = 'var(--heat-2)';
+        else el.style.backgroundColor = 'var(--heat-3)';
+        el.onclick = () => { selectedDate = d; setupCalendar(); renderDeck(); toggleModal(); };
+        grid.appendChild(el);
+    }
+}
+
+function openMenu(e, id) {
+    const menu = document.getElementById('noteMenu');
+    menu.style.display = 'block';
+    menu.style.top = (e.pageY + 10) + 'px';
+    menu.style.left = (e.pageX - 100) + 'px';
+    menu.innerHTML = `<button onclick="deleteNote(${id})" style="color:red; width:100%; padding:10px; background:none; border:none; text-align:left; cursor:pointer; font-weight:bold;">Delete</button>`;
+}
+
+function deleteNote(id) {
+    db.notes_list = db.notes_list.filter(n => n.id !== id);
+    save();
+    renderDeck();
+    document.getElementById('noteMenu').style.display = 'none';
+}
+
+function closeAllModals() {
+    document.getElementById('calModal').style.display = 'none';
+    document.getElementById('catModal').style.display = 'none';
+    document.getElementById('noteViewer').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('noteMenu').style.display = 'none';
+}
+
+function insertBullet() {
+    const s = textarea.selectionStart;
+    textarea.value = textarea.value.slice(0,s) + "• " + textarea.value.slice(s);
+    textarea.focus();
+    textarea.selectionStart = textarea.selectionEnd = s + 2;
+}
+
+async function uploadToCloud() {
+    if(!authHeader) return;
+    try {
+        await fetch(WORKER_URL, {
+            method: 'POST',
+            headers: { 'Authorization': 'Basic ' + authHeader, 'Content-Type': 'application/json' },
+            body: JSON.stringify(db)
+        });
+    } catch (e) { console.error("Cloud Sync Failed", e); }
+}
+
+async function syncWithCloud() {
+    if(!authHeader) return;
+    try {
+        const res = await fetch(WORKER_URL, { headers: { 'Authorization': 'Basic ' + authHeader }, cache: 'no-store' });
+        if (!res.ok) throw new Error("Sync failed");
+        const data = await res.json();
+        if (data) { 
+            db = data;
+            localStorage.setItem('reson_db', JSON.stringify(db));
+            loadProfileUI(); 
+            renderFilters();
+            renderDeck();
+            setupCalendar();
+        }
+    } catch (e) { console.log("Cloud sync error: ", e); }
+}
+
+// Event Listeners
+document.addEventListener("DOMContentLoaded", () => {
+    if(authHeader) {
+        document.getElementById('loginOverlay').style.display = 'none';
+        syncWithCloud().then(() => {
+            loadProfileUI();
+            cleanupData();
+            setupCalendar();
+            renderFilters();
+            renderDeck();
+        });
+    } else {
+        document.getElementById('loginOverlay').style.display = 'flex';
+    }
+});
+
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && authHeader) syncWithCloud();
+});
+
+window.addEventListener('mousedown', (e) => {
+    const menu = document.getElementById('noteMenu');
+    if (menu && menu.style.display === 'block' && !menu.contains(e.target) && !e.target.classList.contains('note-menu-btn')) {
+        menu.style.display = 'none';
+    }
+});
+
+document.getElementById('loadCloudBtn').onclick = syncWithCloud;
+</script>
+</body>
+</html>

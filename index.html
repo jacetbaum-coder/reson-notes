@@ -407,9 +407,23 @@ input:checked + .sld:before { transform: translateX(16px); }
    <div class="set-sec">
         <h3>Account Security</h3>
         <div class="set-row">
-            <div style="flex:1"><label>Email</label><input type="text" id="editEm" placeholder="email@link.com"></div>
+            <div style="flex:1">
+                <label>Email</label>
+                <div style="display:flex; gap:5px;">
+                    <input type="text" id="editEm" placeholder="email@link.com">
+                    <button id="sendCodeBtn" class="btn-sml" onclick="sendVerificationEmail()">Verify</button>
+                </div>
+            </div>
         </div>
-        <div class="set-row">
+        <!-- This area is hidden until the user clicks 'Verify' -->
+        <div id="verifyArea" style="display:none; margin-top:10px; padding:10px; background:#f9f9f9; border-radius:10px;">
+            <label style="font-size:0.7rem; font-weight:800; color:#666;">Enter 6-digit Code</label>
+            <div style="display:flex; gap:5px;">
+                <input type="text" id="verifyCodeInput" placeholder="123456" style="text-align:center; letter-spacing:2px;">
+                <button class="btn-sml" style="background:var(--accent); color:white;" onclick="confirmCode()">Confirm</button>
+            </div>
+        </div>
+        <div class="set-row" style="margin-top:15px;">
             <div style="flex:1">
                 <label>Password</label>
                 <button class="btn-sml" style="width:100%; background:#f5f5f5; border:1px solid #ddd; padding:10px; text-align:center; font-family:inherit;" onclick="promptPasswordChange()">Change Password</button>
@@ -975,7 +989,56 @@ window.addEventListener('mousedown', (e) => {
         menu.style.display = 'none';
     }
 });
+async function sendVerificationEmail() {
+    const email = document.getElementById('editEm').value.trim();
+    if (!email) return alert("Please enter an email address.");
+    
+    const btn = document.getElementById('sendCodeBtn');
+    btn.innerText = "Sending...";
 
+    try {
+        const res = await fetch(WORKER_URL + "/send-verification", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email })
+        });
+        const data = await res.json();
+        
+        if (data.sent) {
+            showToast("Code sent!");
+            document.getElementById('verifyArea').style.display = 'block';
+            btn.innerText = "Resend";
+        } else {
+            alert("Error: Resend only allows sending to your own signup email until you verify a domain.");
+        }
+    } catch (e) {
+        alert("Failed to send.");
+    }
+}
+
+async function confirmCode() {
+    const email = document.getElementById('editEm').value.trim();
+    const code = document.getElementById('verifyCodeInput').value.trim();
+
+    try {
+        const res = await fetch(WORKER_URL + "/verify-code", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email, code: code })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            showToast("Verified!");
+            document.getElementById('verifyArea').style.display = 'none';
+            document.getElementById('sendCodeBtn').innerText = "✅ Verified";
+        } else {
+            alert("Invalid code.");
+        }
+    } catch (e) {
+        alert("Verification error.");
+    }
+}
 function insertBullet() {
     const s = textarea.selectionStart;
     textarea.value = textarea.value.slice(0,s) + "• " + textarea.value.slice(s);

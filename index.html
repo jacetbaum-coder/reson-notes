@@ -319,8 +319,8 @@ input:checked + .sld:before { transform: translateX(16px); }
 </style>
 </head>
 <!-- Replace your existing <body> content with this updated version -->
+<body
 <div id="toast">Changes Saved!</div>
-<body>
 <!-- UPDATED LOGIN/REGISTER OVERLAY -->
 <!-- START OF LOGIN/REGISTER UI -->
 <div id="loginOverlay">
@@ -573,43 +573,38 @@ function updateProfilePic(input) {
 }
 
 async function saveProfile() {
-    // 1. Capture the data from the inputs
     const fn = document.getElementById('editFN').value.trim();
     const ln = document.getElementById('editLN').value.trim();
     const newEmail = document.getElementById('editEm').value.trim();
     const newPw = document.getElementById('editPw').value.trim();
     const combinedName = (fn + " " + ln).trim();
     
-    // 2. Validation
     if(!fn) {
         showToast("First Name is required!");
         return;
     }
 
-    // 3. Update the database object
     db.profile.username = combinedName;
     db.profile.email = newEmail;
     if(document.getElementById('edit2Step')) {
         db.profile.twoStep = document.getElementById('edit2Step').checked;
     }
 
-    // 4. Update Auth Header (prevents cloud sync errors)
+    // Update Auth Header safely
     try {
-        const decoded = atob(authHeader);
-        const oldPass = decoded.includes(':') ? decoded.split(':')[1] : decoded;
-        const passwordToUse = newPw !== "" ? newPw : oldPass;
+        let currentPass = "";
+        if (authHeader) {
+            const decoded = atob(authHeader);
+            currentPass = decoded.includes(':') ? decoded.split(':')[1] : decoded;
+        }
+        const passwordToUse = newPw !== "" ? newPw : currentPass;
         authHeader = btoa(combinedName + ":" + passwordToUse);
         localStorage.setItem('reson_auth', authHeader);
-    } catch(e) {
-        console.error("Auth update failed", e);
-    }
+    } catch(e) { console.error("Header update failed", e); }
 
-    // 5. Run existing save/UI update logic
     save(); 
     loadProfileUI(); 
     closeEditProfile();
-    
-    // 6. Trigger the custom In-App popup
     showToast("Changes Saved!");
 }
 function deleteAccount() {
@@ -618,13 +613,7 @@ function deleteAccount() {
         location.reload();
     }
 }
-function loadProfileUI() {
-    if(!db.profile) db.profile = { username: '', phone: '', pic: '' };
-    document.getElementById('displayName').innerText = db.profile.username || 'User';
-    if(db.profile.pic) {
-        document.getElementById('profileDisplay').src = db.profile.pic;
-    }
-}
+
 
 // Navigation Logic
 function showMain() {
@@ -689,11 +678,18 @@ function save() {
 
 function loadProfileUI() {
     if(!db.profile) db.profile = { username: '', phone: '', pic: '' };
-    document.getElementById('editUsername').value = db.profile.username || '';
-    document.getElementById('editPhone').value = db.profile.phone || '';
-    if(db.profile.pic) {
-        document.getElementById('profileDisplay').src = db.profile.pic;
-    }
+    
+    // Update the main profile screen text
+    const displayEl = document.getElementById('displayName');
+    if(displayEl) displayEl.innerText = db.profile.username || 'User';
+    
+    // Update the profile picture
+    const picEl = document.getElementById('profileDisplay');
+    if(picEl && db.profile.pic) picEl.src = db.profile.pic;
+
+    // This part prevents the "null" error that was stopping your button from working
+    const userInp = document.getElementById('usernameInput');
+    if(userInp) userInp.value = db.profile.username || '';
 }
 function getGroupable() {
     const base = ['todo', 'work', 'groceries', 'errands'];

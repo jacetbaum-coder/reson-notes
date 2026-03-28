@@ -283,7 +283,209 @@ textarea {
 .login-box button { width:100%; padding:12px; background:var(--accent); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; margin-top: 10px; }
 </style>
 </head>
+<!-- Replace your existing <body> content with this updated version -->
+
 <body>
+<!-- UPDATED LOGIN/REGISTER OVERLAY -->
+<div id="loginOverlay">
+    <div class="login-box" id="authBox">
+        <h2 style="color:var(--accent)" id="authTitle">Reson Notes</h2>
+        
+        <!-- Registration Fields (Hidden by default) -->
+        <div id="registerFields" style="display:none;">
+            <input type="tel" id="phoneInput" placeholder="Phone Number (for recovery)">
+        </div>
+
+        <input type="text" id="usernameInput" placeholder="Username">
+        <input type="password" id="passwordInput" placeholder="Passcode">
+        
+        <button id="authBtn" onclick="handleAuth()">Sign In</button>
+        
+        <p id="toggleText" style="font-size: 0.8rem; color: var(--accent); margin-top: 15px; cursor:pointer; font-weight:bold;" onclick="toggleAuthMode()">
+            Need an account? Register here.
+        </p>
+    </div>
+</div>
+
+<header>
+  <div class="month-label" id="monthDisplay">Loading...</div>
+  <button id="todayBtn" onclick="jumpToToday()">Today</button>
+  <button class="cal-icon" onclick="toggleModal()">🗓️</button>
+</header>
+
+<div class="calendar-strip" id="strip"></div>
+
+<div class="filter-container" id="filterContainer"></div>
+
+<div id="noteDeck"></div>
+
+<div class="note-container">
+    <div style="display:flex;gap:10px;margin-bottom:10px;">
+        <button onclick="insertBullet()" style="border:none;background:#e8f5e9;border-radius:8px;padding:6px 10px;font-weight:700;cursor:pointer;">•</button>
+    </div>
+    <textarea id="noteContent" placeholder="Type your notes..."></textarea>
+    <button class="add-note" onclick="commitNote()">✔</button>
+</div>
+
+<div id="bottomTabs">
+    <button onclick="showMain()">Notes</button>
+    <button onclick="showSettings()">Settings</button>
+</div>
+
+<!-- UPDATED SETTINGS/PROFILE VIEW -->
+<div id="settingsView" style="display:none; width:100%; max-width:500px; padding: 20px 0;">
+    <h2 style="color:white; text-align: center;">Profile & Settings</h2>
+    
+    <div class="note-container" style="text-align:center;">
+        <!-- Profile Pic Display -->
+        <div style="position:relative; width:100px; height:100px; margin: 0 auto 15px;">
+            <img id="profileDisplay" src="https://via.placeholder.com/100" style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:3px solid var(--accent);">
+            <label for="picUpload" style="position:absolute; bottom:0; right:0; background:black; color:white; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px;">📷</label>
+            <input type="file" id="picUpload" style="display:none" accept="image/*" onchange="updateProfilePic(this)">
+        </div>
+
+        <input type="text" id="editUsername" placeholder="Username" style="width:90%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
+        <input type="tel" id="editPhone" placeholder="Recovery Phone" style="width:90%; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
+        
+        <button onclick="saveProfile()" style="background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold; margin-bottom: 20px;">Save Changes</button>
+        
+        <hr style="opacity:0.2; margin: 20px 0;">
+
+        <button id="loadCloudBtn" style="background:#eee; color:#333; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold; margin-bottom: 12px;">Sync with Cloud</button>
+        
+        <button onclick="logout()" style="background:#ff4444; color:white; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold;">
+            Logout
+        </button>
+    </div>
+</div>
+
+<!-- Rest of your Modals (noteViewer, calModal, catModal, etc.) remain same as your code -->
+
+<script>
+// --- CORE DATA CONFIG ---
+const WORKER_URL = "https://reson-api.jacetbaum.workers.dev"; 
+let db = JSON.parse(sessionStorage.getItem('reson_db')) || { 
+    notes_list: [], 
+    custom_categories: [],
+    profile: { username: '', phone: '', pic: '' } 
+};
+let authHeader = sessionStorage.getItem('reson_auth'); 
+let isRegistering = false;
+
+// --- AUTH LOGIC ---
+
+function toggleAuthMode() {
+    isRegistering = !isRegistering;
+    const title = document.getElementById('authTitle');
+    const btn = document.getElementById('authBtn');
+    const toggle = document.getElementById('toggleText');
+    const regFields = document.getElementById('registerFields');
+
+    if(isRegistering) {
+        title.innerText = "Create Account";
+        btn.innerText = "Register";
+        toggle.innerText = "Already have an account? Sign In.";
+        regFields.style.display = "block";
+    } else {
+        title.innerText = "Reson Notes";
+        btn.innerText = "Sign In";
+        toggle.innerText = "Need an account? Register here.";
+        regFields.style.display = "none";
+    }
+}
+
+async function handleAuth() {
+    const user = document.getElementById('usernameInput').value.trim();
+    const pass = document.getElementById('passwordInput').value.trim();
+    const phone = document.getElementById('phoneInput').value.trim();
+
+    if(!user || !pass) return alert("Enter credentials");
+    if(isRegistering && !phone) return alert("Phone number required for recovery");
+
+    authHeader = user + ":" + pass;
+    sessionStorage.setItem('reson_auth', authHeader);
+
+    if(isRegistering) {
+        // Initialize profile data for new user
+        db.profile = { username: user, phone: phone, pic: '' };
+        await uploadToCloud();
+    }
+
+    document.getElementById('loginOverlay').style.display = 'none';
+    syncWithCloud();
+}
+
+// --- PROFILE LOGIC ---
+
+function updateProfilePic(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const base64 = e.target.result;
+            // Compress logic would go here if file is too big
+            document.getElementById('profileDisplay').src = base64;
+            db.profile.pic = base64;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function saveProfile() {
+    const newName = document.getElementById('editUsername').value.trim();
+    const newPhone = document.getElementById('editPhone').value.trim();
+    
+    if(!newName) return alert("Username cannot be empty");
+    
+    db.profile.username = newName;
+    db.profile.phone = newPhone;
+    
+    // Update authHeader if username changed
+    const pass = authHeader.split(':')[1];
+    authHeader = newName + ":" + pass;
+    sessionStorage.setItem('reson_auth', authHeader);
+    
+    save(); // Local save + Cloud upload
+    alert("Profile Updated!");
+}
+
+function loadProfileUI() {
+    if(!db.profile) db.profile = { username: '', phone: '', pic: '' };
+    document.getElementById('editUsername').value = db.profile.username || '';
+    document.getElementById('editPhone').value = db.profile.phone || '';
+    if(db.profile.pic) {
+        document.getElementById('profileDisplay').src = db.profile.pic;
+    }
+}
+
+// --- MODIFIED EXISTING FUNCTIONS ---
+
+function showSettings() {
+    loadProfileUI(); // Fill inputs when opening settings
+    document.getElementById('settingsView').style.display = 'block';
+    document.getElementById('noteDeck').style.display = 'none';
+    document.querySelector('.note-container').style.display = 'none';
+    document.querySelector('.filter-container').style.display = 'none';
+    document.querySelector('.calendar-strip').style.display = 'none';
+    document.querySelector('header').style.display = 'none';
+}
+
+function showMain() {
+    document.getElementById('settingsView').style.display = 'none';
+    document.getElementById('noteDeck').style.display = 'grid';
+    document.querySelector('.note-container').style.display = 'block';
+    document.querySelector('.filter-container').style.display = 'flex';
+    document.querySelector('.calendar-strip').style.display = 'flex';
+    document.querySelector('header').style.display = 'flex';
+    renderDeck();
+}
+
+// Ensure your existing uploadToCloud and syncWithCloud stay the same 
+// as they already handle the entire 'db' object which now includes 'profile'.
+
+// ... (Paste all your other existing functions: setupCalendar, renderDeck, etc.) ...
+
+</script>
+</body>
 <div id="loginOverlay">
     <div class="login-box">
         <h2 style="color:var(--accent)">Reson Notes</h2>

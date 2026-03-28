@@ -394,7 +394,6 @@ textarea {
 <!-- Context Menu for Deleting -->
 <div id="noteMenu"></div>
 
-<script>
 // --- CORE DATA CONFIG ---
 const WORKER_URL = "https://reson-api.jacetbaum.workers.dev"; 
 let db = JSON.parse(localStorage.getItem('reson_db')) || { 
@@ -413,35 +412,21 @@ const textarea = document.getElementById('noteContent');
 const deck = document.getElementById('noteDeck');
 const noteContainer = document.querySelector('.note-container');
 
-// --- AUTH LOGIC ---
+// --- AUTH & PROFILE ---
 function toggleAuthMode() {
     isRegistering = !isRegistering;
-    const title = document.getElementById('authTitle');
-    const btn = document.getElementById('authBtn');
-    const toggle = document.getElementById('toggleText');
-    const regFields = document.getElementById('registerFields');
-
-    if(isRegistering) {
-        title.innerText = "Create Account";
-        btn.innerText = "Register";
-        toggle.innerText = "Already have an account? Sign In.";
-        regFields.style.display = "block";
-    } else {
-        title.innerText = "Reson Notes";
-        btn.innerText = "Sign In";
-        toggle.innerText = "Need an account? Register here.";
-        regFields.style.display = "none";
-    }
+    document.getElementById('authTitle').innerText = isRegistering ? "Create Account" : "Reson Notes";
+    document.getElementById('authBtn').innerText = isRegistering ? "Register" : "Sign In";
+    document.getElementById('toggleText').innerText = isRegistering ? "Already have an account? Sign In." : "Need an account? Register here.";
+    document.getElementById('registerFields').style.display = isRegistering ? "block" : "none";
 }
 
 async function handleAuth() {
     const user = document.getElementById('usernameInput').value.trim();
     const pass = document.getElementById('passwordInput').value.trim();
     const phone = document.getElementById('phoneInput').value.trim();
-
     if(!user || !pass) return alert("Enter credentials");
     
-    // Use Base64 encoding for the header and localStorage for persistence
     authHeader = btoa(user + ":" + pass); 
     localStorage.setItem('reson_auth', authHeader);
 
@@ -449,16 +434,13 @@ async function handleAuth() {
         db.profile = { username: user, phone: phone, pic: '' };
         await uploadToCloud();
     }
-
     document.getElementById('loginOverlay').style.display = 'none';
     await syncWithCloud();
-    renderDeck();
 }
-// --- PROFILE LOGIC ---
+
 function openEditProfile() {
     document.getElementById('overlay').style.display = 'block';
     document.getElementById('editProfileModal').style.display = 'block';
-    // Fill inputs with current data
     document.getElementById('editUsername').value = db.profile.username || '';
     document.getElementById('editPhone').value = db.profile.phone || '';
     document.getElementById('editPicPreview').src = db.profile.pic || 'https://via.placeholder.com/80';
@@ -483,9 +465,8 @@ function updateProfilePic(input) {
                 canvas.height = img.height * scaleSize;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                const base64 = canvas.toDataURL('image/jpeg', 0.7);
-                document.getElementById('editPicPreview').src = base64;
-                db.profile.pic = base64;
+                db.profile.pic = canvas.toDataURL('image/jpeg', 0.7);
+                document.getElementById('editPicPreview').src = db.profile.pic;
             };
         };
         reader.readAsDataURL(input.files[0]);
@@ -494,32 +475,24 @@ function updateProfilePic(input) {
 
 async function saveProfile() {
     const newName = document.getElementById('editUsername').value.trim();
-    const newPhone = document.getElementById('editPhone').value.trim();
     if(!newName) return alert("Username required");
-
     db.profile.username = newName;
-    db.profile.phone = newPhone;
-
-    // Fix Auth Header
+    db.profile.phone = document.getElementById('editPhone').value.trim();
+    
     const oldPass = atob(authHeader).split(':')[1];
     authHeader = btoa(newName + ":" + oldPass);
     localStorage.setItem('reson_auth', authHeader);
 
-    save(); // Pushes to cloud
-    loadProfileUI(); // Updates the main screen
+    save(); 
+    loadProfileUI();
     closeEditProfile();
-    alert("Profile Saved!");
 }
 
 function loadProfileUI() {
     if(!db.profile) db.profile = { username: '', phone: '', pic: '' };
     document.getElementById('displayName').innerText = db.profile.username || 'User';
-    if(db.profile.pic) {
-        document.getElementById('profileDisplay').src = db.profile.pic;
-    }
+    document.getElementById('profileDisplay').src = db.profile.pic || 'https://via.placeholder.com/100';
 }
-
-// Navigation Logic
 function showMain() {
     document.querySelector('header').style.display = 'flex';
     document.getElementById('strip').style.display = 'flex';
@@ -858,7 +831,7 @@ function insertBullet() {
     textarea.selectionStart = textarea.selectionEnd = s + 2;
 }
 
-const R2_URL = "https://pub-66479d392b224c95a6cb0e230ac238bb.r2.dev/notes_db.json";
+// --- CLOUD SYNC ---
 async function uploadToCloud() {
     if(!authHeader) return;
     try {
@@ -870,7 +843,7 @@ async function uploadToCloud() {
             },
             body: JSON.stringify(db)
         });
-    } catch (e) { console.error("Cloud Sync Failed", e); }
+    } catch (e) { console.error("Cloud Error", e); }
 }
 
 async function syncWithCloud() {
@@ -880,47 +853,43 @@ async function syncWithCloud() {
             headers: { 'Authorization': 'Basic ' + authHeader },
             cache: 'no-store'
         });
-        if (!res.ok) throw new Error("Sync failed");
-        
         const data = await res.json();
-        if (data) { 
+        if (data && data.notes_list) { 
             db = data;
             localStorage.setItem('reson_db', JSON.stringify(db));
-            
-            // Force the UI to show the new data
             loadProfileUI(); 
+            cleanupData();
             renderFilters();
             renderDeck();
             setupCalendar();
-            console.log("Cloud Data Synced");
         }
-    } catch (e) { console.log("Cloud sync error: ", e); }
+    } catch (e) { console.log("Sync failed"); }
 }
-// Single Initialization Block
+
+// --- INITIALIZATION ---
 document.addEventListener("DOMContentLoaded", () => {
     if(authHeader) {
         document.getElementById('loginOverlay').style.display = 'none';
-        // Immediately sync to get profile pic from other devices
-        syncWithCloud().then(() => {
-            loadProfileUI();
-            cleanupData();
-        });
+        syncWithCloud();
     } else {
         document.getElementById('loginOverlay').style.display = 'flex';
     }
-    
-    // Initial UI Render
     setupCalendar();
     renderFilters();
     renderDeck();
 });
 
-// Sync when app is reopened
 document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible" && authHeader) syncWithCloud();
 });
 
 document.getElementById('loadCloudBtn').onclick = syncWithCloud;
-</script>
+
+window.addEventListener('mousedown', (e) => {
+    const m = document.getElementById('noteMenu');
+    if (m.style.display === 'block' && !m.contains(e.target) && !e.target.classList.contains('note-menu-btn')) {
+        m.style.display = 'none';
+    }
+});
 </body>
 </html>

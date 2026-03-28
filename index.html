@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Reson Notes</title>
+
 <style>
-/* ... Keeping your existing CSS variables ... */
 :root {
     --bg:#77c98d; --card:#ffffff; --text:#000000; --accent:#2d5a3a;
     --muted:#666666; --heat-0:#f0fdf4; --heat-1:#dcfce7; --heat-2:#86efac; --heat-3:#22c55e;
@@ -13,13 +13,13 @@
 
 body { margin:0; font-family:-apple-system,system-ui,sans-serif; background:var(--bg); display:flex; flex-direction:column; align-items:center; padding:20px; min-height:100vh; }
 
-/* LOGIN SCREEN STYLE */
+/* NEW: LOGIN SCREEN STYLE */
 #loginOverlay { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:9000; display:flex; flex-direction:column; align-items:center; justify-content:center; }
 .login-box { background:white; padding:30px; border-radius:30px; width:80%; max-width:300px; box-shadow:0 10px 30px rgba(0,0,0,0.1); text-align:center; }
-.login-box input { width:100%; padding:12px; margin:10px 0; border-radius:10px; border:1px solid #ddd; box-sizing:border-box; }
+.login-box input { width:100%; padding:12px; margin:10px 0; border-radius:10px; border:1px solid #ddd; box-sizing:border-box; font-size: 16px; }
 .login-box button { width:100%; padding:12px; background:var(--accent); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; }
 
-/* ... (Rest of your existing CSS remains the same) ... */
+/* YOUR ORIGINAL STYLES */
 header { width:100%; max-width:500px; display:flex; flex-direction:column; align-items:center; position:relative; margin-bottom:10px; }
 .month-label { font-size:1.1rem; font-weight:800; color:white; text-transform:uppercase; text-align: center;}
 #todayBtn { background: rgba(255,255,255,0.25); border: 1px solid white; color: white; padding: 4px 14px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; cursor: pointer; margin-top: 8px; text-transform: uppercase; display: none;}
@@ -27,43 +27,48 @@ header { width:100%; max-width:500px; display:flex; flex-direction:column; align
 .calendar-strip { display:flex; overflow-x:auto; gap:12px; width:100%; max-width:500px; padding:15px 0; scrollbar-width:none; scroll-behavior: smooth; -webkit-overflow-scrolling: touch;}
 .calendar-strip::-webkit-scrollbar { display:none; }
 .day-card { min-width:60px; background:var(--card); border-radius:18px; padding:12px 0; text-align:center; cursor:pointer; transition: 0.3s; flex-shrink: 0;}
-.day-card.active { background:#000; color:white; transform:scale(1.1); }
+.day-card.active { background:#000; color:white; transform:scale(1.1); box-shadow: 0 4px 12px rgba(0,0,0,0.2);}
 .filter-container { display: flex; gap: 10px; width: 100%; max-width: 500px; margin: 15px 0; overflow-x: auto; scrollbar-width: none; align-items: center;}
 .bubble { padding: 8px 20px; background: var(--card); border-radius: 20px; font-weight: 600; cursor: pointer; border: none; white-space: nowrap;}
 .bubble.active { background: var(--accent); color: white; border: 2px solid white !important; }
 .add-cat-btn { background: rgba(255,255,255,0.3); color: white; width: 35px; height: 35px; border-radius: 50%; border: 2px solid white; font-size: 1.2rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;}
-#noteDeck { width: 100%; max-width: 500px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;}
-.saved-note { position: relative; background: #ffffff; padding: 15px; border-radius: 18px; min-height: 90px; display: flex; flex-direction: column; cursor: pointer;}
+#noteDeck { width: 100%; max-width: 500px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.saved-note { position: relative; background: #ffffff; padding: 15px; border-radius: 18px; min-height: 90px; display: flex; flex-direction: column; border: 1px solid rgba(0,0,0,0.02); cursor: pointer;}
 .saved-note-title { font-weight: 800; font-size: 0.75rem; color: var(--accent); margin-bottom: 6px; text-transform: lowercase; }
 .card-checklist { display: flex; flex-direction: column; gap: 6px; }
-.checklist-item { display: flex; align-items: flex-start; gap: 8px; }
+.checklist-item { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
 .checklist-text { font-size: 0.85rem; color: #444; line-height: 1.3; }
 .checklist-text.done { text-decoration: line-through; color: #aaa; }
-.note-container { width: 100%; max-width: 500px; background: var(--card); border-radius: 30px; padding: 25px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 100px;}
-textarea { width: 100%; height: 20vh; border: none; outline: none; resize: none; font-size: 1.1rem; font-family: inherit;}
-.add-note { position: absolute; bottom: -25px; right: 20px; width: 50px; height: 50px; border-radius: 50%; border: none; background: black; color: white; font-size: 28px; cursor: pointer; }
-#bottomTabs { position:fixed; bottom:0; left:0; width:100%; background:white; display:flex; justify-content:space-around; padding:15px 0; z-index:5000; }
-#bottomTabs button { background:none; border:none; font-weight:700; cursor:pointer; flex:1; }
+.note-container { width: 100%; max-width: 500px; background: var(--card); border-radius: 30px; padding: 25px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin: 15px 0;}
+textarea { width: 100%; height: 35vh; border: none; outline: none; resize: none; font-size: 1.1rem; line-height: 1.6; font-family: inherit;}
+.add-note { position: absolute; bottom: -25px; right: 20px; width: 50px; height: 50px; border-radius: 50%; border: none; background: black; color: white; font-size: 28px; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,0.3);}
 #noteViewer { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 500px; background: white; z-index: 8000; display: none; padding: 25px; border-radius: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
-#overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:7000; backdrop-filter:blur(4px); }
-#noteMenu { display: none; position: absolute; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 9000; padding: 8px; min-width: 120px; }
-.note-menu-btn { position: absolute; top: 8px; right: 8px; background: none; border: none; color: #ccc; cursor: pointer; }
+#noteViewerContent { width: 100%; height: 35vh; border: none; outline: none; resize: none; font-size: 1.1rem; font-family: inherit; }
+#calModal, #catModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 400px; background: var(--bg); border: 2px solid white; border-radius: 30px; padding: 30px; z-index: 4000; color: white;}
+.modal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center; }
+.circle-day { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.9rem; font-weight: 700; cursor: pointer; color: #333; transition: 0.2s;}
+.circle-day.selected { outline: 2px solid white; outline-offset: 2px; }
+#overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; backdrop-filter:blur(4px); }
+.note-menu-btn { position: absolute; top: 8px; right: 8px; background: none; border: none; color: #ccc; cursor: pointer; font-size: 1.1rem; }
+#bottomTabs { position:fixed; bottom:0; left:0; width:100%; background:white; display:flex; justify-content:space-around; padding:10px 0; z-index:5000; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+#bottomTabs button { background:none; border:none; font-weight:700; cursor:pointer; flex:1; }
+#noteMenu { display: none; position: absolute; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 6000; padding: 8px; min-width: 120px; }
+#catInput { width: 100%; padding: 12px; border-radius: 15px; border: none; margin: 15px 0; font-size: 1rem; outline: none;}
 </style>
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
+<!-- NEW: LOGIN OVERLAY -->
 <div id="loginOverlay">
     <div class="login-box">
         <h2 style="color:var(--accent)">Reson Notes</h2>
         <input type="text" id="usernameInput" placeholder="Username">
         <input type="password" id="passwordInput" placeholder="Passcode">
         <button onclick="login()">Sign In</button>
-        <p style="font-size: 0.7rem; color: #888; margin-top: 15px;">Login or create an account by entering any username and password.</p>
+        <p style="font-size: 0.7rem; color: #888; margin-top: 15px;">Login or create an account by entering any username and passcode.</p>
     </div>
 </div>
 
-<!-- MAIN APP (Same structure as yours) -->
 <header>
   <div class="month-label" id="monthDisplay">Loading...</div>
   <button id="todayBtn" onclick="jumpToToday()">Today</button>
@@ -75,38 +80,70 @@ textarea { width: 100%; height: 20vh; border: none; outline: none; resize: none;
 <div id="noteDeck"></div>
 
 <div class="note-container">
-    <button onclick="insertBullet()" style="border:none;background:#e8f5e9;border-radius:8px;padding:6px 10px;font-weight:700;margin-bottom:10px;">•</button>
+    <div style="display:flex;gap:10px;margin-bottom:10px;">
+        <button onclick="insertBullet()" style="border:none;background:#e8f5e9;border-radius:8px;padding:6px 10px;font-weight:700;cursor:pointer;">•</button>
+    </div>
     <textarea id="noteContent" placeholder="Type your notes..."></textarea>
     <button class="add-note" onclick="commitNote()">✔</button>
 </div>
 
 <div id="bottomTabs">
     <button onclick="showMain()">Notes</button>
-    <button onclick="logout()" style="color:red">Logout</button>
+    <button onclick="showSettings()">Settings</button>
+</div>
+
+<!-- CATEGORY MODAL -->
+<div id="catModal">
+    <h2 style="margin:0;">New Category</h2>
+    <input type="text" id="catInput" placeholder="Category name...">
+    <div style="display:flex; gap:10px;">
+        <button onclick="closeAllModals()" style="flex:1; padding:12px; border-radius:15px; border:1px solid white; background:none; color:white; cursor:pointer; font-weight:bold;">Cancel</button>
+        <button onclick="createNewCategory()" style="flex:1; padding:12px; border-radius:15px; border:none; background:white; color:var(--accent); cursor:pointer; font-weight:bold;">Create</button>
+    </div>
+</div>
+
+<div id="settingsView" style="display:none; width:100%; max-width:500px; padding: 20px 0;">
+    <h2 style="color:white; text-align: center;">Settings</h2>
+    <div class="note-container">
+        <button onclick="logout()" style="background:red; color:white; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold;">Logout</button>
+    </div>
 </div>
 
 <div id="noteViewer">
-    <textarea id="noteViewerContent" style="height:40vh"></textarea>
-    <button onclick="closeNoteViewer()" style="width:100%; padding:15px; background:var(--accent); color:white; border:none; border-radius:15px; margin-top:10px;">Save & Close</button>
+    <button onclick="closeAllModals()" style="position:absolute; top:10px; right:15px; background:none; border:none; font-size:1.5rem; cursor:pointer; font-weight:bold;">×</button>
+    <textarea id="noteViewerContent"></textarea>
+    <button onclick="closeNoteViewer()" style="margin-top:15px; width:100%; padding:12px; background:var(--accent); color:white; border:none; border-radius:15px; font-weight:700; cursor:pointer;">Save & Close</button>
 </div>
 
-<div id="overlay" onclick="closeAllModals()"></div>
+<div id="calModal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h2 id="modalMonthTitle" style="margin:0;">CALENDAR</h2>
+        <button onclick="toggleModal()" style="background:none;border:none;color:white;font-size:1.5rem;">×</button>
+    </div>
+    <div class="modal-grid" id="fullGrid"></div>
+</div>
+
 <div id="noteMenu"></div>
+<div id="overlay" onclick="closeAllModals()"></div>
 
 <script>
-/** CONFIGURATION **/
+/** 1. CONFIGURATION & STATE **/
 const WORKER_URL = "https://reson-api.jacetbaum.workers.dev";
-
-let db = { notes_list: [], custom_categories: [] };
+let db = JSON.parse(localStorage.getItem('reson_db')) || { notes_list: [], custom_categories: [] };
 let selectedDate = new Date();
 let currentCategory = null;
 let authHeader = localStorage.getItem('reson_auth');
 
-/** AUTHENTICATION **/
+const strip = document.getElementById('strip');
+const textarea = document.getElementById('noteContent');
+const deck = document.getElementById('noteDeck');
+const noteContainer = document.querySelector('.note-container');
+
+/** 2. AUTHENTICATION LOGIC **/
 function login() {
     const user = document.getElementById('usernameInput').value.trim();
     const pass = document.getElementById('passwordInput').value.trim();
-    if(!user || !pass) return alert("Enter details");
+    if(!user || !pass) return alert("Please enter both credentials");
     
     authHeader = user + ":" + pass;
     localStorage.setItem('reson_auth', authHeader);
@@ -116,14 +153,14 @@ function login() {
 
 function logout() {
     localStorage.removeItem('reson_auth');
+    localStorage.removeItem('reson_db');
     location.reload();
 }
 
-if(authHeader) {
-    document.getElementById('loginOverlay').style.display = 'none';
-}
+// Check if already logged in
+if(authHeader) document.getElementById('loginOverlay').style.display = 'none';
 
-/** CLOUD SYNC LOGIC (IMMEDIATE) **/
+/** 3. THE SYNC BRAIN **/
 async function uploadToCloud() {
     if(!authHeader) return;
     try {
@@ -132,20 +169,19 @@ async function uploadToCloud() {
             headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' },
             body: JSON.stringify(db)
         });
-        console.log("Cloud Saved");
-    } catch (e) { console.error("Cloud Error", e); }
+        console.log("Cloud Updated");
+    } catch (e) { console.error("Cloud Sync Failed", e); }
 }
 
 async function syncWithCloud() {
     if(!authHeader) return;
     try {
-        const res = await fetch(WORKER_URL, {
-            headers: { 'Authorization': authHeader },
-            cache: 'no-store'
-        });
+        const res = await fetch(WORKER_URL, { headers: { 'Authorization': authHeader }, cache: 'no-store' });
         const data = await res.json();
-        if(data) {
+        if (data && data.notes_list) { 
             db = data;
+            localStorage.setItem('reson_db', JSON.stringify(db));
+            cleanupData();
             renderFilters();
             renderDeck();
             setupCalendar();
@@ -153,160 +189,37 @@ async function syncWithCloud() {
     } catch (e) { console.log("New user or fetch error"); }
 }
 
-// "IMMEDIATE" SYNC: When user switches back to this app/tab
+function saveAndSync() {
+    localStorage.setItem('reson_db', JSON.stringify(db));
+    uploadToCloud();
+}
+
+// Silent sync when user switches back to the tab
 document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") syncWithCloud();
 });
 
-// AUTO-SAVE: Triggered whenever DB is modified
-function saveAndSync() {
-    localStorage.setItem('reson_db', JSON.stringify(db));
-    uploadToCloud(); // Immediate upload
-}
-
-/** THE REST OF YOUR LOGIC (ADAPTED) **/
-
+/** 4. YOUR ORIGINAL APP LOGIC (RESTORED) **/
 function formatDateKey(date) {
     const d = new Date(date);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function commitNote() {
-    const textarea = document.getElementById('noteContent');
-    const text = textarea.value.trim();
-    if (!text) return;
-    const dateKey = formatDateKey(selectedDate);
-    const cat = currentCategory ? currentCategory : "general";
-    
-    db.notes_list.unshift({ id: Date.now(), date: dateKey, tags: [cat], content: text, checkedIndices: [] });
-    
-    textarea.value = '';
-    renderDeck();
-    saveAndSync();
+function getGroupable() {
+    const base = ['todo', 'work', 'groceries', 'errands'];
+    return [...base, ...(db.custom_categories || [])];
 }
 
-function renderDeck() {
-    const deck = document.getElementById('noteDeck');
-    deck.innerHTML = '';
-    const key = formatDateKey(selectedDate);
-    
-    const filtered = (db.notes_list || []).filter(n => {
-        const dMatch = n.date === key;
-        const cMatch = !currentCategory || n.tags[0].toLowerCase() === currentCategory.toLowerCase();
-        return dMatch && cMatch;
-    });
-
-    filtered.forEach(note => {
-        const card = document.createElement('div');
-        card.className = 'saved-note';
-        let lines = note.content.split('\n').filter(l => l.trim() !== "");
-        let html = `<button class="note-menu-btn" onclick="event.stopPropagation(); openMenu(event, ${note.id})">⋮</button>`;
-        html += `<span class="saved-note-title">${note.tags[0]}</span><div class="card-checklist">`;
-        lines.forEach((l, i) => {
-            const done = note.checkedIndices && note.checkedIndices.includes(i);
-            html += `<div class="checklist-item" onclick="event.stopPropagation(); toggleLine(${note.id}, ${i})">
-                        <input type="checkbox" ${done ? 'checked' : ''}>
-                        <div class="checklist-text ${done ? 'done' : ''}">${l}</div>
-                     </div>`;
-        });
-        html += `</div>`;
-        card.innerHTML = html;
-        card.onclick = () => openNoteViewer(note);
-        deck.appendChild(card);
-    });
-}
-
-function toggleLine(id, idx) {
-    const n = db.notes_list.find(x => x.id === id);
-    if (!n.checkedIndices) n.checkedIndices = [];
-    const pos = n.checkedIndices.indexOf(idx);
-    if (pos > -1) n.checkedIndices.splice(pos, 1);
-    else n.checkedIndices.push(idx);
-    renderDeck();
-    saveAndSync();
-}
-
-function deleteNote(id) {
-    db.notes_list = db.notes_list.filter(n => n.id !== id);
-    renderDeck();
-    saveAndSync();
-    document.getElementById('noteMenu').style.display = 'none';
-}
-
-// ... Insert your calendar, filter, and modal functions here (they remain mostly the same) ...
-// Ensure any function that changes 'db' (like delete, toggle, or edit) calls saveAndSync()
-
-function renderFilters() {
-    const container = document.getElementById('filterContainer');
-    const baseCats = [{ id: null, label: 'Home' }, { id: 'todo', label: 'To-do' }, { id: 'work', label: 'Work' }];
-    container.innerHTML = baseCats.map(cat => `
-        <button class="bubble ${currentCategory === cat.id ? 'active' : ''}" onclick="switchCategory('${cat.id || ''}')">${cat.label}</button>
-    `).join('');
-}
-
-function switchCategory(id) {
-    currentCategory = id === '' ? null : id;
-    renderFilters();
-    renderDeck();
-}
-
-function setupCalendar() {
-    const strip = document.getElementById('strip');
-    strip.innerHTML = '';
-    const year = selectedDate.getFullYear();
-    const month = selectedDate.getMonth();
-    const days = new Date(year, month + 1, 0).getDate();
-    document.getElementById('monthDisplay').innerText = selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-    
-    for (let i = 1; i <= days; i++) {
-        const d = new Date(year, month, i);
-        const isSel = formatDateKey(d) === formatDateKey(selectedDate);
-        const card = document.createElement('div');
-        card.className = `day-card ${isSel ? 'active' : ''}`;
-        card.innerHTML = `<div style="font-size:0.7rem;">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</div><div style="font-weight:800;">${i}</div>`;
-        card.onclick = () => { selectedDate = d; setupCalendar(); renderDeck(); };
-        strip.appendChild(card);
-    }
-}
-
-let activeNote = null;
-function openNoteViewer(note) {
-    activeNote = note;
-    document.getElementById('noteViewerContent').value = note.content;
-    document.getElementById('overlay').style.display = 'block';
-    document.getElementById('noteViewer').style.display = 'block';
-}
-function closeNoteViewer() {
-    if(activeNote) {
-        activeNote.content = document.getElementById('noteViewerContent').value;
-        saveAndSync();
-    }
-    closeAllModals();
-    renderDeck();
-}
-function closeAllModals() {
-    document.getElementById('noteViewer').style.display = 'none';
-    document.getElementById('overlay').style.display = 'none';
-}
-function openMenu(e, id) {
-    const menu = document.getElementById('noteMenu');
-    menu.style.display = 'block';
-    menu.style.top = e.pageY + 'px';
-    menu.style.left = (e.pageX - 100) + 'px';
-    menu.innerHTML = `<button onclick="deleteNote(${id})" style="color:red;width:100%;padding:10px;border:none;background:none;font-weight:bold;">Delete</button>`;
-}
-
-function insertBullet() {
-    const textarea = document.getElementById('noteContent');
-    textarea.value += "• ";
-    textarea.focus();
-}
-
-window.onload = () => {
-    if(authHeader) syncWithCloud();
-    renderFilters();
-    setupCalendar();
-};
-</script>
-</body>
-</html>
+function cleanupData() {
+    let cleaned = [];
+    let seen = {};
+    const groupable = getGroupable();
+    (db.notes_list || []).forEach(n => {
+        let cat = n.tags[0].toLowerCase();
+        let key = n.date + "_" + cat;
+        if (groupable.includes(cat)) {
+            if (seen[key]) {
+                if (!seen[key].content.includes(n.content)) seen[key].content += "\n" + n.content;
+            } else {
+                seen[key] = n;
+                cleaned.push(n);

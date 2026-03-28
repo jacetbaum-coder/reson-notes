@@ -294,10 +294,32 @@ input:checked + .sld:before { transform: translateX(16px); }
 .login-box { background:white; padding:30px; border-radius:30px; width:80%; max-width:300px; box-shadow:0 10px 30px rgba(0,0,0,0.1); text-align:center; }
 .login-box input { width:100%; padding:12px; margin:10px 0; border-radius:10px; border:1px solid #ddd; box-sizing:border-box; font-size: 16px; outline: none; }
 .login-box button { width:100%; padding:12px; background:var(--accent); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; margin-top: 10px; }
+/* Custom In-App Toast Notification */
+#toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    z-index: 9999;
+    display: none;
+    animation: fadeInOut 2.5s ease-in-out;
+}
+@keyframes fadeInOut {
+    0% { opacity: 0; bottom: 60px; }
+    20% { opacity: 1; bottom: 80px; }
+    80% { opacity: 1; bottom: 80px; }
+    100% { opacity: 0; bottom: 60px; }
+}
 </style>
 </head>
 <!-- Replace your existing <body> content with this updated version -->
-
+<div id="toast">Changes Saved!</div>
 <body>
 <!-- UPDATED LOGIN/REGISTER OVERLAY -->
 <!-- START OF LOGIN/REGISTER UI -->
@@ -479,7 +501,13 @@ function toggleAuthMode() {
         regFields.style.display = "none";
     }
 }
-
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.innerText = message;
+    toast.style.display = 'block';
+    // Hide it again after the animation finishes
+    setTimeout(() => { toast.style.display = 'none'; }, 2500);
+}
 async function handleAuth() {
     const user = document.getElementById('usernameInput').value.trim();
     const pass = document.getElementById('passwordInput').value.trim();
@@ -545,28 +573,44 @@ function updateProfilePic(input) {
 }
 
 async function saveProfile() {
+    // 1. Capture the data from the inputs
     const fn = document.getElementById('editFN').value.trim();
     const ln = document.getElementById('editLN').value.trim();
     const newEmail = document.getElementById('editEm').value.trim();
     const newPw = document.getElementById('editPw').value.trim();
     const combinedName = (fn + " " + ln).trim();
     
-    if(!fn) return alert("First Name required");
+    // 2. Validation
+    if(!fn) {
+        showToast("First Name is required!");
+        return;
+    }
 
+    // 3. Update the database object
     db.profile.username = combinedName;
     db.profile.email = newEmail;
-    db.profile.twoStep = document.getElementById('edit2Step').checked;
+    if(document.getElementById('edit2Step')) {
+        db.profile.twoStep = document.getElementById('edit2Step').checked;
+    }
 
-    // Update Auth Header
-    const oldPass = atob(authHeader).split(':')[1];
-    const passwordToUse = newPw !== "" ? newPw : oldPass;
-    authHeader = btoa(combinedName + ":" + passwordToUse);
-    localStorage.setItem('reson_auth', authHeader);
+    // 4. Update Auth Header (prevents cloud sync errors)
+    try {
+        const decoded = atob(authHeader);
+        const oldPass = decoded.includes(':') ? decoded.split(':')[1] : decoded;
+        const passwordToUse = newPw !== "" ? newPw : oldPass;
+        authHeader = btoa(combinedName + ":" + passwordToUse);
+        localStorage.setItem('reson_auth', authHeader);
+    } catch(e) {
+        console.error("Auth update failed", e);
+    }
 
+    // 5. Run existing save/UI update logic
     save(); 
     loadProfileUI(); 
     closeEditProfile();
-    alert("Profile Saved!");
+    
+    // 6. Trigger the custom In-App popup
+    showToast("Changes Saved!");
 }
 function deleteAccount() {
     if(confirm("Permanently delete all data? This cannot be undone.")) {

@@ -334,10 +334,14 @@ textarea {
 <div id="settingsView" style="display:none; width:100%; max-width:500px; padding: 20px 0;">
     <h2 style="color:white; text-align: center;">Settings</h2>
     <div class="note-container">
-        <button id="loadCloudBtn" style="background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold;">Sync with Cloud</button>
+        <button id="loadCloudBtn" style="background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold; margin-bottom: 12px;">Sync with Cloud</button>
+        <button onclick="logout()" style="background:#ff4444; color:white; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold;">Logout & Clear Data</button>
     </div>
 </div>
-
+<!-- Inside <div id="settingsView"> -->
+<button onclick="logout()" style="margin-top:20px; background:#ff4444; color:white; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold;">
+    Logout & Clear Data
+</button>
 <div id="noteViewer">
     <button id="noteViewerClose" onclick="closeNoteViewer()">×</button>
     <textarea id="noteViewerContent"></textarea>
@@ -356,16 +360,16 @@ textarea {
 <div id="overlay" onclick="closeAllModals()"></div>
 
 <script>
-const WORKER_URL = "https://reson-api.jacetbaum.workers.dev"; // Your new Worker URL
-let db = JSON.parse(localStorage.getItem('reson_db')) || { notes_list: [], custom_categories: [] };
-let authHeader = localStorage.getItem('reson_auth'); // Stores "user:pass"
+const WORKER_URL = "https://reson-api.jacetbaum.workers.dev"; 
+// We use sessionStorage so that closing the tab logs you out automatically
+let db = JSON.parse(sessionStorage.getItem('reson_db')) || { notes_list: [], custom_categories: [] };
+let authHeader = sessionStorage.getItem('reson_auth'); 
 let selectedDate = new Date();
 let currentCategory = null;
 const strip = document.getElementById('strip');
 const textarea = document.getElementById('noteContent');
 const deck = document.getElementById('noteDeck');
 const noteContainer = document.querySelector('.note-container');
-
 function formatDateKey(date) {
     const d = new Date(date);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -376,19 +380,20 @@ function handleLogin() {
     if(!user || !pass) return alert("Please enter both credentials");
     
     authHeader = user + ":" + pass;
-    localStorage.setItem('reson_auth', authHeader);
+    sessionStorage.setItem('reson_auth', authHeader);
     document.getElementById('loginOverlay').style.display = 'none';
-    syncWithCloud(); // Initial fetch after logging in
+    syncWithCloud(); 
 }
 
 function logout() {
-    localStorage.removeItem('reson_auth');
-    localStorage.removeItem('reson_db');
-    location.reload(); // Hard reset to login screen
+    sessionStorage.removeItem('reson_auth');
+    sessionStorage.removeItem('reson_db');
+    location.reload(); 
 }
+
 function save() {
-    localStorage.setItem('reson_db', JSON.stringify(db));
-    uploadToCloud(); // Add this line so every local save triggers a cloud push
+    sessionStorage.setItem('reson_db', JSON.stringify(db));
+    uploadToCloud(); 
 }
 function getGroupable() {
     const base = ['todo', 'work', 'groceries', 'errands'];
@@ -703,7 +708,7 @@ async function syncWithCloud() {
         const data = await res.json();
         if (data && data.notes_list) { 
             db = data;
-            localStorage.setItem('reson_db', JSON.stringify(db));
+            sessionStorage.setItem('reson_db', JSON.stringify(db));
             cleanupData();
             renderFilters();
             renderDeck();

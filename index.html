@@ -488,26 +488,46 @@ function loadProfileUI() {
     }
 }
 
-function showSettings() {
-    loadProfileUI(); // Fill inputs when opening settings
-    document.getElementById('settingsView').style.display = 'block';
-    document.getElementById('noteDeck').style.display = 'none';
-    document.querySelector('.note-container').style.display = 'none';
-    document.querySelector('.filter-container').style.display = 'none';
-    document.querySelector('.calendar-strip').style.display = 'none';
-    document.querySelector('header').style.display = 'none';
-}
-
+// Navigation Logic
 function showMain() {
-    document.getElementById('settingsView').style.display = 'none';
+    document.querySelector('header').style.display = 'flex';
+    document.getElementById('strip').style.display = 'flex';
+    document.getElementById('filterContainer').style.display = 'flex';
     document.getElementById('noteDeck').style.display = 'grid';
     document.querySelector('.note-container').style.display = 'block';
-    document.querySelector('.filter-container').style.display = 'flex';
-    document.querySelector('.calendar-strip').style.display = 'flex';
-    document.querySelector('header').style.display = 'flex';
-    renderDeck();
+    document.getElementById('settingsView').style.display = 'none';
 }
 
+function showSettings() {
+    document.querySelector('header').style.display = 'none';
+    document.getElementById('strip').style.display = 'none';
+    document.getElementById('filterContainer').style.display = 'none';
+    document.getElementById('noteDeck').style.display = 'none';
+    document.querySelector('.note-container').style.display = 'none';
+    document.getElementById('settingsView').style.display = 'block';
+    loadProfileUI();
+}
+
+// App Initialization
+document.addEventListener("DOMContentLoaded", () => {
+    if(authHeader) {
+        document.getElementById('loginOverlay').style.display = 'none';
+        loadProfileUI();
+        cleanupData();
+        renderFilters();
+        setupCalendar();
+        renderDeck();
+        syncWithCloud();
+    } else {
+        document.getElementById('loginOverlay').style.display = 'flex';
+    }
+});
+
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && authHeader) syncWithCloud();
+});
+
+document.getElementById('loadCloudBtn').onclick = syncWithCloud;
 
 // Ensure your existing uploadToCloud and syncWithCloud stay the same 
 // as they already handle the entire 'db' object which now includes 'profile'.
@@ -574,7 +594,6 @@ function commitNote() {
     save();
     textarea.value = '';
     renderDeck();
-    uploadToCloud();
 }
 
 function renderDeck() {

@@ -158,7 +158,7 @@ header {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 8px;
-    min-height: 270px; /* Ensures 6 rows are always accounted for */
+    height: 315px; /* Change to a fixed height */
     align-content: start;
 }
 .empty-day { aspect-ratio: 1/1; }
@@ -851,7 +851,7 @@ input:checked + .sld:before { transform: translateX(16px); }
         <div class="day-headers">
             <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
         </div>
-        <div class="modal-grid" id="rangeGrid" style="min-height: 240px;"></div>
+        <div class="modal-grid" id="rangeGrid" style="height: 315px;"></div>
     </div>
 
     <div style="margin-top:15px; padding:12px; background:rgba(255,255,255,0.2); border-radius:20px;">

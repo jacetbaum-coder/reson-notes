@@ -402,6 +402,9 @@ input:checked + .sld:before { transform: translateX(16px); }
             <div><label>First Name</label><input type="text" id="editFN"></div>
             <div><label>Last Name</label><input type="text" id="editLN"></div>
         </div>
+            <div style="margin-top: 5px; margin-bottom: 15px;">
+    <button class="btn-sml" onclick="rollUsername()" style="background:var(--accent); color:white; width:100%; padding:10px; border-radius:10px; font-size:0.75rem;">🎲 Generate Random Name</button>
+</div>
     </div>
 
    <div class="set-sec">
@@ -531,7 +534,39 @@ function toggleAuthMode() {
         regFields.style.display = "none";
     }
 }
+const adjectives = [
+  "Brave", "Clever", "Zany", "Mighty", "Curious", "Lucky", "Happy", "Swift",
+  "Golden", "Fancy", "Silly", "Wild", "Bright", "Calm", "Jolly", "Sharp",
+  "Cool", "Kind", "Bold", "Fierce", "Cheerful", "Sneaky", "Witty", "Bouncy",
+  "Daring", "Jumpy", "Sparky", "Shiny", "Whimsical", "Gentle", "Funny",
+  "Playful", "Snappy", "Glorious", "Spry", "Nimble", "Perky", "Vivid",
+  "Smiley", "Dreamy", "Lively", "Quirky", "Chipper",
+  // Vulgar / rare adjectives (~30% of list)
+  "Filthy", "Rude", "Sassy", "Thicc", "Grimy", "Freaky" "Juicy", "Slutty", "Stanky", "Badass", "Grimy",
+];
 
+const nouns = [
+  "Fox", "Dragon", "Turtle", "Panda", "Wolf", "Tiger", "Eagle", "Lion",
+  "Rabbit", "Owl", "Dolphin", "Koala", "Phoenix", "Penguin", "Otter",
+  "Falcon", "Badger", "Shark", "Deer", "Lynx", "Bear", "Moose", "Hedgehog",
+  "Squirrel", "Raccoon", "Unicorn", "Whale", "Cat", "Dog", "Seal",
+  "Hawk", "Frog", "Chipmunk", "Crane", "Peacock", "Butterfly", "Octopus",
+  "Cheetah", "Porcupine", "Dragonfly", "Mongoose", "Tortoise", "Giraffe",
+  "Elephant", "Hoe", "Pussy", "Glock", "Snitch", "Penis", "Bitch", "Juice", "L1QR", "Plug", "Thot", "Choppa", "Strap", "Whip", "Ops", "Trap House",
+  // Vulgar / rare nouns (~30% of list)
+];
+
+function rollUsername() {
+    const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const noun = nouns[Math.floor(Math.random() * nouns.length)];
+    
+    // Fill the inputs automatically
+    document.getElementById('editFN').value = adj;
+    document.getElementById('editLN').value = noun;
+    
+    // Optional: Add a subtle haptic-like feel by showing the toast
+    showToast("Rolled: " + adj + " " + noun);
+}
 async function handleAuth() {
     const user = document.getElementById('usernameInput').value.trim();
     const pass = document.getElementById('passwordInput').value.trim();

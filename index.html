@@ -738,10 +738,21 @@ input:checked + .sld:before { transform: translateX(16px); }
 </div>
 <div id="overlay" onclick="closeAllModals()"></div>
 <div id="noteViewer">
+    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:15px; padding-right: 30px;">
+        <div style="display:flex; gap:5px;">
+            <button class="format-btn" onclick="execStyle('bold', 'bold')">B</button>
+            <button class="format-btn" onclick="execStyle('italic', 'italic')">I</button>
+            <button class="format-btn" onclick="execStyle('underline', 'under')">U</button>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <button id="viewerRangeBtn" onclick="openRangeModal()" style="border:none;background:#f3f3f3;border-radius:8px;padding:6px 10px;cursor:pointer; font-size: 1.1rem;">🗓️</button>
+            <button class="note-menu-btn" style="position:static;" onclick="openMenu(event, activeNote.id)">⋮</button>
+        </div>
+    </div>
     <button id="noteViewerClose" onclick="closeNoteViewer()">×</button>
-    <textarea id="noteViewerContent"></textarea>
+    <div id="noteViewerContent" contenteditable="true" style="width:100%; height:45vh; outline:none; font-size:1.1rem; overflow-y:auto; background:#fff;"></div>
+    <button onclick="closeNoteViewer()" style="width:100%; background:black; color:white; border:none; padding:12px; border-radius:15px; font-weight:bold; margin-top:15px;">Save Changes</button>
 </div>
-
 <!-- Calendar Heatmap Modal -->
 <div id="calModal">
     <!-- Navigation Row -->
@@ -1310,16 +1321,33 @@ function toggleLine(id, idx) {
 
 function openNoteViewer(note) {
     activeNote = note;
-    document.getElementById('noteViewerContent').value = note.content;
+    const editor = document.getElementById('noteViewerContent');
+    // Use innerHTML instead of value so formatting works
+    editor.innerHTML = note.content;
+    
     document.getElementById('overlay').style.display = 'block';
     document.getElementById('noteViewer').style.display = 'block';
+    
+    // Update the Range button inside the viewer to show if it's mirrored
+    const rangeBtn = document.getElementById('viewerRangeBtn');
+    if(note.mirrorId) {
+        rangeBtn.style.background = 'var(--accent)';
+        rangeBtn.style.color = 'white';
+    } else {
+        rangeBtn.style.background = '#f3f3f3';
+        rangeBtn.style.color = 'black';
+    }
 }
 
 function closeNoteViewer() {
     if (activeNote) {
-        const newContent = document.getElementById('noteViewerContent').value;
+        const editor = document.getElementById('noteViewerContent');
+        const newContent = editor.innerHTML; // Get formatted HTML
+        
         if (activeNote.mirrorId) {
-            db.notes_list.forEach(n => { if (n.mirrorId === activeNote.mirrorId) n.content = newContent; });
+            db.notes_list.forEach(n => { 
+                if (n.mirrorId === activeNote.mirrorId) n.content = newContent; 
+            });
         } else {
             activeNote.content = newContent;
         }
@@ -1437,11 +1465,39 @@ function renderHeatmap() {
     }
 }
 function openMenu(e, id) {
+    e.stopPropagation();
     const menu = document.getElementById('noteMenu');
     menu.style.display = 'block';
+    
+    // Position menu near the click
+    const menuWidth = 150;
+    let leftPos = e.pageX - menuWidth;
+    if (leftPos < 10) leftPos = 10;
+    
     menu.style.top = (e.pageY + 10) + 'px';
-    menu.style.left = (e.pageX - 100) + 'px';
-    menu.innerHTML = `<button onclick="deleteNote(${id})" style="color:red; width:100%; padding:10px; background:none; border:none; text-align:left; cursor:pointer; font-weight:bold;">Delete</button>`;
+    menu.style.left = leftPos + 'px';
+
+    // Generate Category list for moving
+    const baseCats = ['todo', 'work', 'groceries', 'errands'];
+    const allCats = [...baseCats, ...(db.custom_categories || [])];
+    let catOptions = allCats.map(c => `<div onclick="moveNote(${id}, '${c}')" style="padding:8px; font-size:0.8rem; cursor:pointer; border-bottom:1px solid #f0f0f0;">→ Move to ${c}</div>`).join('');
+
+    menu.innerHTML = `
+        <div style="font-weight:800; font-size:0.6rem; color:#aaa; padding:5px; text-transform:uppercase;">Options</div>
+        ${catOptions}
+        <button onclick="deleteNote(${id})" style="color:red; width:100%; padding:10px; background:none; border:none; text-align:left; cursor:pointer; font-weight:bold; border-top:1px solid #eee;">Delete Note</button>
+    `;
+}
+
+function moveNote(id, newCat) {
+    const note = db.notes_list.find(n => n.id === id);
+    if (note) {
+        note.tags = [newCat.toLowerCase()];
+        save();
+        renderDeck();
+        closeAllModals();
+        showToast("Moved to " + newCat);
+    }
 }
 
 function deleteNote(id) {

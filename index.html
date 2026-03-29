@@ -313,6 +313,43 @@ header {
 .checklist-item { display: flex; align-items: flex-start; gap: 6px; }
 .checklist-text { font-size: 0.8rem; color: #444; line-height: 1.2; white-space: pre-wrap; }
 .checklist-text.done { text-decoration: line-through; color: #aaa; }
+.editor-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: #fff;
+    border: 2px solid #2684ff;
+    border-radius: 6px;
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    position: relative;
+    vertical-align: middle;
+    margin-right: 8px;
+    cursor: pointer;
+    transition: border 0.2s, box-shadow 0.2s;
+}
+.editor-checkbox:checked {
+    background-color: #2684ff;
+    border-color: #2684ff;
+}
+.editor-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 7px;
+    height: 13px;
+    border: solid #fff;
+    border-width: 0 3px 3px 0;
+    transform: rotate(45deg);
+    display: block;
+}
+.editor-checklist-text.done {
+    text-decoration: line-through;
+    color: #aaa;
+}
+
+.editor-checklist-text.done { text-decoration: line-through; color: #aaa; }
 
 .note-container {
     width: 95%; /* Slightly wider for mobile, but constrained by box-sizing */
@@ -356,7 +393,7 @@ textarea {
 
 .add-note {
     position: absolute;
-    bottom: -25px;
+    bottom: 10px;
     right: 20px;
     width: 50px;
     height: 50px;
@@ -758,11 +795,12 @@ input:checked + .sld:before { transform: translateX(16px); }
 <div id="noteViewer">
     <!-- Header with tightened margins to shrink the top space -->
     <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-right: 40px;">
-        <div style="display:flex; gap:8px;">
-            <!-- Format Buttons -->
-            <button class="format-btn" style="background:#e8f5e9; color:var(--accent);" onclick="execStyle('bold', 'bold')">B</button>
-            <button class="format-btn" style="background:#e8f5e9; color:var(--accent);" onclick="execStyle('italic', 'italic')">I</button>
-            <button class="format-btn" style="background:#e8f5e9; color:var(--accent);" onclick="execStyle('underline', 'under')">U</button>
+        <div style="display:flex; gap:5px;">
+            <button id="viewer-btn-bullet" class="format-btn" onclick="toggleListMode('• ', 'noteViewerContent', 'viewer-btn-bullet', 'viewer-btn-check')">•</button>
+            <button id="viewer-btn-check" class="format-btn" onclick="toggleListMode('☐ ', 'noteViewerContent', 'viewer-btn-bullet', 'viewer-btn-check')">☐</button>
+            <button id="viewer-btn-bold" class="format-btn" onclick="execStyle('bold', 'bold', 'noteViewerContent', 'viewer-btn-bold')">B</button>
+            <button id="viewer-btn-italic" class="format-btn" onclick="execStyle('italic', 'italic', 'noteViewerContent', 'viewer-btn-italic')">I</button>
+            <button id="viewer-btn-under" class="format-btn" onclick="execStyle('underline', 'under', 'noteViewerContent', 'viewer-btn-under')">U</button>
         </div>
         <div style="display:flex; gap:15px; align-items:center;">
             <button id="viewerRangeBtn" onclick="openRangeModal()" style="border:none; background:#e8f5e9; border-radius:8px; padding:6px 10px; cursor:pointer; font-size: 1.1rem; color:var(--accent);">🗓️</button>
@@ -878,6 +916,39 @@ document.addEventListener('gesturestart', function (event) {
     event.preventDefault(); // Blocks zoom gestures on iOS
 });
 // --- CORE DATA CONFIG ---
+
+// Checkbox toggle inside editor (main and modal)
+function handleCheckboxToggleInEditor(e) {
+    // Only act if the click is on a checkbox character
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    const range = sel.getRangeAt(0);
+    // Find the node and offset
+    let node = range.startContainer;
+    let offset = range.startOffset;
+    // If node is a text node and contains ☐ or ☑
+    if (node.nodeType === 3) {
+        const text = node.nodeValue;
+        // Find the index of ☐ or ☑ near the cursor
+        let idx = text.lastIndexOf('☐', offset);
+        let checked = false;
+        if (idx === -1) {
+            idx = text.lastIndexOf('☑', offset);
+            checked = true;
+        }
+        if (idx !== -1 && Math.abs(offset - idx) <= 2) {
+            // Toggle the character
+            const newChar = checked ? '☐' : '☑';
+            node.nodeValue = text.substring(0, idx) + newChar + text.substring(idx + 1);
+            // Move cursor after the checkbox
+            range.setStart(node, idx + 1);
+            range.setEnd(node, idx + 1);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            e.preventDefault();
+        }
+    }
+}
 const WORKER_URL = "https://reson-api.jacetbaum.workers.dev"; 
 let db = JSON.parse(localStorage.getItem('reson_db')) || { 
     notes_list: [], 
@@ -1161,6 +1232,20 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
         document.getElementById('loginOverlay').style.display = 'flex';
     }
+
+    // Add click handler for checkboxes in editors
+    const mainEditor = document.getElementById('noteContent');
+    if (mainEditor) {
+        mainEditor.addEventListener('click', function(e) {
+            handleCheckboxToggleInEditor(e);
+        });
+    }
+    const modalEditor = document.getElementById('noteViewerContent');
+    if (modalEditor) {
+        modalEditor.addEventListener('click', function(e) {
+            handleCheckboxToggleInEditor(e);
+        });
+    }
 });
 
 document.addEventListener("visibilitychange", () => {
@@ -1284,26 +1369,22 @@ function renderDeck() {
     displayList.forEach(note => {
         const card = document.createElement('div');
         card.className = 'saved-note';
-        
         // This splits the HTML content into separate lines correctly
         let lines = note.content.split(/<br>|<div>|<\/div>|\n/gi);
-        // Cleanup lines to remove any trailing/leading tags left over from the split
         lines = lines.map(l => l.replace(/<[^>]*>/g, '').trim()).filter(l => l !== "");
         let html = `<button class="note-menu-btn" onclick="event.stopPropagation(); openMenu(event, ${note.id})">⋮</button>`;
         html += `<span class="saved-note-title">${note.tags[0]}</span><div class="card-checklist">`;
-        
         lines.forEach((l, i) => {
             const hasCheckbox = l.includes('☐');
             const cleanText = l.replace('☐', '').trim();
             const done = note.checkedIndices && note.checkedIndices.includes(i);
-            
-            html += `
-                <div class="checklist-item" ${hasCheckbox ? `onclick="event.stopPropagation(); toggleLine(${note.id}, ${i})"` : ''}>
-                    ${hasCheckbox ? `<input type="checkbox" ${done ? 'checked' : ''} style="margin-top:2px;">` : ''}
-                    <div class="checklist-text ${done ? 'done' : ''}">${cleanText}</div>
-                </div>`;
+            html += `<div class="checklist-item">`;
+            if (hasCheckbox) {
+                html += `<input type="checkbox" ${done ? 'checked' : ''} style="margin-top:2px;" onclick="event.stopPropagation(); toggleLine(${note.id}, ${i})">`;
+            }
+            html += `<div class="checklist-text ${done ? 'done' : ''}">${cleanText}</div>`;
+            html += `</div>`;
         });
-        
         html += `</div>`;
         card.innerHTML = html;
         card.onclick = () => openNoteViewer(note);
@@ -1404,15 +1485,12 @@ function openNoteViewer(note) {
     activeNote = note;
     const editor = document.getElementById('noteViewerContent');
     editor.innerHTML = note.content;
-    
     // Reset the "Save Changes" button to the light/faded look every time a note opens
     const saveBtn = document.getElementById('viewerSaveBtn');
     saveBtn.style.opacity = "0.3";
     saveBtn.style.pointerEvents = "none";
-    
     document.getElementById('overlay').style.display = 'block';
     document.getElementById('noteViewer').style.display = 'block';
-    
     const rangeBtn = document.getElementById('viewerRangeBtn');
     if(note.mirrorId) {
         rangeBtn.style.background = 'var(--accent)';
@@ -1421,18 +1499,40 @@ function openNoteViewer(note) {
         rangeBtn.style.background = '#e8f5e9';
         rangeBtn.style.color = 'var(--accent)';
     }
-
     // This detects when you start typing and "activates" the bottom button
     editor.oninput = () => {
         saveBtn.style.opacity = "1";
         saveBtn.style.pointerEvents = "auto";
+    };
+    // Add keydown for list mode in modal
+    editor.onkeydown = function(e) {
+        if (e.key === 'Enter') {
+            if (listMode) {
+                e.preventDefault();
+                const lines = this.innerText.split('\n');
+                const currentLine = lines[lines.length - 1];
+                if (currentLine.trim() === listMode.trim()) {
+                    this.innerText = this.innerText.substring(0, this.innerText.lastIndexOf(listMode.trim()));
+                    resetFormatButtons('noteViewerContent', 'viewer-btn-bullet', 'viewer-btn-check', 'viewer-btn-bold', 'viewer-btn-italic', 'viewer-btn-under');
+                } else {
+                    document.execCommand('insertHTML', false, '<br>' + listMode);
+                }
+            }
+        }
+        setTimeout(() => {
+            const bBtn = document.getElementById('viewer-btn-bold');
+            const iBtn = document.getElementById('viewer-btn-italic');
+            const uBtn = document.getElementById('viewer-btn-under');
+            if(bBtn) bBtn.classList.toggle('active', document.queryCommandState('bold'));
+            if(iBtn) iBtn.classList.toggle('active', document.queryCommandState('italic'));
+            if(uBtn) uBtn.classList.toggle('active', document.queryCommandState('underline'));
+        }, 10);
     };
 }
 function closeNoteViewer() {
     if (activeNote) {
         const editor = document.getElementById('noteViewerContent');
         const newContent = editor.innerHTML; // Get formatted HTML
-        
         if (activeNote.mirrorId) {
             db.notes_list.forEach(n => { 
                 if (n.mirrorId === activeNote.mirrorId) n.content = newContent; 
@@ -1442,6 +1542,8 @@ function closeNoteViewer() {
         }
         save();
         renderDeck();
+        // Reset modal toolbar formatting
+        resetFormatButtons('noteViewerContent', 'viewer-btn-bullet', 'viewer-btn-check', 'viewer-btn-bold', 'viewer-btn-italic', 'viewer-btn-under');
     }
     document.getElementById('noteViewer').style.display = 'none';
     document.getElementById('overlay').style.display = 'none';
@@ -1820,31 +1922,27 @@ function renderRangeHeatmap() {
 // --- FORMATTING LOGIC ---
 let listMode = null; // Tracks if we are in Bullet or Checkbox mode
 
-function execStyle(cmd, type) {
+// Refactored: Accepts editorId and button ids for reuse
+function execStyle(cmd, type, editorId = 'noteContent', btnId = 'btn-' + type) {
+    const editor = document.getElementById(editorId);
+    editor.focus();
     document.execCommand(cmd, false, null);
-    const btn = document.getElementById('btn-' + type);
-    // Visual toggle for the button
-    btn.classList.toggle('active', document.queryCommandState(cmd));
-    document.getElementById('noteContent').focus();
+    const btn = document.getElementById(btnId);
+    if (btn) btn.classList.toggle('active', document.queryCommandState(cmd));
 }
 
-function toggleListMode(prefix) {
-    const btnId = prefix === '• ' ? 'btn-bullet' : 'btn-check';
+function toggleListMode(prefix, editorId = 'noteContent', bulletBtnId = 'btn-bullet', checkBtnId = 'btn-check') {
+    const btnId = prefix === '• ' ? bulletBtnId : checkBtnId;
     const btn = document.getElementById(btnId);
-    
     if (listMode === prefix) {
         listMode = null;
         btn.classList.remove('active');
     } else {
-        // Clear other list mode if active
-        document.getElementById('btn-bullet').classList.remove('active');
-        document.getElementById('btn-check').classList.remove('active');
-        
+        document.getElementById(bulletBtnId).classList.remove('active');
+        document.getElementById(checkBtnId).classList.remove('active');
         listMode = prefix;
         btn.classList.add('active');
-        
-        // If the box is empty or we are on a new line, insert the first bullet immediately
-        const editor = document.getElementById('noteContent');
+        const editor = document.getElementById(editorId);
         if (editor.innerText.trim() === "") {
             editor.innerHTML = prefix;
             // Move cursor to end
@@ -1856,18 +1954,17 @@ function toggleListMode(prefix) {
             sel.addRange(range);
         }
     }
-    document.getElementById('noteContent').focus();
+    document.getElementById(editorId).focus();
 }
 
-function resetFormatButtons() {
+// Resets formatting buttons for a given editor and toolbar
+function resetFormatButtons(editorId = 'noteContent', bulletBtnId = 'btn-bullet', checkBtnId = 'btn-check', boldBtnId = 'btn-bold', italicBtnId = 'btn-italic', underBtnId = 'btn-under') {
     listMode = null;
-    document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
-}
-
-// Ensure formatting resets when note is saved
-function resetFormatButtons() {
-    activeStates = { bold: false, italic: false, under: false, head: false };
-    document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+    if (document.getElementById(bulletBtnId)) document.getElementById(bulletBtnId).classList.remove('active');
+    if (document.getElementById(checkBtnId)) document.getElementById(checkBtnId).classList.remove('active');
+    if (document.getElementById(boldBtnId)) document.getElementById(boldBtnId).classList.remove('active');
+    if (document.getElementById(italicBtnId)) document.getElementById(italicBtnId).classList.remove('active');
+    if (document.getElementById(underBtnId)) document.getElementById(underBtnId).classList.remove('active');
 }
 
 // IMPORTANT: Add this to your commitNote function so buttons reset after you save
@@ -1933,6 +2030,54 @@ window.addEventListener('focus', () => {
     if (authHeader) syncWithCloud();
 });
 // Handle Auto-continuing lists and Bold/Italic/Underline states
+function autoDetectListMode(editorId = 'noteContent', bulletBtnId = 'btn-bullet', checkBtnId = 'btn-check') {
+    const editor = document.getElementById(editorId);
+    if (!editor) return;
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    const range = sel.getRangeAt(0);
+    let node = range.startContainer;
+    // If node is an element, get its text node
+    if (node.nodeType === 1 && node.childNodes.length > 0) {
+        node = node.childNodes[0];
+    }
+    // Only check if node is text
+    if (node && node.nodeType === 3) {
+        const text = node.nodeValue;
+        // Get the line up to the cursor
+        let upToCursor = text.substring(0, range.startOffset);
+        // If the line starts with a bullet or checkbox
+        if (/^(• |☐ )/.test(upToCursor)) {
+            let prefix = upToCursor.startsWith('• ') ? '• ' : '☐ ';
+            // Only activate if cursor is at end of line
+            if (range.startOffset === text.length) {
+                listMode = prefix;
+                // Set toolbar button active
+                document.getElementById(bulletBtnId).classList.toggle('active', prefix === '• ');
+                document.getElementById(checkBtnId).classList.toggle('active', prefix === '☐ ');
+                return;
+            }
+        }
+    }
+    // Otherwise, turn off list mode and deactivate buttons
+    listMode = null;
+    document.getElementById(bulletBtnId).classList.remove('active');
+    document.getElementById(checkBtnId).classList.remove('active');
+}
+
+function setupAutoListDetection(editorId = 'noteContent', bulletBtnId = 'btn-bullet', checkBtnId = 'btn-check') {
+    const editor = document.getElementById(editorId);
+    if (!editor) return;
+    // On keyup and mouseup, check for list mode
+    editor.addEventListener('keyup', function(e) {
+        // Only check if not Enter (Enter is handled by keydown)
+        if (e.key !== 'Enter') autoDetectListMode(editorId, bulletBtnId, checkBtnId);
+    });
+    editor.addEventListener('mouseup', function() {
+        autoDetectListMode(editorId, bulletBtnId, checkBtnId);
+    });
+}
+
 document.getElementById('noteContent').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
         if (listMode) {
@@ -1951,7 +2096,6 @@ document.getElementById('noteContent').addEventListener('keydown', function(e) {
             }
         }
     }
-    
     // Auto-update button highlights based on cursor position
     setTimeout(() => {
         const bBtn = document.getElementById('btn-bold');
@@ -1962,6 +2106,10 @@ document.getElementById('noteContent').addEventListener('keydown', function(e) {
         if(uBtn) uBtn.classList.toggle('active', document.queryCommandState('underline'));
     }, 10);
 });
+
+// Setup auto list detection for both editors
+setupAutoListDetection('noteContent', 'btn-bullet', 'btn-check');
+setupAutoListDetection('noteViewerContent', 'viewer-btn-bullet', 'viewer-btn-check');
 
 // --- SEARCH & CALENDAR GLOBAL FUNCTIONS ---
 // These must be outside the event listener to be accessible by HTML onclick attributes

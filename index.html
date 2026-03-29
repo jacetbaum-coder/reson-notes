@@ -1843,10 +1843,25 @@ document.getElementById('noteContent').addEventListener('keydown', function(e) {
             }
         }
     }
-  function toggleSearch() {
+    
+    // Auto-update button highlights based on cursor position
+    setTimeout(() => {
+        const bBtn = document.getElementById('btn-bold');
+        const iBtn = document.getElementById('btn-italic');
+        const uBtn = document.getElementById('btn-under');
+        if(bBtn) bBtn.classList.toggle('active', document.queryCommandState('bold'));
+        if(iBtn) iBtn.classList.toggle('active', document.queryCommandState('italic'));
+        if(uBtn) uBtn.classList.toggle('active', document.queryCommandState('underline'));
+    }, 10);
+});
+
+// --- SEARCH & CALENDAR GLOBAL FUNCTIONS ---
+// These must be outside the event listener to be accessible by HTML onclick attributes
+
+function toggleSearch() {
     const bar = document.getElementById('searchBar');
     const main = document.getElementById('calendarMainUI');
-    if (bar.style.display === 'none') {
+    if (bar.style.display === 'none' || bar.style.display === '') {
         bar.style.display = 'block';
         main.style.display = 'none';
         document.getElementById('dateSearchInput').focus();
@@ -1876,7 +1891,6 @@ function execDateSearch() {
         // Search range: 1926 to 2126
         for (let y = 1926; y <= 2126; y++) {
             const d = new Date(y, searchMonth, searchDay);
-            // Verify date is valid (e.g. Feb 30 check)
             if (d.getMonth() === searchMonth) {
                 const row = document.createElement('div');
                 row.style = "padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer; font-size:0.9rem; font-weight:bold;";
@@ -1897,20 +1911,17 @@ function execDateSearch() {
     }
 }
 
-// Ensure the Close button also resets the search toggle
+// Override the closeAllModals function to include search reset logic
 const originalClose = closeAllModals;
 closeAllModals = function() {
     originalClose();
-    document.getElementById('searchBar').style.display = 'none';
-    document.getElementById('calendarMainUI').style.display = 'block';
-    document.getElementById('searchResults').innerHTML = '';
-};  
-    // Auto-update button highlights based on cursor position
-    setTimeout(() => {
-        document.getElementById('btn-bold').classList.toggle('active', document.queryCommandState('bold'));
-        document.getElementById('btn-italic').classList.toggle('active', document.queryCommandState('italic'));
-        document.getElementById('btn-under').classList.toggle('active', document.queryCommandState('underline'));
-    }, 10);
+    const sBar = document.getElementById('searchBar');
+    const cUI = document.getElementById('calendarMainUI');
+    if(sBar) sBar.style.display = 'none';
+    if(cUI) cUI.style.display = 'block';
+    const sRes = document.getElementById('searchResults');
+    if(sRes) sRes.innerHTML = '';
+};
 });
 </script>
 </body>

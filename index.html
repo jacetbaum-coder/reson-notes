@@ -23,7 +23,71 @@
     /* Prevents auto-zooming/scaling text when rotating the phone */
     -webkit-text-size-adjust: none; 
 }
+/* Date Picker Picker UI */
+#datePickerOverlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(8px);
+    z-index: 9500;
+    align-items: center; justify-content: center;
+}
+.picker-card {
+    background: white;
+    width: 85%; max-width: 300px;
+    border-radius: 30px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+}
 
+.picker-container {
+    display: flex;
+    height: 160px;
+    position: relative;
+    overflow: hidden;
+    margin: 15px 0;
+    background: #f9f9f9;
+    border-radius: 15px;
+}
+
+.wheel-col {
+    flex: 1;
+    overflow-y: scroll;
+    scrollbar-width: none;
+    scroll-snap-type: y mandatory;
+    padding: 60px 0; /* Centers the list */
+}
+.wheel-col::-webkit-scrollbar { display: none; }
+.wheel-item {
+    height: 40px;
+    line-height: 40px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #bbb;
+    scroll-snap-align: center;
+    transition: 0.2s;
+}
+.wheel-item.active { color: var(--accent); transform: scale(1.1); }
+.selection-highlight {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%; height: 40px;
+    border-top: 2px solid var(--accent);
+    border-bottom: 2px solid var(--accent);
+    pointer-events: none;
+    background: rgba(45, 90, 58, 0.05);
+    border-radius: 5px;
+}
+
+/* Fades top/bottom */
+.picker-container::before, .picker-container::after {
+    content: ""; position: absolute; left: 0; width: 100%; height: 60px; z-index: 2; pointer-events: none;
+}
+.picker-container::before { top: 0; background: linear-gradient(to bottom, white, transparent); }
+.picker-container::after { bottom: 0; background: linear-gradient(to top, white, transparent); }
 :root {
     --bg:#77c98d;
     --card:#ffffff;
@@ -605,7 +669,17 @@ input:checked + .sld:before { transform: translateX(16px); }
     </div>
 </div>
 <!-- Removed the extra </div> that was here -->
-
+<div id="datePickerOverlay" onclick="if(event.target === this) closeDatePicker()">
+    <div class="picker-card" onclick="event.stopPropagation()">
+        <h3 style="color:var(--accent); margin-top:0;">Select Date</h3>
+        <div class="picker-container">
+            <div class="selection-highlight"></div>
+            <div id="monthWheel" class="wheel-col"></div>
+            <div id="yearWheel" class="wheel-col"></div>
+        </div>
+        <button onclick="confirmPickerSelection()" style="width:100%; background:var(--accent); color:white; border:none; padding:15px; border-radius:15px; font-weight:900; text-transform:uppercase;">Set Date</button>
+    </div>
+</div>
 <header>
   <!-- This is the stacked date display -->
   <div class="month-label" id="dateDisplay">Loading...</div>
@@ -1351,29 +1425,66 @@ function openCatModal() {
     document.getElementById('catModal').style.display = 'block';
     document.getElementById('catInput').focus();
 }
-function selectYear(type) {
-    // Determine which viewing date object we are currently manipulating
-    let viewDate = (type === 'modal') ? modalViewDate : rangeViewDate;
-    
-    // Ask the user for the year
-    let newYear = prompt("Enter Year:", viewDate.getFullYear());
+let pickerTarget = 'modal'; // 'modal' or 'range'
+const monthsList = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-    // Validate that it's a number and exactly 4 digits
-    if (newYear !== null) {
-        let yearInt = parseInt(newYear);
-        if (!isNaN(yearInt) && yearInt > 1900 && yearInt < 2200) {
-            viewDate.setFullYear(yearInt);
-            
-            // Re-render the correct heatmap based on which modal is open
-            if (type === 'modal') {
-                renderHeatmap();
-            } else {
-                renderRangeHeatmap();
-            }
-        } else {
-            showToast("Please enter a valid year (e.g., 2025)");
-        }
+function openDatePicker(target) {
+    pickerTarget = target;
+    const viewDate = (target === 'modal') ? modalViewDate : rangeViewDate;
+    
+    const mWheel = document.getElementById('monthWheel');
+    const yWheel = document.getElementById('yearWheel');
+    
+    // Populate Months
+    mWheel.innerHTML = monthsList.map(m => `<div class="wheel-item">${m}</div>`).join('');
+    
+    // Populate Years (1950 to 2100)
+    let yearHTML = "";
+    for(let y = 1950; y <= 2100; y++) {
+        yearHTML += `<div class="wheel-item">${y}</div>`;
     }
+    yWheel.innerHTML = yearHTML;
+
+    document.getElementById('datePickerOverlay').style.display = 'flex';
+
+    // Scroll to current selection
+    setTimeout(() => {
+        mWheel.scrollTo({ top: viewDate.getMonth() * 40, behavior: 'instant' });
+        yWheel.scrollTo({ top: (viewDate.getFullYear() - 1950) * 40, behavior: 'instant' });
+        updateWheelHighlights();
+    }, 10);
+
+    // Listen for scroll to update highlights
+    [mWheel, yWheel].forEach(w => w.onscroll = updateWheelHighlights);
+}
+
+function updateWheelHighlights() {
+    document.querySelectorAll('.wheel-col').forEach(wheel => {
+        const index = Math.round(wheel.scrollTop / 40);
+        const items = wheel.querySelectorAll('.wheel-item');
+        items.forEach((item, i) => {
+            item.classList.toggle('active', i === index);
+        });
+    });
+}
+
+function confirmPickerSelection() {
+    const mIndex = Math.round(document.getElementById('monthWheel').scrollTop / 40);
+    const yVal = 1950 + Math.round(document.getElementById('yearWheel').scrollTop / 40);
+    
+    const viewDate = (pickerTarget === 'modal') ? modalViewDate : rangeViewDate;
+    
+    viewDate.setMonth(mIndex);
+    viewDate.setFullYear(yVal);
+    
+    if (pickerTarget === 'modal') renderHeatmap();
+    else renderRangeHeatmap();
+    
+    closeDatePicker();
+}
+
+function closeDatePicker() {
+    document.getElementById('datePickerOverlay').style.display = 'none';
 }
 function createNewCategory() {
     const input = document.getElementById('catInput');

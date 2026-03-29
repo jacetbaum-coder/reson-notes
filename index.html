@@ -523,7 +523,14 @@ input:checked + .sld:before { transform: translateX(16px); }
 <div class="note-container">
     <!-- This is the new header for the note box -->
     <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:10px;">
-        <button onclick="insertBullet()" style="border:none;background:#e8f5e9;border-radius:8px;padding:6px 10px;font-weight:700;cursor:pointer;">•</button>
+        <div style="display:flex; gap:5px;">
+    <button onclick="insertBullet()" style="border:none;background:#e8f5e9;border-radius:8px;padding:6px 10px;font-weight:700;cursor:pointer;">•</button>
+    <button onclick="insertCheckbox()" style="border:none;background:#f0f0f0;border-radius:8px;padding:6px 10px;font-weight:700;cursor:pointer;">☐</button>
+    <button onclick="formatNote('**', '**')" style="border:none;background:#f0f0f0;border-radius:8px;padding:6px 10px;font-weight:700;cursor:pointer;">B</button>
+    <button onclick="formatNote('_', '_')" style="border:none;background:#f0f0f0;border-radius:8px;padding:6px 10px;font-style:italic;cursor:pointer;">I</button>
+    <button onclick="formatNote('<u>', '</u>')" style="border:none;background:#f0f0f0;border-radius:8px;padding:6px 10px;text-decoration:underline;cursor:pointer;">U</button>
+    <button onclick="formatNote('# ', '')" style="border:none;background:#f0f0f0;border-radius:8px;padding:6px 10px;font-weight:900;cursor:pointer;">H</button>
+</div>
         <button id="rangeBtn" onclick="openRangeModal()" style="border:none;background:#f3f3f3;border-radius:8px;padding:6px 10px;cursor:pointer; font-size: 1.1rem;">🗓️</button>
     </div>
     <textarea id="noteContent" placeholder="Type your notes..."></textarea>
@@ -1496,7 +1503,30 @@ function renderRangeHeatmap() {
         grid.appendChild(el);
     }
 }
+// Function to wrap selected text in bold, italics, underline, or headings
+function formatNote(prefix, suffix) {
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    const selectedText = text.substring(start, end);
+    const before = text.substring(0, start);
+    const after = text.substring(end);
 
+    textarea.value = before + prefix + selectedText + suffix + after;
+    textarea.focus();
+    // Re-select the text
+    textarea.setSelectionRange(start + prefix.length, end + prefix.length);
+}
+
+// Specific function for the Checkbox
+function insertCheckbox() {
+    const s = textarea.selectionStart;
+    const val = textarea.value;
+    const isAtStartOfLine = (s === 0 || val.charAt(s - 1) === '\n');
+    const textToInsert = isAtStartOfLine ? "☐ " : "\n☐ ";
+    textarea.setRangeText(textToInsert, s, s, "end");
+    textarea.focus();
+}
 function applyRange() {
     const btn = document.getElementById('rangeBtn');
     if (rangeStart && rangeEnd) {
@@ -1545,22 +1575,23 @@ document.getElementById('noteContent').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
         const s = this.selectionStart;
         const val = this.value;
-        
-        // Find the start of the current line
         const lastNewline = val.lastIndexOf('\n', s - 1);
         const lineStart = lastNewline + 1;
         const currentLine = val.substring(lineStart, s);
 
-        // If the current line starts with a bullet, auto-insert one on the new line
+        // Auto-continue Bullet Points
         if (currentLine.trim().startsWith('•')) {
-            e.preventDefault(); // Stop the default Enter behavior
-            const insertText = "\n• ";
-            this.setRangeText(insertText, s, s, "end");
-            
-            // Adjust scroll in case textarea is full
-            this.blur();
-            this.focus();
+            e.preventDefault();
+            this.setRangeText("\n• ", s, s, "end");
+        } 
+        // Auto-continue Checkboxes
+        else if (currentLine.trim().startsWith('☐')) {
+            e.preventDefault();
+            this.setRangeText("\n☐ ", s, s, "end");
         }
+        
+        this.blur();
+        this.focus();
     }
 });
 </script>

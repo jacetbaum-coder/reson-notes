@@ -48,6 +48,7 @@
     background: white;
     text-align: left;
     padding: 5px;
+    white-space: pre-wrap;
 }
 
 /* This makes the placeholder text show up when the box is empty */
@@ -386,8 +387,8 @@ textarea {
     resize: none;
     font-size: 1.1rem;
     font-family: inherit;
+    white-space: pre-wrap;
 }
-
 #noteViewerClose {
     position: absolute;
     top: 10px;
@@ -1176,7 +1177,6 @@ async function commitNote() {
         const dateKey = formatDateKey(cur);
         const existing = db.notes_list.find(n => n.date === dateKey && n.tags[0].toLowerCase() === cat);
         if (existing && getGroupable().includes(cat)) {
-            // Use <br> instead of \n to match the HTML editor
             existing.content += "<br>" + text;
             if (mirrorId) existing.mirrorId = mirrorId;
         } else {
@@ -1232,7 +1232,7 @@ function renderDeck() {
         card.className = 'saved-note';
         
         // This splits the HTML content into separate lines correctly
-        let lines = note.content.split(/<br>|<div>|<\/div>|\n/gi).filter(l => l.trim() !== "" && l !== "<br>");
+        let lines = note.content.split(/<br>|<div>|<\/div>|\n/gi);
         // Cleanup lines to remove any trailing/leading tags left over from the split
         lines = lines.map(l => l.replace(/<[^>]*>/g, '').trim()).filter(l => l !== "");
         let html = `<button class="note-menu-btn" onclick="event.stopPropagation(); openMenu(event, ${note.id})">⋮</button>`;

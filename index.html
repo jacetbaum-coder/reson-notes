@@ -20,7 +20,25 @@
     --heat-2:#86efac;
     --heat-3:#22c55e;
 }
+#noteContent {
+    width: 100%;
+    height: 35vh;
+    border: none;
+    outline: none;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    font-family: inherit;
+    overflow-y: auto;
+    background: white;
+    text-align: left;
+    padding: 5px;
+}
 
+/* This makes the placeholder text show up when the box is empty */
+#noteContent:empty:before {
+    content: attr(data-placeholder);
+    color: #aaa;
+}
 body {
     margin: 0;
     font-family: -apple-system, system-ui, sans-serif;
@@ -550,7 +568,7 @@ input:checked + .sld:before { transform: translateX(16px); }
 </div>
         <button id="rangeBtn" onclick="openRangeModal()" style="border:none;background:#f3f3f3;border-radius:8px;padding:6px 10px;cursor:pointer; font-size: 1.1rem;">🗓️</button>
     </div>
-    <textarea id="noteContent" placeholder="Type your notes..."></textarea>
+    <div id="noteContent" contenteditable="true" data-placeholder="Type your notes..."></div>
     <button class="add-note" onclick="commitNote()">✔</button>
 </div>
 
@@ -1069,7 +1087,7 @@ function cleanupData() {
 }
 
 async function commitNote() {
-    const text = textarea.value.trim();
+    const text = document.getElementById('noteContent').innerHTML.trim();
     if (!text) return;
     await syncWithCloud(); 
     const cat = currentCategory ? currentCategory.toLowerCase() : "general";
@@ -1091,7 +1109,7 @@ async function commitNote() {
         cur.setDate(cur.getDate() + 1);
     }
     save();
-    textarea.value = '';
+    document.getElementById('noteContent').innerHTML = '';
     rangeStart = null; rangeEnd = null;
     document.getElementById('rangeBtn').innerHTML = "🗓️";
     document.getElementById('rangeBtn').classList.remove('active');
@@ -1528,33 +1546,23 @@ let activeStates = { bold: false, italic: false, under: false, head: false };
 let activeStates = { bold: false, italic: false, under: false, head: false };
 
 function smartFormat(prefix, suffix, type) {
-    const textarea = document.getElementById('noteContent');
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = textarea.value;
+    const box = document.getElementById('noteContent');
     const btn = document.getElementById('btn-' + type);
-
-    // Case A: You highlighted text with your mouse (Multi-select)
-    if (start !== end) {
-        const selectedText = text.substring(start, end);
-        textarea.setRangeText(prefix + selectedText + suffix, start, end, "select");
-        return; // Don't toggle a "mode" if just wrapping a selection
+    
+    // This tells the browser: "Turn the selected text into Bold/Italic/Underline"
+    // It works exactly like Microsoft Word. No asterisks!
+    if (type === 'bold') document.execCommand('bold');
+    if (type === 'italic') document.execCommand('italic');
+    if (type === 'under') document.execCommand('underline');
+    
+    // "H" stands for Heading (Big Title Text)
+    if (type === 'head') {
+        document.execCommand('formatBlock', false, 'h3');
     }
 
-    // Case B: Sticky Mode (Typing behavior)
-    activeStates[type] = !activeStates[type]; // Toggle state
-
-    if (activeStates[type]) {
-        // TURN MODE ON: Just insert the start tag (e.g. **)
-        btn.classList.add('active');
-        textarea.setRangeText(prefix, start, start, "end");
-    } else {
-        // TURN MODE OFF: Just insert the end tag (e.g. **)
-        btn.classList.remove('active');
-        textarea.setRangeText(suffix, start, start, "end");
-    }
-
-    textarea.focus();
+    // Handle button colors
+    btn.classList.toggle('active');
+    box.focus();
 }
 
 // IMPORTANT: Add this to your commitNote function so buttons reset after you save

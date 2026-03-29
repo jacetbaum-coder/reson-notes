@@ -140,22 +140,21 @@ header {
 .calendar-strip {
     display: flex;
     overflow-x: auto;
-    gap: 8px; /* Slightly tighter gap to fit more */
     width: 100%;
     max-width: 500px;
-    padding: 15px 10px; /* Added side padding for better centering */
+    padding: 15px 0; /* REMOVED side padding to fix the "poking out" */
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x mandatory; /* Makes cards "snap" into place */
+    scroll-snap-type: x mandatory;
 }
 
 .day-card {
-    /* (100% of width - total gaps) divided by 5 items */
-    flex: 0 0 calc((100% - 40px) / 5); 
-    scroll-snap-align: center;
+    /* Exactly 20% width so 5 fit perfectly edge-to-edge */
+    flex: 0 0 20%; 
+    scroll-snap-align: start; /* Changed to start for cleaner edge alignment */
     background: var(--card);
-    border-radius: 18px;
-    padding: 12px 0;
+    border-radius: 15px; /* Slightly smaller radius to match smaller scale */
+    padding: 10px 0;
     text-align: center;
     cursor: pointer;
     transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -169,22 +168,23 @@ header {
 
 .filter-container {
     display: flex;
-    gap: 10px;
+    gap: 8px; /* Closer together */
     width: 100%;
     max-width: 500px;
-    margin: 15px 0;
+    margin: 10px 0; /* Less margin */
     overflow-x: auto;
     scrollbar-width: none;
-    align-items: center;
+    padding: 0 5px;
 }
+
 .bubble {
-    padding: 12px 24px; /* Increased from 8px 20px */
-    font-size: 1rem;    /* Makes text clearer */
+    padding: 8px 16px; /* Much smaller than 12px 24px */
+    font-size: 0.9rem;  /* Slightly smaller text */
     background: var(--card);
-    border-radius: 25px;
+    border-radius: 20px;
     font-weight: 700;
     cursor: pointer;
-    border: none;
+    border: 1px solid rgba(0,0,0,0.05); /* Added subtle border for definition */
     white-space: nowrap;
 }
 .bubble.active { background: var(--accent); color: white; border: 2px solid white !important; }
@@ -334,40 +334,41 @@ textarea {
     width: 100%; 
     background: white;
     display: flex; 
-    align-items: stretch; /* Makes buttons fill the full height */
-    height: 90px;         /* Fixed height for better vertical control */
-    padding-bottom: env(safe-area-inset-bottom, 25px); 
+    align-items: center; /* Center vertically */
+    justify-content: space-around;
+    height: 85px; 
+    padding-bottom: env(safe-area-inset-bottom, 20px); 
+    padding-top: 10px; /* Added top padding to push text down slightly */
     z-index: 5000; 
-    box-shadow: 0 -10px 30px rgba(0,0,0,0.08);
-    border-radius: 30px 30px 0 0; /* This adds the "curvature" to the whole bar */
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
+    border-radius: 35px 35px 0 0; /* More dramatic curve */
 }
 
 #bottomTabs button { 
     background: none; 
     border: none; 
     font-weight: 800; 
-    font-size: 1.1rem;
-    color: #bbb;           /* Inactive (grey) color */
+    font-size: 1.2rem; /* Slightly larger text for clarity */
+    color: #bbb;
     cursor: pointer; 
     flex: 1; 
-    display: flex;
-    align-items: center;   /* Centers text vertically */
-    justify-content: center;
+    text-align: center;
     transition: 0.2s;
     position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Ensures text is centered in the button area */
 }
 
-/* Visual distinction: The "Active" tab style */
-#bottomTabs button.active-tab {
-    color: var(--accent);
-}
-
-/* Adds a small curved indicator line under the active tab */
+/* Fix the underline line position */
 #bottomTabs button.active-tab::after {
     content: "";
     position: absolute;
-    bottom: 30%;
-    width: 20px;
+    bottom: 12px; /* Fixed distance from the bottom */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
     height: 4px;
     background: var(--accent);
     border-radius: 10px;

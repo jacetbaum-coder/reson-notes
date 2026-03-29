@@ -943,8 +943,9 @@ function loadProfileUI() {
 }
 
 // Navigation Logic
+// Navigation Logic
 function showMain() {
-    // UI Visibility
+    // 1. UI Visibility
     document.querySelector('header').style.display = 'flex';
     document.getElementById('strip').style.display = 'flex';
     document.getElementById('filterContainer').style.display = 'flex';
@@ -952,9 +953,12 @@ function showMain() {
     document.querySelector('.note-container').style.display = 'block';
     document.getElementById('settingsView').style.display = 'none';
 
-    // Tab Highlighting
+    // 2. Tab Highlighting
     document.getElementById('navNotes').classList.add('active-tab');
     document.getElementById('navSettings').classList.remove('active-tab');
+
+    // 3. Trigger Sync (Pulls notes from other devices automatically)
+    syncWithCloud(); 
 }
 
 function showSettings() {

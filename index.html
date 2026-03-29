@@ -323,12 +323,10 @@ input:checked + .sld:before { transform: translateX(16px); }
 <body>
 <div id="toast">Changes Saved!</div>
 <!-- UPDATED LOGIN/REGISTER OVERLAY -->
-<!-- START OF LOGIN/REGISTER UI -->
 <div id="loginOverlay">
     <div class="login-box">
         <h2 style="color:var(--accent)" id="authTitle">Reson Notes</h2>
         
-        <!-- Field only shows when registering -->
         <div id="registerFields" style="display:none;">
             <input type="tel" id="phoneInput" placeholder="Phone Number (for recovery)">
         </div>
@@ -343,7 +341,7 @@ input:checked + .sld:before { transform: translateX(16px); }
         </p>
     </div>
 </div>
-<!-- END OF LOGIN/REGISTER UI -->
+<!-- Removed the extra </div> that was here -->
 
 <header>
   <div class="month-label" id="monthDisplay">Loading...</div>
@@ -541,8 +539,7 @@ const adjectives = [
   "Daring", "Jumpy", "Sparky", "Shiny", "Whimsical", "Gentle", "Funny",
   "Playful", "Snappy", "Glorious", "Spry", "Nimble", "Perky", "Vivid",
   "Smiley", "Dreamy", "Lively", "Quirky", "Chipper",
-  // Vulgar / rare adjectives (~30% of list)
-  "Filthy", "Rude", "Sassy", "Thicc", "Grimy", "Freaky" "Juicy", "Slutty", "Stanky", "Badass", "Grimy",
+  "Filthy", "Rude", "Sassy", "Thicc", "Grimy", "Freaky", "Juicy", "Slutty", "Stanky", "Badass"
 ];
 
 const nouns = [
@@ -570,29 +567,24 @@ function rollUsername() {
 async function handleAuth() {
     const user = document.getElementById('usernameInput').value.trim();
     const pass = document.getElementById('passwordInput').value.trim();
-    const phone = document.getElementById('phoneInput').value.trim();
+    const phoneInput = document.getElementById('phoneInput');
+    const phone = phoneInput ? phoneInput.value.trim() : "";
 
     if(!user || !pass) return alert("Enter credentials");
     
-    // Use Base64 encoding for the header and localStorage for persistence
     authHeader = btoa(user + ":" + pass); 
     localStorage.setItem('reson_auth', authHeader);
 
     if(isRegistering) {
         db.profile = { username: user, phone: phone, pic: '' };
         await uploadToCloud();
+    } else {
+        await syncWithCloud();
     }
 
     document.getElementById('loginOverlay').style.display = 'none';
-    
-    // If we just registered, upload the local profile first
-    if(isRegistering) {
-        await uploadToCloud();
-    } else {
-        // If we are just signing in, get the data from the cloud
-        await syncWithCloud();
-    }
     renderDeck();
+    setupCalendar();
 }
 // --- PROFILE LOGIC ---
 function openEditProfile() {

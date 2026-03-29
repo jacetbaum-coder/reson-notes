@@ -1176,8 +1176,10 @@ async function commitNote() {
         const dateKey = formatDateKey(cur);
         const existing = db.notes_list.find(n => n.date === dateKey && n.tags[0].toLowerCase() === cat);
         if (existing && getGroupable().includes(cat)) {
-            existing.content += "\n" + text;
+            // Use <br> instead of \n to match the HTML editor
+            existing.content += "<br>" + text;
             if (mirrorId) existing.mirrorId = mirrorId;
+        } else {
         } else {
             db.notes_list.unshift({ id: Date.now() + Math.random(), date: dateKey, tags: [cat], content: text, checkedIndices: [], mirrorId: mirrorId });
         }
@@ -1229,7 +1231,9 @@ function renderDeck() {
     displayList.forEach(note => {
         const card = document.createElement('div');
         card.className = 'saved-note';
-        let lines = note.content.split('\n').filter(l => l.trim() !== "");
+        
+        // This splits the HTML content into separate lines correctly
+        let lines = note.content.split(/<br>|<div>|<\/div>|\n/gi).filter(l => l.trim() !== "" && l !== "<br>");
         
         let html = `<button class="note-menu-btn" onclick="event.stopPropagation(); openMenu(event, ${note.id})">⋮</button>`;
         html += `<span class="saved-note-title">${note.tags[0]}</span><div class="card-checklist">`;

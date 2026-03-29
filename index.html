@@ -424,7 +424,19 @@ textarea {
 .circle-day { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.9rem; font-weight: 700; cursor: pointer; color: #333; transition: 0.2s;}
 .circle-day.selected { outline: 2px solid white; outline-offset: 2px; }
 
-#overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; backdrop-filter:blur(4px); }
+#overlay { 
+    display:none; 
+    position:fixed; 
+    top:0; 
+    left:0; 
+    width:100%; 
+    height:100%; 
+    background:rgba(0,0,0,0.4); 
+    z-index:2000; 
+    /* This creates the blur effect on the home screen */
+    backdrop-filter: blur(12px); 
+    -webkit-backdrop-filter: blur(12px); 
+}
 
 .note-menu-btn { position: absolute; top: 8px; right: 8px; background: none; border: none; color: #ccc; cursor: pointer; font-size: 1.1rem; }
 
@@ -765,11 +777,18 @@ input:checked + .sld:before { transform: translateX(16px); }
     <button onclick="closeNoteViewer()" style="width:100%; background:var(--accent); color:white; border:none; padding:14px; border-radius:15px; font-weight:900; text-transform:uppercase; margin-top:20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">Save Changes</button>
 </div>
 <div id="calModal">
-    <!-- Search Icon -->
-    <div style="position:absolute; top:20px; right:25px; cursor:pointer;" onclick="toggleSearch()">
+    <!-- Search Icon - Moved up to top:12px -->
+    <div style="position:absolute; top:12px; right:20px; cursor:pointer; z-index: 10;" onclick="toggleSearch()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
     </div>
 
+    <!-- Search Input Area - Reduced margins to move it up -->
+    <div id="searchBar" style="display:none; margin-bottom:10px; margin-top: -10px;">
+        <input type="text" id="dateSearchInput" placeholder="Try 'Feb 25'..." oninput="execDateSearch()" style="width:100%; padding:10px; border-radius:10px; border:none; outline:none; font-size:0.9rem;">
+        <div id="searchResults" style="max-height:150px; overflow-y:auto; margin-top:10px; background:rgba(255,255,255,0.1); border-radius:10px;"></div>
+    </div>
+    
+    <!-- Rest of calendar logic... -->
     <!-- Search Input (Hidden by default) -->
     <div id="searchBar" style="display:none; margin-bottom:15px;">
         <input type="text" id="dateSearchInput" placeholder="Try 'Feb 25'..." oninput="execDateSearch()" style="width:100%; padding:10px; border-radius:10px; border:none; outline:none; font-size:0.9rem;">
@@ -806,16 +825,16 @@ input:checked + .sld:before { transform: translateX(16px); }
 <!-- Range Selection Modal -->
 <div id="rangeModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:400px; background: var(--bg); border: 2px solid white; border-radius:30px; padding:25px; z-index:7000; box-shadow:0 20px 60px rgba(0,0,0,0.4); color: white;">
     
-    <!-- Search Icon (Matches Pick 4) -->
-    <div id="rangeSearchIcon" style="position:absolute; top:25px; right:60px; cursor:pointer;" onclick="toggleRangeSearch()">
+    <!-- Search Icon - Moved up to top:12px -->
+    <div id="rangeSearchIcon" style="position:absolute; top:12px; right:55px; cursor:pointer; z-index: 10;" onclick="toggleRangeSearch()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
     </div>
 
-    <!-- Close Button (Top Right) -->
-    <button onclick="closeRangeModal()" style="position:absolute; top:20px; right:20px; background:none; border:none; font-size:1.5rem; cursor:pointer; color:white; font-weight:bold;">✕</button>
+    <!-- Close Button - Moved up to top:10px -->
+    <button onclick="closeRangeModal()" style="position:absolute; top:10px; right:15px; background:none; border:none; font-size:1.5rem; cursor:pointer; color:white; font-weight:bold; z-index: 10;">✕</button>
 
-    <!-- Search Input for Range (Hidden by default) -->
-    <div id="rangeSearchBar" style="display:none; margin-bottom:15px; margin-top:10px;">
+    <!-- Search Bar - Adjusted margin -->
+    <div id="rangeSearchBar" style="display:none; margin-bottom:15px; margin-top: -5px;">
         <input type="text" id="rangeDateSearchInput" placeholder="Search date..." oninput="execRangeDateSearch()" style="width:100%; padding:10px; border-radius:10px; border:none; outline:none; font-size:0.9rem;">
         <div id="rangeSearchResults" style="max-height:150px; overflow-y:auto; margin-top:10px; background:rgba(255,255,255,0.1); border-radius:10px;"></div>
     </div>

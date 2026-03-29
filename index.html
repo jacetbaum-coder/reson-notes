@@ -1538,31 +1538,41 @@ function renderRangeHeatmap() {
         grid.appendChild(el);
     }
 }
-// Function to wrap selected text in bold, italics, underline, or headings
-// This tracks which buttons are currently "toggled on"
-let activeStates = { bold: false, italic: false, under: false, head: false };
-
-// 1. Keep track of which "Modes" are currently active
+// --- SMART FORMATTING LOGIC ---
 let activeStates = { bold: false, italic: false, under: false, head: false };
 
 function smartFormat(prefix, suffix, type) {
-    const box = document.getElementById('noteContent');
+    const ta = document.getElementById('noteContent');
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const text = ta.value;
     const btn = document.getElementById('btn-' + type);
-    
-    // This tells the browser: "Turn the selected text into Bold/Italic/Underline"
-    // It works exactly like Microsoft Word. No asterisks!
-    if (type === 'bold') document.execCommand('bold');
-    if (type === 'italic') document.execCommand('italic');
-    if (type === 'under') document.execCommand('underline');
-    
-    // "H" stands for Heading (Big Title Text)
-    if (type === 'head') {
-        document.execCommand('formatBlock', false, 'h3');
+
+    // Case A: Selected text (Wrap it)
+    if (start !== end) {
+        const selectedText = text.substring(start, end);
+        ta.setRangeText(prefix + selectedText + suffix, start, end, "select");
+        ta.focus();
+        return; 
     }
 
-    // Handle button colors
-    btn.classList.toggle('active');
-    box.focus();
+    // Case B: Sticky Mode (Toggle on/off while typing)
+    activeStates[type] = !activeStates[type]; 
+
+    if (activeStates[type]) {
+        btn.classList.add('active');
+        ta.setRangeText(prefix, start, start, "end");
+    } else {
+        btn.classList.remove('active');
+        ta.setRangeText(suffix, start, start, "end");
+    }
+    ta.focus();
+}
+
+// Ensure formatting resets when note is saved
+function resetFormatButtons() {
+    activeStates = { bold: false, italic: false, under: false, head: false };
+    document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
 }
 
 // IMPORTANT: Add this to your commitNote function so buttons reset after you save

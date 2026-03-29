@@ -944,6 +944,7 @@ function loadProfileUI() {
 
 // Navigation Logic
 // Navigation Logic
+// Navigation Logic
 function showMain() {
     // 1. UI Visibility
     document.querySelector('header').style.display = 'flex';
@@ -957,10 +958,9 @@ function showMain() {
     document.getElementById('navNotes').classList.add('active-tab');
     document.getElementById('navSettings').classList.remove('active-tab');
 
-    // 3. Trigger Sync (Pulls notes from other devices automatically)
+    // 3. Trigger Sync
     syncWithCloud(); 
 }
-
 function showSettings() {
     // UI Visibility
     document.querySelector('header').style.display = 'none';
@@ -1044,7 +1044,7 @@ function cleanupData() {
     save();
 }
 
-function commitNote() {
+async function commitNote() {
     const text = textarea.value.trim();
     if (!text) return;
     await syncWithCloud(); 

@@ -559,12 +559,11 @@ input:checked + .sld:before { transform: translateX(16px); }
     <!-- This is the new header for the note box -->
     <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:10px;">
        <div style="display:flex; gap:5px;">
-    <button id="btn-bullet" class="format-btn" onclick="insertBullet()">•</button>
-    <button id="btn-check" class="format-btn" onclick="insertCheckbox()">☐</button>
-    <button id="btn-bold" class="format-btn" onclick="smartFormat('**', '**', 'bold')">B</button>
-    <button id="btn-italic" class="format-btn" onclick="smartFormat('_', '_', 'italic')">I</button>
-    <button id="btn-under" class="format-btn" onclick="smartFormat('<u>', '</u>', 'under')">U</button>
-    <button id="btn-head" class="format-btn" onclick="smartFormat('# ', '', 'head')">H</button>
+    <button id="btn-bullet" class="format-btn" onclick="toggleListMode('• ')">•</button>
+    <button id="btn-check" class="format-btn" onclick="toggleListMode('☐ ')">☐</button>
+    <button id="btn-bold" class="format-btn" onclick="execStyle('bold', 'bold')">B</button>
+    <button id="btn-italic" class="format-btn" onclick="execStyle('italic', 'italic')">I</button>
+    <button id="btn-under" class="format-btn" onclick="execStyle('underline', 'under')">U</button>
 </div>
         <button id="rangeBtn" onclick="openRangeModal()" style="border:none;background:#f3f3f3;border-radius:8px;padding:6px 10px;cursor:pointer; font-size: 1.1rem;">🗓️</button>
     </div>
@@ -1538,35 +1537,51 @@ function renderRangeHeatmap() {
         grid.appendChild(el);
     }
 }
-// --- SMART FORMATTING LOGIC ---
-let activeStates = { bold: false, italic: false, under: false, head: false };
+// --- FORMATTING LOGIC ---
+let listMode = null; // Tracks if we are in Bullet or Checkbox mode
 
-function smartFormat(prefix, suffix, type) {
-    const ta = document.getElementById('noteContent');
-    const start = ta.selectionStart;
-    const end = ta.selectionEnd;
-    const text = ta.value;
+function execStyle(cmd, type) {
+    document.execCommand(cmd, false, null);
     const btn = document.getElementById('btn-' + type);
+    // Visual toggle for the button
+    btn.classList.toggle('active', document.queryCommandState(cmd));
+    document.getElementById('noteContent').focus();
+}
 
-    // Case A: Selected text (Wrap it)
-    if (start !== end) {
-        const selectedText = text.substring(start, end);
-        ta.setRangeText(prefix + selectedText + suffix, start, end, "select");
-        ta.focus();
-        return; 
-    }
-
-    // Case B: Sticky Mode (Toggle on/off while typing)
-    activeStates[type] = !activeStates[type]; 
-
-    if (activeStates[type]) {
-        btn.classList.add('active');
-        ta.setRangeText(prefix, start, start, "end");
-    } else {
+function toggleListMode(prefix) {
+    const btnId = prefix === '• ' ? 'btn-bullet' : 'btn-check';
+    const btn = document.getElementById(btnId);
+    
+    if (listMode === prefix) {
+        listMode = null;
         btn.classList.remove('active');
-        ta.setRangeText(suffix, start, start, "end");
+    } else {
+        // Clear other list mode if active
+        document.getElementById('btn-bullet').classList.remove('active');
+        document.getElementById('btn-check').classList.remove('active');
+        
+        listMode = prefix;
+        btn.classList.add('active');
+        
+        // If the box is empty or we are on a new line, insert the first bullet immediately
+        const editor = document.getElementById('noteContent');
+        if (editor.innerText.trim() === "") {
+            editor.innerHTML = prefix;
+            // Move cursor to end
+            const range = document.createRange();
+            const sel = window.getSelection();
+            range.selectNodeContents(editor);
+            range.collapse(false);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
     }
-    ta.focus();
+    document.getElementById('noteContent').focus();
+}
+
+function resetFormatButtons() {
+    listMode = null;
+    document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
 }
 
 // Ensure formatting resets when note is saved
@@ -1637,29 +1652,32 @@ document.getElementById('loadCloudBtn').onclick = syncWithCloud;
 window.addEventListener('focus', () => {
     if (authHeader) syncWithCloud();
 });
-// Add this to handle the "Enter" key behavior
+// Handle Auto-continuing lists and Bold/Italic/Underline states
 document.getElementById('noteContent').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
-        const s = this.selectionStart;
-        const val = this.value;
-        const lastNewline = val.lastIndexOf('\n', s - 1);
-        const lineStart = lastNewline + 1;
-        const currentLine = val.substring(lineStart, s);
+        if (listMode) {
+            e.preventDefault();
+            // Get current text to check if we should stop
+            const lines = this.innerText.split('\n');
+            const currentLine = lines[lines.length - 1];
 
-        // Auto-continue Bullet Points
-        if (currentLine.trim().startsWith('•')) {
-            e.preventDefault();
-            this.setRangeText("\n• ", s, s, "end");
-        } 
-        // Auto-continue Checkboxes
-        else if (currentLine.trim().startsWith('☐')) {
-            e.preventDefault();
-            this.setRangeText("\n☐ ", s, s, "end");
+            // If user presses enter on an empty bullet, stop the mode
+            if (currentLine.trim() === listMode.trim()) {
+                this.innerText = this.innerText.substring(0, this.innerText.lastIndexOf(listMode.trim()));
+                resetFormatButtons();
+            } else {
+                // Otherwise, add a new line with the bullet/checkbox
+                document.execCommand('insertHTML', false, '<br>' + listMode);
+            }
         }
-        
-        this.blur();
-        this.focus();
     }
+    
+    // Auto-update button highlights based on cursor position
+    setTimeout(() => {
+        document.getElementById('btn-bold').classList.toggle('active', document.queryCommandState('bold'));
+        document.getElementById('btn-italic').classList.toggle('active', document.queryCommandState('italic'));
+        document.getElementById('btn-under').classList.toggle('active', document.queryCommandState('underline'));
+    }, 10);
 });
 </script>
 </body>

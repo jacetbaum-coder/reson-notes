@@ -1354,14 +1354,14 @@ function renderDeck() {
         return dMatch && cMatch;
     });
 
-    // Handle the "View All" Arrow
-    if (filtered.length > 4) {
-        header.innerHTML = `
-            <button class="view-all-btn" onclick="toggleViewAll()">
-                ${isViewAllMode ? 'CLOSE ✕' : 'ALL NOTES ➔'}
-            </button>
-        `;
-    }
+    // Removed the "View All" Arrow
+    // if (filtered.length > 4) {
+    //     header.innerHTML = `
+    //         <button class="view-all-btn" onclick="toggleViewAll()">
+    //             ${isViewAllMode ? 'CLOSE ✕' : 'ALL NOTES ➔'}
+    //         </button>
+    //     `;
+    // }
 
     // Slice the list if not in "View All" mode
     const displayList = isViewAllMode ? filtered : filtered.slice(0, 4);

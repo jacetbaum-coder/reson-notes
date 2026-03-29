@@ -744,20 +744,25 @@ input:checked + .sld:before { transform: translateX(16px); }
 </div>
 <div id="overlay" onclick="closeAllModals()"></div>
 <div id="noteViewer">
-    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:15px; padding-right: 30px;">
-        <div style="display:flex; gap:5px;">
-            <button class="format-btn" onclick="execStyle('bold', 'bold')">B</button>
-            <button class="format-btn" onclick="execStyle('italic', 'italic')">I</button>
-            <button class="format-btn" onclick="execStyle('underline', 'under')">U</button>
+    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:15px; padding-right: 40px;">
+        <div style="display:flex; gap:8px;">
+            <!-- Buttons now use the soft green background from your Home Screen -->
+            <button class="format-btn" style="background:#e8f5e9; color:var(--accent);" onclick="execStyle('bold', 'bold')">B</button>
+            <button class="format-btn" style="background:#e8f5e9; color:var(--accent);" onclick="execStyle('italic', 'italic')">I</button>
+            <button class="format-btn" style="background:#e8f5e9; color:var(--accent);" onclick="execStyle('underline', 'under')">U</button>
         </div>
-        <div style="display:flex; gap:10px; align-items:center;">
-            <button id="viewerRangeBtn" onclick="openRangeModal()" style="border:none;background:#f3f3f3;border-radius:8px;padding:6px 10px;cursor:pointer; font-size: 1.1rem;">🗓️</button>
-            <button class="note-menu-btn" style="position:static;" onclick="openMenu(event, activeNote.id)">⋮</button>
+        <div style="display:flex; gap:15px; align-items:center;">
+            <!-- Calendar icon now matches the other buttons exactly -->
+            <button id="viewerRangeBtn" onclick="openRangeModal()" style="border:none; background:#e8f5e9; border-radius:8px; padding:6px 10px; cursor:pointer; font-size: 1.1rem; color:var(--accent);">🗓️</button>
+            <!-- Menu dots are now black/visible -->
+            <button class="note-menu-btn" style="position:static; color: #000; font-size: 1.4rem; opacity: 1;" onclick="openMenu(event, activeNote.id)">⋮</button>
         </div>
     </div>
-    <button id="noteViewerClose" onclick="closeNoteViewer()">×</button>
-    <div id="noteViewerContent" contenteditable="true" style="width:100%; height:45vh; outline:none; font-size:1.1rem; overflow-y:auto; background:#fff;"></div>
-    <button onclick="closeNoteViewer()" style="width:100%; background:black; color:white; border:none; padding:12px; border-radius:15px; font-weight:bold; margin-top:15px;">Save Changes</button>
+    <!-- Styled close button -->
+    <button id="noteViewerClose" style="color:#000; font-size: 1.8rem; top: 10px; right: 15px; font-weight: normal;" onclick="closeNoteViewer()">✕</button>
+    <div id="noteViewerContent" contenteditable="true" style="width:100%; height:45vh; outline:none; font-size:1.1rem; overflow-y:auto; background:#fff; padding: 15px; border-radius: 15px;"></div>
+    <!-- "Save Changes" is now the accent green, matching the "Home" vibe -->
+    <button onclick="closeNoteViewer()" style="width:100%; background:var(--accent); color:white; border:none; padding:14px; border-radius:15px; font-weight:900; text-transform:uppercase; margin-top:20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">Save Changes</button>
 </div>
 <div id="calModal">
     <!-- Search Icon -->
@@ -799,33 +804,48 @@ input:checked + .sld:before { transform: translateX(16px); }
 <!-- Context Menu for Deleting -->
 <div id="noteMenu"></div>
 <!-- Range Selection Modal -->
-<div id="rangeModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:400px; background: var(--bg); border: 2px solid white; border-radius:30px; padding:30px; z-index:7000; box-shadow:0 20px 60px rgba(0,0,0,0.4); color: white;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-        <h3 style="margin:0; font-size:1.1rem; font-weight:900; text-transform:uppercase;">Select Range</h3>
-        <button onclick="closeRangeModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:white; font-weight:bold;">✕</button>
+<div id="rangeModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:400px; background: var(--bg); border: 2px solid white; border-radius:30px; padding:25px; z-index:7000; box-shadow:0 20px 60px rgba(0,0,0,0.4); color: white;">
+    
+    <!-- Search Icon (Matches Pick 4) -->
+    <div id="rangeSearchIcon" style="position:absolute; top:25px; right:60px; cursor:pointer;" onclick="toggleRangeSearch()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
     </div>
-    <div class="month-nav">
-        <div class="nav-arrow" onclick="changeRangeMonth(-1)">&lt;</div>
-        <div id="rangeMonthTitle">
-            <span id="rangeMText">MONTH</span>
-            <span id="rangeYText" class="year-pill">2026</span>
+
+    <!-- Close Button (Top Right) -->
+    <button onclick="closeRangeModal()" style="position:absolute; top:20px; right:20px; background:none; border:none; font-size:1.5rem; cursor:pointer; color:white; font-weight:bold;">✕</button>
+
+    <!-- Search Input for Range (Hidden by default) -->
+    <div id="rangeSearchBar" style="display:none; margin-bottom:15px; margin-top:10px;">
+        <input type="text" id="rangeDateSearchInput" placeholder="Search date..." oninput="execRangeDateSearch()" style="width:100%; padding:10px; border-radius:10px; border:none; outline:none; font-size:0.9rem;">
+        <div id="rangeSearchResults" style="max-height:150px; overflow-y:auto; margin-top:10px; background:rgba(255,255,255,0.1); border-radius:10px;"></div>
+    </div>
+
+    <div id="rangeMainUI">
+        <div class="month-nav" style="margin-top:10px;">
+            <div class="nav-arrow" onclick="changeRangeMonth(-1)">&lt;</div>
+            <div id="rangeMonthTitle">
+                <span id="rangeMText">MONTH</span>
+                <span id="rangeYText" class="year-pill">2026</span>
+            </div>
+            <div class="nav-arrow" onclick="changeRangeMonth(1)">&gt;</div>
         </div>
-        <div class="nav-arrow" onclick="changeRangeMonth(1)">&gt;</div>
+        <div class="day-headers">
+            <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+        </div>
+        <div class="modal-grid" id="rangeGrid" style="min-height: 240px;"></div>
     </div>
-    <div class="day-headers">
-        <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
-    </div>
-    <div class="modal-grid" id="rangeGrid"></div>
-    <div style="margin-top:20px; padding:15px; background:rgba(255,255,255,0.2); border-radius:20px;">
+
+    <div style="margin-top:15px; padding:12px; background:rgba(255,255,255,0.2); border-radius:20px;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <div>
                 <div style="font-weight:900; font-size:0.75rem; color:white; text-transform:uppercase;">Mirror Updates</div>
-                <div style="font-size:0.6rem; color:rgba(255,255,255,0.8);">Editing one changes all selected days</div>
+                <div style="font-size:0.6rem; color:rgba(255,255,255,0.8);">Editing one changes all days</div>
             </div>
             <label class="sw"><input type="checkbox" id="mirrorToggle" checked><span class="sld"></span></label>
         </div>
     </div>
-    <button onclick="applyRange()" style="width:100%; margin-top:15px; background:white; color:black; border:none; padding:12px; border-radius:12px; font-weight:900; text-transform:uppercase; cursor:pointer;">Done</button>
+    
+    <button onclick="applyRange()" style="width:100%; margin-top:15px; background:white; color:black; border:none; padding:14px; border-radius:12px; font-weight:900; text-transform:uppercase; cursor:pointer;">Done</button>
 </div>
 <script>
 // Add this at the very top of your <script> section
@@ -1670,8 +1690,22 @@ function openRangeModal() {
 }
 
 function closeRangeModal() {
+    // Hide modal and overlay
     document.getElementById('rangeModal').style.display = 'none';
     document.getElementById('overlay').style.display = 'none';
+
+    // Reset the Search UI inside the Range Modal so it's fresh for next time
+    const bar = document.getElementById('rangeSearchBar');
+    const main = document.getElementById('rangeMainUI');
+    const icon = document.getElementById('rangeSearchIcon');
+    const searchInput = document.getElementById('rangeDateSearchInput');
+    const searchResults = document.getElementById('rangeSearchResults');
+
+    if (bar) bar.style.display = 'none';
+    if (main) main.style.display = 'block';
+    if (icon) icon.style.display = 'block'; // Ensures magnifying glass is back
+    if (searchInput) searchInput.value = '';
+    if (searchResults) searchResults.innerHTML = '';
 }
 function changeRangeMonth(offset) {
     rangeViewDate.setMonth(rangeViewDate.getMonth() + offset);
@@ -1879,13 +1913,18 @@ document.getElementById('noteContent').addEventListener('keydown', function(e) {
 function toggleSearch() {
     const bar = document.getElementById('searchBar');
     const main = document.getElementById('calendarMainUI');
+    // Finds the magnifying glass icon container inside the main calendar modal
+    const icon = document.querySelector('#calModal svg').parentElement;
+
     if (bar.style.display === 'none' || bar.style.display === '') {
         bar.style.display = 'block';
         main.style.display = 'none';
+        icon.style.display = 'none'; // Makes the magnifying glass go away while searching
         document.getElementById('dateSearchInput').focus();
     } else {
         bar.style.display = 'none';
         main.style.display = 'block';
+        icon.style.display = 'block'; // Brings it back when search is closed
     }
 }
 
@@ -1906,29 +1945,41 @@ function execDateSearch() {
     if (dayMatch) searchDay = parseInt(dayMatch[0]);
 
     if (searchMonth !== -1 && searchDay > 0 && searchDay <= 31) {
-        // Search range: 1926 to 2126
+        const results = [];
+        const today = new Date();
+
+        // Collect all possible dates within the 200-year range
         for (let y = 1926; y <= 2126; y++) {
             const d = new Date(y, searchMonth, searchDay);
             if (d.getMonth() === searchMonth) {
-                const row = document.createElement('div');
-                row.style = "padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer; font-size:0.9rem; font-weight:bold;";
-                const dateString = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-                row.innerText = dateString;
-                row.onclick = () => {
-                    selectedDate = d;
-                    setupCalendar();
-                    renderDeck();
-                    closeAllModals();
-                    // Reset UI for next time
-                    toggleSearch();
-                    document.getElementById('dateSearchInput').value = '';
-                };
-                resultsContainer.appendChild(row);
+                results.push(d);
             }
         }
+
+        // Sort results: The date closest to "Today" appears first
+        results.sort((a, b) => Math.abs(a - today) - Math.abs(b - today));
+
+        results.forEach(d => {
+            const row = document.createElement('div');
+            row.style = "padding:12px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer; font-size:0.9rem; font-weight:bold; color: white;";
+            const dateString = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+            row.innerText = dateString;
+            row.onclick = () => {
+                selectedDate = d;
+                setupCalendar();
+                renderDeck();
+                closeAllModals();
+                // Reset search bar state
+                const sBar = document.getElementById('searchBar');
+                const cUI = document.getElementById('calendarMainUI');
+                if(sBar) sBar.style.display = 'none';
+                if(cUI) cUI.style.display = 'block';
+                document.getElementById('dateSearchInput').value = '';
+            };
+            resultsContainer.appendChild(row);
+        });
     }
 }
-
 // Override the closeAllModals function to include search reset logic
 const originalClose = closeAllModals;
 closeAllModals = function() {

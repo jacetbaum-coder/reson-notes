@@ -46,7 +46,34 @@ header {
     text-transform:uppercase; 
     text-align: center;
 }
-
+/* New styles for Infinite Calendar Navigation */
+.month-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    user-select: none;
+}
+.nav-arrow {
+    font-size: 1.8rem;
+    cursor: pointer;
+    padding: 0 10px;
+    color: white;
+    font-weight: bold;
+}
+#modalMonthTitle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    cursor: default;
+}
+.year-pill {
+    border: 2px solid white;
+    padding: 2px 12px;
+    border-radius: 20px;
+}
 #todayBtn {
     background: rgba(255,255,255,0.25);
     border: 1px solid white;
@@ -476,8 +503,16 @@ input:checked + .sld:before { transform: translateX(16px); }
 </div>
 
 <!-- Calendar Heatmap Modal -->
+<!-- Enhanced Calendar Modal with Navigation -->
 <div id="calModal">
-    <h3 id="modalMonthTitle" style="text-align:center; margin-top:0;">MONTH</h3>
+    <div class="month-nav">
+        <div class="nav-arrow" onclick="changeModalMonth(-1)">&lt;</div>
+        <div id="modalMonthTitle" onwheel="handleModalScroll(event)">
+            <span id="mText">MONTH</span>
+            <span id="yText" class="year-pill">YEAR</span>
+        </div>
+        <div class="nav-arrow" onclick="changeModalMonth(1)">&gt;</div>
+    </div>
     <div class="modal-grid" id="fullGrid"></div>
     <button onclick="closeAllModals()" style="width:100%; margin-top:20px; background:white; color:black; border:none; padding:10px; border-radius:10px; font-weight:bold;">Close</button>
 </div>
@@ -511,7 +546,90 @@ function showToast(message) {
     toast.style.display = 'block';
     setTimeout(() => { toast.style.display = 'none'; }, 2500);
 }
+// Persistent browsing state for the modal
+let modalViewDate = new Date(); 
 
+// Overwrite your existing toggleModal
+function toggleModal() {
+    const m = document.getElementById('calModal');
+    const o = document.getElementById('overlay');
+    const isOpening = m.style.display !== 'block';
+    
+    if (isOpening) {
+        // When opening, reset the browsing view to the currently selected app date
+        modalViewDate = new Date(selectedDate);
+        renderHeatmap();
+        m.style.display = 'block';
+        o.style.display = 'block';
+    } else {
+        closeAllModals();
+    }
+}
+
+// Function to change month via arrows
+function changeModalMonth(offset) {
+    modalViewDate.setMonth(modalViewDate.getMonth() + offset);
+    renderHeatmap();
+}
+
+// Function to change year via arrows or scroll
+function changeModalYear(offset) {
+    modalViewDate.setFullYear(modalViewDate.getFullYear() + offset);
+    renderHeatmap();
+}
+
+// Scroll logic: Scroll over "Month" to change month, over "Year" to change year
+function handleModalScroll(e) {
+    e.preventDefault();
+    const isYear = e.target.id === 'yText' || e.target.classList.contains('year-pill');
+    const direction = e.deltaY > 0 ? -1 : 1;
+    
+    if (isYear) {
+        changeModalYear(direction);
+    } else {
+        changeModalMonth(direction);
+    }
+}
+
+// Overwrite your existing renderHeatmap
+function renderHeatmap() {
+    const grid = document.getElementById('fullGrid');
+    grid.innerHTML = '';
+    
+    const y = modalViewDate.getFullYear();
+    const m = modalViewDate.getMonth();
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    
+    // Update the UI labels
+    document.getElementById('mText').innerText = modalViewDate.toLocaleString('default', { month: 'long' }).toUpperCase();
+    document.getElementById('yText').innerText = y;
+    
+    for (let i = 1; i <= daysInMonth; i++) {
+        const d = new Date(y, m, i);
+        const k = formatDateKey(d);
+        const count = db.notes_list.filter(n => n.date === k).length;
+        
+        const el = document.createElement('div');
+        // Highlight the date ONLY if it matches the current APP selected date
+        el.className = `circle-day ${k === formatDateKey(selectedDate) ? 'selected' : ''}`;
+        el.innerText = i;
+        
+        // Heatmap colors
+        if (count === 0) el.style.backgroundColor = 'var(--heat-0)';
+        else if (count === 1) el.style.backgroundColor = 'var(--heat-1)';
+        else if (count >= 2 && count <= 3) el.style.backgroundColor = 'var(--heat-2)';
+        else el.style.backgroundColor = 'var(--heat-3)';
+        
+        // Clicking a day ACTUALLY selects it and closes the modal
+        el.onclick = () => { 
+            selectedDate = d; 
+            setupCalendar(); 
+            renderDeck(); 
+            closeAllModals(); 
+        };
+        grid.appendChild(el);
+    }
+}
 function deleteAccount() {
     if(confirm("Permanently delete all data? This cannot be undone.")) {
         localStorage.clear();

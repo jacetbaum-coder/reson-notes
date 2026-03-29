@@ -800,7 +800,7 @@ input:checked + .sld:before { transform: translateX(16px); }
             <div class="nav-arrow" onclick="changeModalMonth(-1)">&lt;</div>
             <div id="modalMonthTitle">
                 <span id="mText">MONTH</span>
-                <span id="yText" class="year-pill">2026</span>
+                <span id="yText" class="year-pill" onclick="selectYear('modal')" style="cursor:pointer;">2026</span>
             </div>
             <div class="nav-arrow" onclick="changeModalMonth(1)">&gt;</div>
         </div>
@@ -844,7 +844,7 @@ input:checked + .sld:before { transform: translateX(16px); }
             <div class="nav-arrow" onclick="changeRangeMonth(-1)">&lt;</div>
             <div id="rangeMonthTitle">
                 <span id="rangeMText">MONTH</span>
-                <span id="rangeYText" class="year-pill">2026</span>
+                <span id="rangeYText" class="year-pill" onclick="selectYear('range')" style="cursor:pointer;">2026</span>
             </div>
             <div class="nav-arrow" onclick="changeRangeMonth(1)">&gt;</div>
         </div>
@@ -1351,7 +1351,30 @@ function openCatModal() {
     document.getElementById('catModal').style.display = 'block';
     document.getElementById('catInput').focus();
 }
+function selectYear(type) {
+    // Determine which viewing date object we are currently manipulating
+    let viewDate = (type === 'modal') ? modalViewDate : rangeViewDate;
+    
+    // Ask the user for the year
+    let newYear = prompt("Enter Year:", viewDate.getFullYear());
 
+    // Validate that it's a number and exactly 4 digits
+    if (newYear !== null) {
+        let yearInt = parseInt(newYear);
+        if (!isNaN(yearInt) && yearInt > 1900 && yearInt < 2200) {
+            viewDate.setFullYear(yearInt);
+            
+            // Re-render the correct heatmap based on which modal is open
+            if (type === 'modal') {
+                renderHeatmap();
+            } else {
+                renderRangeHeatmap();
+            }
+        } else {
+            showToast("Please enter a valid year (e.g., 2025)");
+        }
+    }
+}
 function createNewCategory() {
     const input = document.getElementById('catInput');
     const val = input.value.trim();

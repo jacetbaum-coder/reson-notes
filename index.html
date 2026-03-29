@@ -1047,6 +1047,7 @@ function cleanupData() {
 function commitNote() {
     const text = textarea.value.trim();
     if (!text) return;
+    await syncWithCloud(); 
     const cat = currentCategory ? currentCategory.toLowerCase() : "general";
     const mirrorId = (document.getElementById('mirrorToggle').checked && rangeEnd) ? "m_" + Date.now() : null;
 

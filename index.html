@@ -66,16 +66,16 @@ header {
 /* Update format buttons to match the bullet point green */
 .format-btn {
     border: none;
-    background: #e8f5e9; /* Your green bullet color */
+    background: #e8f5e9; 
     border-radius: 8px;
     padding: 6px 10px;
     font-weight: 700;
     cursor: pointer;
-    transition: background 0.2s, color 0.2s;
     color: #2d5a3a; /* Dark green text */
+    transition: all 0.2s;
 }
 
-/* Darker version for when the button is "active" */
+/* When a mode is "On", the button turns the dark 'Home' green */
 .format-btn.active {
     background: #2d5a3a !important;
     color: white !important;
@@ -1524,40 +1524,43 @@ function renderRangeHeatmap() {
 // This tracks which buttons are currently "toggled on"
 let activeStates = { bold: false, italic: false, under: false, head: false };
 
+// 1. Keep track of which "Modes" are currently active
+let activeStates = { bold: false, italic: false, under: false, head: false };
+
 function smartFormat(prefix, suffix, type) {
+    const textarea = document.getElementById('noteContent');
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const text = textarea.value;
-    const selectedText = text.substring(start, end);
     const btn = document.getElementById('btn-' + type);
 
-    // Toggle active state for UI feedback
-    activeStates[type] = !activeStates[type];
-    if (activeStates[type]) {
-        btn.classList.add('active');
-    } else {
-        btn.classList.remove('active');
+    // Case A: You highlighted text with your mouse (Multi-select)
+    if (start !== end) {
+        const selectedText = text.substring(start, end);
+        textarea.setRangeText(prefix + selectedText + suffix, start, end, "select");
+        return; // Don't toggle a "mode" if just wrapping a selection
     }
 
-    if (start !== end) {
-        // MULTI-SELECT LOGIC: Wrap the highlighted text
-        textarea.setRangeText(prefix + selectedText + suffix, start, end, "select");
-        // After applying to a selection, we usually turn the button back "off"
-        activeStates[type] = false;
-        btn.classList.remove('active');
+    // Case B: Sticky Mode (Typing behavior)
+    activeStates[type] = !activeStates[type]; // Toggle state
+
+    if (activeStates[type]) {
+        // TURN MODE ON: Just insert the start tag (e.g. **)
+        btn.classList.add('active');
+        textarea.setRangeText(prefix, start, start, "end");
     } else {
-        // STICKY LOGIC: Insert tags and put cursor in the middle
-        // If the user starts typing now, it will be inside the bold/italic tags
-        textarea.setRangeText(prefix + suffix, start, start, "end");
-        
-        // Move cursor inside the tags (e.g., between the ** and **)
-        const newPos = start + prefix.length;
-        textarea.setSelectionRange(newPos, newPos);
+        // TURN MODE OFF: Just insert the end tag (e.g. **)
+        btn.classList.remove('active');
+        textarea.setRangeText(suffix, start, start, "end");
     }
-    
+
     textarea.focus();
 }
 
+// IMPORTANT: Add this to your commitNote function so buttons reset after you save
+// Find your commitNote() { ... } and add these two lines at the very bottom:
+// activeStates = { bold: false, italic: false, under: false, head: false };
+// document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
 // Update your existing bullet/checkbox buttons to also look green by default
 // You can add this line to your DOMContentLoaded or script start:
 document.addEventListener("DOMContentLoaded", () => {

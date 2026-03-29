@@ -2,10 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Reson Notes</title>
 
 <style>
+    * {
+    box-sizing: border-box; /* Prevents elements from leaking off the screen */
+}
 :root {
     --bg:#77c98d;
     --card:#ffffff;
@@ -27,21 +30,19 @@ body {
     align-items:center;
     padding:20px;
     min-height:100vh;
-    overflow-x: hidden; /* Prevents side-to-side jiggle */
+    overflow-x: hidden;
     width: 100%;
-    position: fixed; /* Optional: Locks the background if you only want the cards to scroll */
-    overscroll-behavior-y: none; /* Stops the "rubber-band" bounce at top/bottom */
+    /* Remove position: fixed; if it was there */
 }
 
 header { 
-    width:100%; 
-    max-width:500px; 
-    display:flex; 
-    flex-direction:column; 
-    align-items:center; 
-    position:relative; 
-    margin-bottom:20px; 
-    padding-top: env(safe-area-inset-top, 40px); 
+    width: 100%; 
+    max-width: 100vw; /* Ensure it never goes wider than the phone screen */
+    display: flex; 
+    justify-content: center;
+    position: relative; 
+    margin-bottom: 20px; 
+    padding: env(safe-area-inset-top, 20px) 15px 0 15px; /* Added side padding */
 }
 
 .month-label { 
@@ -177,10 +178,11 @@ header {
     align-items: center;
 }
 .bubble {
-    padding: 8px 20px;
+    padding: 12px 24px; /* Increased from 8px 20px */
+    font-size: 1rem;    /* Makes text clearer */
     background: var(--card);
-    border-radius: 20px;
-    font-weight: 600;
+    border-radius: 25px;
+    font-weight: 700;
     cursor: pointer;
     border: none;
     white-space: nowrap;
@@ -231,14 +233,13 @@ header {
 .checklist-text.done { text-decoration: line-through; color: #aaa; }
 
 .note-container {
-    width: 92%;
+    width: 95%; /* Slightly wider for mobile, but constrained by box-sizing */
     max-width: 500px;
     background: var(--card);
     border-radius: 24px;
     padding: 20px;
     position: relative;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    margin: 15px 0;
+    margin: 15px auto; /* Centers it */
 }
 
 textarea {
@@ -331,23 +332,22 @@ textarea {
     bottom: 0; 
     left: 0; 
     width: 100%; 
-    background: rgba(255, 255, 255, 0.95); /* Slight transparency for a "glass" effect */
-    backdrop-filter: blur(10px);          /* Blurs content behind the bar */
+    background: white;
     display: flex; 
     justify-content: space-around; 
     padding-top: 15px;
-    padding-bottom: env(safe-area-inset-bottom, 20px); /* CRITICAL: Adds space for iPhone home bar */
+    /* This adds extra space specifically for the iPhone home bar */
+    padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 10px); 
     z-index: 5000; 
-    box-shadow: 0 -5px 20px rgba(0,0,0,0.05); 
     border-top: 1px solid #eee;
 }
 
 #bottomTabs button { 
     background: none; 
     border: none; 
-    font-weight: 700; 
-    font-size: 0.85rem;
-    color: #999;           /* Inactive color */
+    font-weight: 800; 
+    font-size: 1rem; /* Increased from 0.85rem */
+    color: #444;    /* Darker for better visibility */
     cursor: pointer; 
     flex: 1; 
 }

@@ -812,7 +812,7 @@ function rollUsername() {
     showToast("Rolled: " + adj + noun);
 }
 async function handleAuth() {
-    const user = document.getElementById('usernameInput').value.trim();
+    const user = document.getElementById('usernameInput').value.trim().toLowerCase();
     const pass = document.getElementById('passwordInput').value.trim();
     const phoneInput = document.getElementById('phoneInput');
     const phone = phoneInput ? phoneInput.value.trim() : "";
@@ -1398,7 +1398,7 @@ async function uploadToCloud() {
 async function syncWithCloud() {
     if(!authHeader) return;
     try {
-        const res = await fetch(WORKER_URL, { 
+        const res = await fetch(WORKER_URL + "?t=" + Date.now(), { 
             headers: { 'Authorization': 'Basic ' + authHeader },
             cache: 'no-store'
         });
@@ -1408,19 +1408,16 @@ async function syncWithCloud() {
         const data = await res.json();
 
         // Check if data exists and isn't just an empty object
-        if (data && (data.notes_list || data.profile)) { 
-            // SMART MERGE: 
-            // We combine the cloud data with our local data so nothing gets deleted
-            db = {
-                notes_list: data.notes_list || [],
-                custom_categories: data.custom_categories || [],
-                profile: { 
-                    ...db.profile,         // Keep current local fields (like a new pic)
-                    ...(data.profile || {}) // Overwrite with cloud data if it exists
-                }
-            };
-            
-            localStorage.setItem('reson_db', JSON.stringify(db));
+        // Update this part inside syncWithCloud:
+if (data && (data.notes_list || data.profile)) { 
+    // If the cloud has data, WE TRUST THE CLOUD COMPLETELY for a fresh sync
+    db = {
+        notes_list: data.notes_list || [],
+        custom_categories: data.custom_categories || [],
+        profile: data.profile || db.profile
+    };
+    
+    localStorage.setItem('reson_db', JSON.stringify(db));
             
             // Force the UI to update with the fresh cloud data
             loadProfileUI(); 

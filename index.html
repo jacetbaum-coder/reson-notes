@@ -1380,9 +1380,16 @@ async function confirmCode() {
 }
 function insertBullet() {
     const s = textarea.selectionStart;
-    textarea.value = textarea.value.slice(0,s) + "• " + textarea.value.slice(s);
+    const val = textarea.value;
+    
+    // Check if we are at the very start or if the previous character is a newline
+    const isAtStartOfLine = (s === 0 || val.charAt(s - 1) === '\n');
+    
+    const textToInsert = isAtStartOfLine ? "• " : "\n• ";
+    
+    // Insert the text at the cursor position
+    textarea.setRangeText(textToInsert, s, s, "end");
     textarea.focus();
-    textarea.selectionStart = textarea.selectionEnd = s + 2;
 }
 
 const R2_URL = "https://pub-66479d392b224c95a6cb0e230ac238bb.r2.dev/notes_db.json";
@@ -1532,6 +1539,29 @@ document.addEventListener("visibilitychange", () => {
 document.getElementById('loadCloudBtn').onclick = syncWithCloud;
 window.addEventListener('focus', () => {
     if (authHeader) syncWithCloud();
+});
+// Add this to handle the "Enter" key behavior
+document.getElementById('noteContent').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        const s = this.selectionStart;
+        const val = this.value;
+        
+        // Find the start of the current line
+        const lastNewline = val.lastIndexOf('\n', s - 1);
+        const lineStart = lastNewline + 1;
+        const currentLine = val.substring(lineStart, s);
+
+        // If the current line starts with a bullet, auto-insert one on the new line
+        if (currentLine.trim().startsWith('•')) {
+            e.preventDefault(); // Stop the default Enter behavior
+            const insertText = "\n• ";
+            this.setRangeText(insertText, s, s, "end");
+            
+            // Adjust scroll in case textarea is full
+            this.blur();
+            this.focus();
+        }
+    }
 });
 </script>
 </body>

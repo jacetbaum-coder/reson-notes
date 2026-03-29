@@ -1709,6 +1709,24 @@ function renderRangeHeatmap() {
         if (rangeStart && k === formatDateKey(rangeStart)) el.classList.add(rangeEnd ? 'range-start' : 'range-single');
         else if (rangeEnd && k === formatDateKey(rangeEnd)) el.classList.add('range-end');
         else if (rangeStart && rangeEnd && d > rangeStart && d < rangeEnd) el.classList.add('range-mid');
+
+        // Added the missing click logic and closing braces below:
+        el.onclick = () => {
+            if (!rangeStart || (rangeStart && rangeEnd)) {
+                rangeStart = d;
+                rangeEnd = null;
+            } else if (d > rangeStart) {
+                rangeEnd = d;
+            } else {
+                rangeStart = d;
+                rangeEnd = null;
+            }
+            renderRangeHeatmap();
+        };
+        grid.appendChild(el);
+    }
+}
+
 // --- FORMATTING LOGIC ---
 let listMode = null; // Tracks if we are in Bullet or Checkbox mode
 

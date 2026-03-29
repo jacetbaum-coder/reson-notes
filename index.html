@@ -153,11 +153,13 @@ header {
     opacity: 0.7;
 }
 
-/* Grid Layout */
+/* Grid Layout - Fixed height to prevent jumping */
 .modal-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 8px;
+    min-height: 270px; /* Ensures 6 rows are always accounted for */
+    align-content: start;
 }
 .empty-day { aspect-ratio: 1/1; }
 
@@ -754,25 +756,32 @@ input:checked + .sld:before { transform: translateX(16px); }
     <div id="noteViewerContent" contenteditable="true" style="width:100%; height:45vh; outline:none; font-size:1.1rem; overflow-y:auto; background:#fff;"></div>
     <button onclick="closeNoteViewer()" style="width:100%; background:black; color:white; border:none; padding:12px; border-radius:15px; font-weight:bold; margin-top:15px;">Save Changes</button>
 </div>
-<!-- Calendar Heatmap Modal -->
 <div id="calModal">
-    <!-- Navigation Row -->
-    <div class="month-nav">
-        <div class="nav-arrow" onclick="changeModalMonth(-1)">&lt;</div>
-        <div id="modalMonthTitle">
-            <span id="mText">MONTH</span>
-            <span id="yText" class="year-pill">2026</span>
+    <!-- Search Icon -->
+    <div style="position:absolute; top:20px; right:25px; cursor:pointer;" onclick="toggleSearch()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+    </div>
+
+    <!-- Search Input (Hidden by default) -->
+    <div id="searchBar" style="display:none; margin-bottom:15px;">
+        <input type="text" id="dateSearchInput" placeholder="Try 'Feb 25'..." oninput="execDateSearch()" style="width:100%; padding:10px; border-radius:10px; border:none; outline:none; font-size:0.9rem;">
+        <div id="searchResults" style="max-height:150px; overflow-y:auto; margin-top:10px; background:rgba(255,255,255,0.1); border-radius:10px;"></div>
+    </div>
+
+    <div id="calendarMainUI">
+        <div class="month-nav">
+            <div class="nav-arrow" onclick="changeModalMonth(-1)">&lt;</div>
+            <div id="modalMonthTitle">
+                <span id="mText">MONTH</span>
+                <span id="yText" class="year-pill">2026</span>
+            </div>
+            <div class="nav-arrow" onclick="changeModalMonth(1)">&gt;</div>
         </div>
-        <div class="nav-arrow" onclick="changeModalMonth(1)">&gt;</div>
+        <div class="day-headers">
+            <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+        </div>
+        <div class="modal-grid" id="fullGrid"></div>
     </div>
-
-    <!-- Day Headers Row -->
-    <div class="day-headers">
-        <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
-    </div>
-
-    <!-- The actual numbers -->
-    <div class="modal-grid" id="fullGrid"></div>
     
     <button onclick="closeAllModals()" style="width:100%; margin-top:20px; background:white; color:black; border:none; padding:12px; border-radius:10px; font-weight:800; text-transform:uppercase;">Close</button>
 </div>
@@ -1829,7 +1838,68 @@ document.getElementById('noteContent').addEventListener('keydown', function(e) {
             }
         }
     }
+  function toggleSearch() {
+    const bar = document.getElementById('searchBar');
+    const main = document.getElementById('calendarMainUI');
+    if (bar.style.display === 'none') {
+        bar.style.display = 'block';
+        main.style.display = 'none';
+        document.getElementById('dateSearchInput').focus();
+    } else {
+        bar.style.display = 'none';
+        main.style.display = 'block';
+    }
+}
+
+function execDateSearch() {
+    const query = document.getElementById('dateSearchInput').value.toLowerCase();
+    const resultsContainer = document.getElementById('searchResults');
+    resultsContainer.innerHTML = '';
     
+    if (query.length < 3) return;
+
+    const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+    let searchMonth = -1;
+    let searchDay = -1;
+
+    // Basic parser for "Feb 25"
+    months.forEach((m, i) => { if(query.includes(m)) searchMonth = i; });
+    const dayMatch = query.match(/\d+/);
+    if (dayMatch) searchDay = parseInt(dayMatch[0]);
+
+    if (searchMonth !== -1 && searchDay > 0 && searchDay <= 31) {
+        // Search range: 1926 to 2126
+        for (let y = 1926; y <= 2126; y++) {
+            const d = new Date(y, searchMonth, searchDay);
+            // Verify date is valid (e.g. Feb 30 check)
+            if (d.getMonth() === searchMonth) {
+                const row = document.createElement('div');
+                row.style = "padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer; font-size:0.9rem; font-weight:bold;";
+                const dateString = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                row.innerText = dateString;
+                row.onclick = () => {
+                    selectedDate = d;
+                    setupCalendar();
+                    renderDeck();
+                    closeAllModals();
+                    // Reset UI for next time
+                    toggleSearch();
+                    document.getElementById('dateSearchInput').value = '';
+                };
+                resultsContainer.appendChild(row);
+            }
+        }
+    }
+}
+
+// Ensure the Close button also resets the search toggle
+const originalClose = closeAllModals;
+closeAllModals = function() {
+    originalClose();
+    document.getElementById('searchBar').style.display = 'none';
+    document.getElementById('calendarMainUI').style.display = 'block';
+    document.getElementById('searchResults').innerHTML = '';
+};  
     // Auto-update button highlights based on cursor position
     setTimeout(() => {
         document.getElementById('btn-bold').classList.toggle('active', document.queryCommandState('bold'));

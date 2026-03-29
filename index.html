@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- Replace your existing viewport meta tag with this: -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Reson Notes</title>
 <!-- App Icon for iPhone Home Screen -->
 <link rel="apple-touch-icon" href="https://i.ibb.co/RkQRMBQP/icon-512-png-removebg-preview.png">
@@ -15,9 +16,14 @@
 <!-- Browser Tab Icon -->
 <link rel="icon" type="image/png" href="https://i.ibb.co/RkQRMBQP/icon-512-png-removebg-preview.png">
 <style>
-    * {
-    box-sizing: border-box; /* Prevents elements from leaking off the screen */
+* {
+    box-sizing: border-box;
+    /* Disables double-tap to zoom */
+    touch-action: manipulation; 
+    /* Prevents auto-zooming/scaling text when rotating the phone */
+    -webkit-text-size-adjust: none; 
 }
+
 :root {
     --bg:#77c98d;
     --card:#ffffff;
@@ -29,6 +35,7 @@
     --heat-2:#86efac;
     --heat-3:#22c55e;
 }
+
 #noteContent {
     width: 100%;
     height: 35vh;
@@ -755,6 +762,16 @@ input:checked + .sld:before { transform: translateX(16px); }
     <button onclick="applyRange()" style="width:100%; margin-top:15px; background:black; color:white; border:none; padding:12px; border-radius:12px; font-weight:800; cursor:pointer;">DONE</button>
 </div>
 <script>
+// Add this at the very top of your <script> section
+document.addEventListener('touchstart', function (event) {
+    if (event.touches.length > 1) {
+        event.preventDefault(); // Blocks pinch-to-zoom
+    }
+}, { passive: false });
+
+document.addEventListener('gesturestart', function (event) {
+    event.preventDefault(); // Blocks zoom gestures on iOS
+});
 // --- CORE DATA CONFIG ---
 const WORKER_URL = "https://reson-api.jacetbaum.workers.dev"; 
 let db = JSON.parse(localStorage.getItem('reson_db')) || { 

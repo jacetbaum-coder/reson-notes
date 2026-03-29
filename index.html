@@ -1179,18 +1179,29 @@ function closeNoteViewer() {
     document.getElementById('overlay').style.display = 'none';
     activeNote = null;
 }
-
 function setupCalendar() {
     strip.innerHTML = '';
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
     const days = new Date(year, month + 1, 0).getDate();
     
-    document.getElementById('monthDisplay').innerText = selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    // 1. Get the date string and split it into "Day, Month Date" and "Year"
+    const options = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
+    const fullDate = selectedDate.toLocaleDateString('en-US', options);
+    const dateParts = fullDate.split(','); // Splits "Tuesday, March 31, 2026"
     
+    // 2. Update the new IDs we created in the HTML
+    const dateEl = document.getElementById('dateDisplay');
+    const yearEl = document.getElementById('yearDisplay');
+    
+    if (dateEl) dateEl.innerText = dateParts[0] + "," + dateParts[1];
+    if (yearEl) yearEl.innerText = (dateParts[2] || year).trim();
+    
+    // 3. Handle the "Today" button visibility
     const isTodaySelected = formatDateKey(new Date()) === formatDateKey(selectedDate);
     document.getElementById('todayBtn').style.display = isTodaySelected ? 'none' : 'block';
 
+    // 4. Create the day cards (this part remains the same)
     for (let i = 1; i <= days; i++) {
         const d = new Date(year, month, i);
         const isSel = formatDateKey(d) === formatDateKey(selectedDate);
@@ -1208,7 +1219,6 @@ function setupCalendar() {
         }
     }
 }
-
 function jumpToToday() {
     selectedDate = new Date();
     setupCalendar();

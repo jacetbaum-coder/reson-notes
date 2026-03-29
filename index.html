@@ -384,6 +384,12 @@ input:checked + .sld:before { transform: translateX(16px); }
 .login-box { background:white; padding:30px; border-radius:30px; width:80%; max-width:300px; box-shadow:0 10px 30px rgba(0,0,0,0.1); text-align:center; }
 .login-box input { width:100%; padding:12px; margin:10px 0; border-radius:10px; border:1px solid #ddd; box-sizing:border-box; font-size: 16px; outline: none; }
 .login-box button { width:100%; padding:12px; background:var(--accent); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; margin-top: 10px; }
+    /* Range Selection Styles */
+#rangeBtn.active { background: var(--accent) !important; color: white !important; }
+.circle-day.range-start { background: #000 !important; color: white !important; border-radius: 50% 0 0 50% !important; }
+.circle-day.range-end { background: #000 !important; color: white !important; border-radius: 0 50% 50% 0 !important; }
+.circle-day.range-mid { background: #e8f5e9 !important; border-radius: 0 !important; color: #000 !important; }
+.circle-day.range-single { background: #000 !important; color: white !important; border-radius: 50% !important; }
 </style>
 </head>
 <!-- Replace your existing <body> content with this updated version -->
@@ -424,8 +430,10 @@ input:checked + .sld:before { transform: translateX(16px); }
 <div id="noteDeck"></div>
 
 <div class="note-container">
-    <div style="display:flex;gap:10px;margin-bottom:10px;">
+    <!-- This is the new header for the note box -->
+    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:10px;">
         <button onclick="insertBullet()" style="border:none;background:#e8f5e9;border-radius:8px;padding:6px 10px;font-weight:700;cursor:pointer;">•</button>
+        <button id="rangeBtn" onclick="openRangeModal()" style="border:none;background:#f3f3f3;border-radius:8px;padding:6px 10px;cursor:pointer; font-size: 1.1rem;">🗓️</button>
     </div>
     <textarea id="noteContent" placeholder="Type your notes..."></textarea>
     <button class="add-note" onclick="commitNote()">✔</button>
@@ -575,7 +583,32 @@ input:checked + .sld:before { transform: translateX(16px); }
 
 <!-- Context Menu for Deleting -->
 <div id="noteMenu"></div>
-
+<!-- Range Selection Modal -->
+<div id="rangeModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:400px; background:white; border-radius:30px; padding:25px; z-index:7000; box-shadow:0 20px 60px rgba(0,0,0,0.4); color: black;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <h3 style="margin:0; font-size:1.1rem; font-weight:800;">Select Date Range</h3>
+        <button onclick="closeRangeModal()" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">✕</button>
+    </div>
+    <div class="month-nav" style="color:black; margin-bottom:10px;">
+        <div class="nav-arrow" onclick="changeRangeMonth(-1)" style="background:#eee; color:black;">&lt;</div>
+        <div id="rangeMonthTitle" style="font-weight:800; font-size:0.9rem; color:black;">MONTH 2026</div>
+        <div class="nav-arrow" onclick="changeRangeMonth(1)" style="background:#eee; color:black;">&gt;</div>
+    </div>
+    <div class="day-headers" style="opacity:0.4; color:black;">
+        <div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>
+    </div>
+    <div class="modal-grid" id="rangeGrid"></div>
+    <div style="margin-top:20px; padding:15px; background:#f9f9f9; border-radius:15px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <div style="font-weight:800; font-size:0.8rem; color:black;">MIRROR UPDATES</div>
+                <div style="font-size:0.6rem; color:#888;">Editing one changes all selected days</div>
+            </div>
+            <label class="sw"><input type="checkbox" id="mirrorToggle" checked><span class="sld"></span></label>
+        </div>
+    </div>
+    <button onclick="applyRange()" style="width:100%; margin-top:15px; background:black; color:white; border:none; padding:12px; border-radius:12px; font-weight:800; cursor:pointer;">DONE</button>
+</div>
 <script>
 // --- CORE DATA CONFIG ---
 const WORKER_URL = "https://reson-api.jacetbaum.workers.dev"; 
@@ -905,19 +938,29 @@ function cleanupData() {
 function commitNote() {
     const text = textarea.value.trim();
     if (!text) return;
-    const dateKey = formatDateKey(selectedDate);
     const cat = currentCategory ? currentCategory.toLowerCase() : "general";
-    
-    const groupable = getGroupable();
-    const existing = db.notes_list.find(n => n.date === dateKey && n.tags[0].toLowerCase() === cat);
-    
-    if (existing && groupable.includes(cat)) {
-        existing.content += "\n" + text;
-    } else {
-        db.notes_list.unshift({ id: Date.now(), date: dateKey, tags: [cat], content: text, checkedIndices: [] });
+    const mirrorId = (document.getElementById('mirrorToggle').checked && rangeEnd) ? "m_" + Date.now() : null;
+
+    let start = rangeStart || selectedDate;
+    let end = rangeEnd || start;
+    let cur = new Date(start);
+
+    while (cur <= end) {
+        const dateKey = formatDateKey(cur);
+        const existing = db.notes_list.find(n => n.date === dateKey && n.tags[0].toLowerCase() === cat);
+        if (existing && getGroupable().includes(cat)) {
+            existing.content += "\n" + text;
+            if (mirrorId) existing.mirrorId = mirrorId;
+        } else {
+            db.notes_list.unshift({ id: Date.now() + Math.random(), date: dateKey, tags: [cat], content: text, checkedIndices: [], mirrorId: mirrorId });
+        }
+        cur.setDate(cur.getDate() + 1);
     }
     save();
     textarea.value = '';
+    rangeStart = null; rangeEnd = null;
+    document.getElementById('rangeBtn').innerHTML = "🗓️";
+    document.getElementById('rangeBtn').classList.remove('active');
     renderDeck();
 }
 
@@ -1018,7 +1061,12 @@ function openNoteViewer(note) {
 
 function closeNoteViewer() {
     if (activeNote) {
-        activeNote.content = document.getElementById('noteViewerContent').value;
+        const newContent = document.getElementById('noteViewerContent').value;
+        if (activeNote.mirrorId) {
+            db.notes_list.forEach(n => { if (n.mirrorId === activeNote.mirrorId) n.content = newContent; });
+        } else {
+            activeNote.content = newContent;
+        }
         save();
         renderDeck();
     }
@@ -1270,7 +1318,73 @@ async function syncWithCloud() {
         console.log("Cloud sync error: ", e); 
     }
 }
+let rangeStart = null;
+let rangeEnd = null;
+let rangeViewDate = new Date();
 
+function openRangeModal() {
+    rangeStart = new Date(selectedDate);
+    rangeEnd = null;
+    rangeViewDate = new Date(selectedDate);
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('rangeModal').style.display = 'block';
+    renderRangeHeatmap();
+}
+
+function closeRangeModal() {
+    document.getElementById('rangeModal').style.display = 'none';
+    if (!rangeStart && !rangeEnd) document.getElementById('overlay').style.display = 'none';
+}
+
+function changeRangeMonth(offset) {
+    rangeViewDate.setMonth(rangeViewDate.getMonth() + offset);
+    renderRangeHeatmap();
+}
+
+function renderRangeHeatmap() {
+    const grid = document.getElementById('rangeGrid');
+    grid.innerHTML = '';
+    const year = rangeViewDate.getFullYear();
+    const month = rangeViewDate.getMonth();
+    document.getElementById('rangeMonthTitle').innerText = rangeViewDate.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDayIndex = new Date(year, month, 1).getDay();
+
+    for (let x = 0; x < firstDayIndex; x++) grid.appendChild(document.createElement('div'));
+
+    for (let i = 1; i <= daysInMonth; i++) {
+        const d = new Date(year, month, i);
+        const k = formatDateKey(d);
+        const el = document.createElement('div');
+        el.className = 'circle-day';
+        el.innerText = i;
+        el.style.color = "#333";
+
+        if (rangeStart && k === formatDateKey(rangeStart)) el.classList.add(rangeEnd ? 'range-start' : 'range-single');
+        else if (rangeEnd && k === formatDateKey(rangeEnd)) el.classList.add('range-end');
+        else if (rangeStart && rangeEnd && d > rangeStart && d < rangeEnd) el.classList.add('range-mid');
+
+        el.onclick = () => {
+            if (!rangeStart || (rangeStart && rangeEnd)) { rangeStart = d; rangeEnd = null; }
+            else { if (d < rangeStart) { rangeEnd = rangeStart; rangeStart = d; } else { rangeEnd = d; } }
+            renderRangeHeatmap();
+        };
+        grid.appendChild(el);
+    }
+}
+
+function applyRange() {
+    const btn = document.getElementById('rangeBtn');
+    if (rangeStart && rangeEnd) {
+        btn.innerHTML = "🗓️ Range Set";
+        btn.classList.add('active');
+    } else {
+        btn.innerHTML = "🗓️";
+        btn.classList.remove('active');
+    }
+    document.getElementById('rangeModal').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+}
 // --- APP INITIALIZATION ---
 document.addEventListener("DOMContentLoaded", () => {
     if(authHeader) {

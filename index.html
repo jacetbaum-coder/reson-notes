@@ -1148,8 +1148,8 @@ function cleanupData() {
         let key = n.date + "_" + cat;
         if (groupable.includes(cat)) {
             if (seen[key]) {
-                if (!seen[key].content.includes(n.content)) seen[key].content += "\n" + n.content;
-            } else {
+            if (!seen[key].content.includes(n.content)) seen[key].content += "<br>" + n.content;
+        } else {
                 seen[key] = n;
                 cleaned.push(n);
             }
@@ -1179,7 +1179,6 @@ async function commitNote() {
             // Use <br> instead of \n to match the HTML editor
             existing.content += "<br>" + text;
             if (mirrorId) existing.mirrorId = mirrorId;
-        } else {
         } else {
             db.notes_list.unshift({ id: Date.now() + Math.random(), date: dateKey, tags: [cat], content: text, checkedIndices: [], mirrorId: mirrorId });
         }
@@ -1234,7 +1233,8 @@ function renderDeck() {
         
         // This splits the HTML content into separate lines correctly
         let lines = note.content.split(/<br>|<div>|<\/div>|\n/gi).filter(l => l.trim() !== "" && l !== "<br>");
-        
+        // Cleanup lines to remove any trailing/leading tags left over from the split
+        lines = lines.map(l => l.replace(/<[^>]*>/g, '').trim()).filter(l => l !== "");
         let html = `<button class="note-menu-btn" onclick="event.stopPropagation(); openMenu(event, ${note.id})">⋮</button>`;
         html += `<span class="saved-note-title">${note.tags[0]}</span><div class="card-checklist">`;
         

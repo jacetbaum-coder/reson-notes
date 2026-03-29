@@ -417,7 +417,7 @@ textarea {
     border: 2px solid white;
     border-radius: 30px;
     padding: 30px;
-    z-index: 4000;
+    z-index: 6000; /* Updated from 4000 */
     color: white;
 }
 .modal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center; }
@@ -432,8 +432,7 @@ textarea {
     width:100%; 
     height:100%; 
     background:rgba(0,0,0,0.4); 
-    z-index:2000; 
-    /* This creates the blur effect on the home screen */
+    z-index: 5000; /* Updated */
     backdrop-filter: blur(12px); 
     -webkit-backdrop-filter: blur(12px); 
 }
@@ -1577,6 +1576,7 @@ function closeAllModals() {
     document.getElementById('calModal').style.display = 'none';
     document.getElementById('catModal').style.display = 'none';
     document.getElementById('noteViewer').style.display = 'none';
+    document.getElementById('rangeModal').style.display = 'none'; // ADD THIS LINE
     document.getElementById('overlay').style.display = 'none';
     document.getElementById('noteMenu').style.display = 'none';
 }
@@ -1711,11 +1711,13 @@ function openRangeModal() {
     rangeStart = new Date(selectedDate);
     rangeEnd = null;
     rangeViewDate = new Date(selectedDate);
-    document.getElementById('overlay').style.display = 'block';
+    
+    // THIS LINE MUST BE HERE:
+    document.getElementById('overlay').style.display = 'block'; 
+    
     document.getElementById('rangeModal').style.display = 'block';
     renderRangeHeatmap();
 }
-
 function closeRangeModal() {
     // Hide modal and overlay
     document.getElementById('rangeModal').style.display = 'none';

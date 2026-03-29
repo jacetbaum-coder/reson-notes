@@ -799,7 +799,7 @@ input:checked + .sld:before { transform: translateX(16px); }
 <!-- Context Menu for Deleting -->
 <div id="noteMenu"></div>
 <!-- Range Selection Modal -->
-<div id="rangeModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:400px; border-radius:30px; padding:30px; z-index:7000; box-shadow:0 20px 60px rgba(0,0,0,0.4); color: white;">
+<div id="rangeModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:400px; background: var(--bg); border: 2px solid white; border-radius:30px; padding:30px; z-index:7000; box-shadow:0 20px 60px rgba(0,0,0,0.4); color: white;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
         <h3 style="margin:0; font-size:1.1rem; font-weight:900; text-transform:uppercase;">Select Range</h3>
         <button onclick="closeRangeModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:white; font-weight:bold;">✕</button>
@@ -1671,9 +1671,8 @@ function openRangeModal() {
 
 function closeRangeModal() {
     document.getElementById('rangeModal').style.display = 'none';
-    if (!rangeStart && !rangeEnd) document.getElementById('overlay').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
 }
-
 function changeRangeMonth(offset) {
     rangeViewDate.setMonth(rangeViewDate.getMonth() + offset);
     renderRangeHeatmap();
@@ -1708,18 +1707,19 @@ function renderRangeHeatmap() {
 
         if (rangeStart && k === formatDateKey(rangeStart)) el.classList.add(rangeEnd ? 'range-start' : 'range-single');
         else if (rangeEnd && k === formatDateKey(rangeEnd)) el.classList.add('range-end');
-        else if (rangeStart && rangeEnd && d > rangeStart && d < rangeEnd) el.classList.add('range-mid');
-
-        // Added the missing click logic and closing braces below:
+       else if (rangeStart && rangeEnd && d > rangeStart && d < rangeEnd) el.classList.add('range-mid');
+        
         el.onclick = () => {
             if (!rangeStart || (rangeStart && rangeEnd)) {
                 rangeStart = d;
                 rangeEnd = null;
-            } else if (d > rangeStart) {
-                rangeEnd = d;
             } else {
-                rangeStart = d;
-                rangeEnd = null;
+                if (d < rangeStart) {
+                    rangeEnd = rangeStart;
+                    rangeStart = d;
+                } else {
+                    rangeEnd = d;
+                }
             }
             renderRangeHeatmap();
         };

@@ -1530,6 +1530,9 @@ document.addEventListener("visibilitychange", () => {
 
 // Manual sync button in settings
 document.getElementById('loadCloudBtn').onclick = syncWithCloud;
+window.addEventListener('focus', () => {
+    if (authHeader) syncWithCloud();
+});
 </script>
 </body>
 </html>

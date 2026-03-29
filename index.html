@@ -63,6 +63,23 @@ header {
     margin-bottom: 20px;
     user-select: none;
 }
+/* Update format buttons to match the bullet point green */
+.format-btn {
+    border: none;
+    background: #e8f5e9; /* Your green bullet color */
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    color: #2d5a3a; /* Dark green text */
+}
+
+/* Darker version for when the button is "active" */
+.format-btn.active {
+    background: #2d5a3a !important;
+    color: white !important;
+}
 .nav-arrow {
     font-size: 1.5rem;
     cursor: pointer;
@@ -523,13 +540,13 @@ input:checked + .sld:before { transform: translateX(16px); }
 <div class="note-container">
     <!-- This is the new header for the note box -->
     <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:10px;">
-        <div style="display:flex; gap:5px;">
-    <button onclick="insertBullet()" style="border:none;background:#e8f5e9;border-radius:8px;padding:6px 10px;font-weight:700;cursor:pointer;">•</button>
-    <button onclick="insertCheckbox()" style="border:none;background:#f0f0f0;border-radius:8px;padding:6px 10px;font-weight:700;cursor:pointer;">☐</button>
-    <button onclick="formatNote('**', '**')" style="border:none;background:#f0f0f0;border-radius:8px;padding:6px 10px;font-weight:700;cursor:pointer;">B</button>
-    <button onclick="formatNote('_', '_')" style="border:none;background:#f0f0f0;border-radius:8px;padding:6px 10px;font-style:italic;cursor:pointer;">I</button>
-    <button onclick="formatNote('<u>', '</u>')" style="border:none;background:#f0f0f0;border-radius:8px;padding:6px 10px;text-decoration:underline;cursor:pointer;">U</button>
-    <button onclick="formatNote('# ', '')" style="border:none;background:#f0f0f0;border-radius:8px;padding:6px 10px;font-weight:900;cursor:pointer;">H</button>
+       <div style="display:flex; gap:5px;">
+    <button id="btn-bullet" class="format-btn" onclick="insertBullet()">•</button>
+    <button id="btn-check" class="format-btn" onclick="insertCheckbox()">☐</button>
+    <button id="btn-bold" class="format-btn" onclick="smartFormat('**', '**', 'bold')">B</button>
+    <button id="btn-italic" class="format-btn" onclick="smartFormat('_', '_', 'italic')">I</button>
+    <button id="btn-under" class="format-btn" onclick="smartFormat('<u>', '</u>', 'under')">U</button>
+    <button id="btn-head" class="format-btn" onclick="smartFormat('# ', '', 'head')">H</button>
 </div>
         <button id="rangeBtn" onclick="openRangeModal()" style="border:none;background:#f3f3f3;border-radius:8px;padding:6px 10px;cursor:pointer; font-size: 1.1rem;">🗓️</button>
     </div>
@@ -1504,20 +1521,49 @@ function renderRangeHeatmap() {
     }
 }
 // Function to wrap selected text in bold, italics, underline, or headings
-function formatNote(prefix, suffix) {
+// This tracks which buttons are currently "toggled on"
+let activeStates = { bold: false, italic: false, under: false, head: false };
+
+function smartFormat(prefix, suffix, type) {
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const text = textarea.value;
     const selectedText = text.substring(start, end);
-    const before = text.substring(0, start);
-    const after = text.substring(end);
+    const btn = document.getElementById('btn-' + type);
 
-    textarea.value = before + prefix + selectedText + suffix + after;
+    // Toggle active state for UI feedback
+    activeStates[type] = !activeStates[type];
+    if (activeStates[type]) {
+        btn.classList.add('active');
+    } else {
+        btn.classList.remove('active');
+    }
+
+    if (start !== end) {
+        // MULTI-SELECT LOGIC: Wrap the highlighted text
+        textarea.setRangeText(prefix + selectedText + suffix, start, end, "select");
+        // After applying to a selection, we usually turn the button back "off"
+        activeStates[type] = false;
+        btn.classList.remove('active');
+    } else {
+        // STICKY LOGIC: Insert tags and put cursor in the middle
+        // If the user starts typing now, it will be inside the bold/italic tags
+        textarea.setRangeText(prefix + suffix, start, start, "end");
+        
+        // Move cursor inside the tags (e.g., between the ** and **)
+        const newPos = start + prefix.length;
+        textarea.setSelectionRange(newPos, newPos);
+    }
+    
     textarea.focus();
-    // Re-select the text
-    textarea.setSelectionRange(start + prefix.length, end + prefix.length);
 }
 
+// Update your existing bullet/checkbox buttons to also look green by default
+// You can add this line to your DOMContentLoaded or script start:
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById('btn-bullet').classList.add('format-btn');
+    document.getElementById('btn-check').classList.add('format-btn');
+});
 // Specific function for the Checkbox
 function insertCheckbox() {
     const s = textarea.selectionStart;

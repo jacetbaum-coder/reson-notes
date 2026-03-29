@@ -376,8 +376,9 @@ textarea {
     transform: translate(-50%, -50%);
     width: 90%;
     max-width: 500px;
-    background: var(--bg); border: 2px solid white;
-    z-index: 3000;
+    background: var(--bg); 
+    border: 2px solid white;
+    z-index: 6000; /* Change this to 6000 */
     display: none;
     padding: 25px;
     border-radius: 30px;
@@ -417,7 +418,7 @@ textarea {
     border: 2px solid white;
     border-radius: 30px;
     padding: 30px;
-    z-index: 6000; /* Updated from 4000 */
+    z-index: 7000; /* Updated from 4000 */
     color: white;
 }
 .modal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center; }
@@ -1576,11 +1577,13 @@ function closeAllModals() {
     document.getElementById('calModal').style.display = 'none';
     document.getElementById('catModal').style.display = 'none';
     document.getElementById('noteViewer').style.display = 'none';
-    document.getElementById('rangeModal').style.display = 'none'; // ADD THIS LINE
+    document.getElementById('rangeModal').style.display = 'none';
     document.getElementById('overlay').style.display = 'none';
     document.getElementById('noteMenu').style.display = 'none';
+    
+    // Pulls the note editor back to the front for next time
+    document.getElementById('noteViewer').style.zIndex = "6000"; 
 }
-
 // Global click listener to close the delete menu when clicking away
 window.addEventListener('mousedown', (e) => {
     const menu = document.getElementById('noteMenu');
@@ -1712,9 +1715,10 @@ function openRangeModal() {
     rangeEnd = null;
     rangeViewDate = new Date(selectedDate);
     
-    // THIS LINE MUST BE HERE:
-    document.getElementById('overlay').style.display = 'block'; 
+    // Pushes the note editor behind the blur
+    document.getElementById('noteViewer').style.zIndex = "4000"; 
     
+    document.getElementById('overlay').style.display = 'block';
     document.getElementById('rangeModal').style.display = 'block';
     renderRangeHeatmap();
 }

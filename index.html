@@ -170,19 +170,19 @@ header {
 /* Update format buttons to match the bullet point green */
 .format-btn {
     border: none;
-    background: #e8f5e9; 
+    background: var(--accent-surface, #e8f5e9);
     border-radius: 8px;
     padding: 10px 18px;
     font-weight: 700;
     cursor: pointer;
-    color: #2d5a3a; /* Dark green text */
+    color: var(--accent, #2d5a3a);
     transition: all 0.2s;
     font-size: 1.3rem;
 }
 
-/* When a mode is "On", the button turns the dark 'Home' green */
+/* When a mode is "On", the button fills with accent color */
 .format-btn.active {
-    background: #2d5a3a !important;
+    background: var(--accent, #2d5a3a) !important;
     color: white !important;
 }
 .nav-arrow {
@@ -290,7 +290,7 @@ header {
     transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .day-card.active { 
-    background:#000; 
+    background: var(--accent, #000); 
     color:white; 
     transform:scale(1.1); 
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
@@ -479,7 +479,7 @@ textarea {
     height: 50px;
     border-radius: 50%;
     border: none;
-    background: black;
+    background: var(--accent, black);
     color: white;
     font-size: 28px;
     cursor: pointer;
@@ -717,6 +717,38 @@ textarea {
     cursor: pointer; 
     white-space: nowrap; 
     transition: 0.2s;      /* Smooth feel */
+}
+.personalize-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+}
+.color-swatch {
+    width: 100%;
+    aspect-ratio: 1/1;
+    border: 2px solid #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.color-swatch:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+.color-swatch.selected {
+    border-color: #111111;
+    box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.2);
+}
+.personalize-more {
+    display: none;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #efefef;
+}
+.personalize-more.open {
+    display: block;
 }
 /* Toggle Switch */
 .sw { position: relative; width: 34px; height: 18px; }
@@ -1692,7 +1724,8 @@ input:checked + .sld:before { transform: translateX(16px); }
             <img id="profileDisplay" src="https://via.placeholder.com/100" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid var(--accent); margin-bottom:10px;">
             <div id="displayName" style="font-size: 1.5rem; font-weight: 800; color: var(--accent); margin-bottom: 20px;">Username</div>
             
-            <button onclick="openEditProfile()" style="background:var(--accent); color:white; border:none; padding:10px 25px; border-radius:20px; cursor:pointer; font-weight:bold; margin-bottom:25px;">Edit Profile</button>
+            <button onclick="openEditProfile()" style="background:var(--accent); color:white; border:none; padding:10px 25px; border-radius:20px; cursor:pointer; font-weight:bold; margin-bottom:10px;">Edit Profile</button>
+            <button onclick="openPersonalizeModal()" style="background:#ffffff; color:var(--accent); border:2px solid var(--accent); padding:10px 25px; border-radius:20px; cursor:pointer; font-weight:bold; margin-bottom:25px;">Personalize</button>
         </div>
 
         <hr style="opacity:0.1; margin-bottom:20px;">
@@ -1811,6 +1844,33 @@ input:checked + .sld:before { transform: translateX(16px); }
     <button onclick="saveProfile()" style="width:100%; background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; cursor:pointer; font-weight:bold;">Save Changes</button>
     <button onclick="closeEditProfile()" style="width:100%; background:none; border:none; color:gray; margin-top:8px; cursor:pointer; font-size:0.8rem;">Cancel</button>
 </div>
+
+<div id="personalizeModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:420px; background:white; padding:20px; border-radius:25px; z-index:6000; box-shadow:0 20px 50px rgba(0,0,0,0.3); max-height: 85vh; overflow-y: auto;">
+    <h3 style="margin-top:0; margin-bottom:6px; color:var(--accent); text-transform:uppercase; font-size:0.85rem;">Personalize App</h3>
+    <p style="margin:0 0 12px 0; font-size:0.82rem; color:#666;">Tap a color for instant preview. Save keeps it permanently.</p>
+
+    <div id="recentColorsSection" style="display:none; margin-bottom:14px;">
+        <div style="font-size:0.7rem; font-weight:800; color:#aaa; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Recent</div>
+        <div class="personalize-grid" id="recentColorsGrid"></div>
+        <div style="border-bottom:1px solid #efefef; margin-top:14px;"></div>
+    </div>
+
+    <div class="personalize-grid" id="paleColorsGrid"></div>
+
+    <button id="moreColorsBtn" class="btn-sml" onclick="toggleMoreColors()" style="margin-top:12px; width:100%;">More Colors</button>
+
+    <div id="moreColorsWrap" class="personalize-more">
+        <div class="personalize-grid" id="moreColorsGrid"></div>
+        <div style="margin-top:12px;">
+            <label for="customColorInput" style="display:block; font-size:0.75rem; font-weight:800; color:#666; margin-bottom:6px; text-transform:uppercase;">Custom</label>
+            <input type="color" id="customColorInput" value="#77c98d" onchange="selectCustomColor(this.value)" style="width:100%; height:42px; border:none; padding:0; background:none; cursor:pointer;">
+        </div>
+    </div>
+
+    <button onclick="saveBackgroundPreference()" style="width:100%; background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; cursor:pointer; font-weight:bold; margin-top:14px;">Save</button>
+    <button onclick="closePersonalizeModal()" style="width:100%; background:none; border:none; color:gray; margin-top:8px; cursor:pointer; font-size:0.8rem;">Cancel</button>
+</div>
+
 <div id="overlay" onclick="closeAllModals()"></div>
 <div id="noteViewer">
     <!-- Header with tightened margins to shrink the top space -->
@@ -2053,6 +2113,13 @@ let selectedDate = new Date();
 let currentCategory = null;
 let isRegistering = false;
 let activeNote = null;
+
+const DEFAULT_APP_BG = '#77c98d';
+const PALE_BG_COLORS = ['#fef3c7', '#ffedd5', '#fee2e2', '#fce7f3', '#ede9fe', '#e0e7ff', '#dbeafe', '#cffafe', '#ccfbf1', '#dcfce7'];
+const MORE_BG_COLORS = ['#fef9c3', '#fde68a', '#fed7aa', '#fdba74', '#fecaca', '#fca5a5', '#fbcfe8', '#f9a8d4', '#ddd6fe', '#c4b5fd', '#bfdbfe', '#93c5fd', '#a5f3fc', '#67e8f9', '#99f6e4', '#5eead4', '#bbf7d0', '#86efac', '#e5e7eb', '#d1d5db'];
+let previewBgColor = null;
+let persistedBgColor = null;
+
 function showToast(message) {
     const toast = document.getElementById('toast');
     toast.innerText = message;
@@ -2154,6 +2221,181 @@ async function handleAuth() {
     setupCalendar();
 }
 // --- PROFILE LOGIC ---
+function hexToHSL(hex) {
+    const r = parseInt(hex.slice(1,3),16)/255, g = parseInt(hex.slice(3,5),16)/255, b = parseInt(hex.slice(5,7),16)/255;
+    const max=Math.max(r,g,b), min=Math.min(r,g,b);
+    let h=0, s=0, l=(max+min)/2;
+    if(max!==min){ const d=max-min; s=l>0.5?d/(2-max-min):d/(max+min); switch(max){ case r:h=((g-b)/d+(g<b?6:0))/6;break; case g:h=((b-r)/d+2)/6;break; case b:h=((r-g)/d+4)/6;break; } }
+    return [h*360, s*100, l*100];
+}
+
+function hslToHex(h, s, l) {
+    s=Math.max(0,Math.min(100,s))/100; l=Math.max(0,Math.min(100,l))/100; h=((h%360)+360)%360;
+    const a=s*Math.min(l,1-l);
+    const f=n=>{ const k=(n+h/30)%12; return Math.round((l-a*Math.max(Math.min(k-3,9-k,1),-1))*255).toString(16).padStart(2,'0'); };
+    return '#'+f(0)+f(8)+f(4);
+}
+
+function getSavedBackgroundColor() {
+    if (!db.profile) db.profile = {};
+    return db.profile.appBgColor || DEFAULT_APP_BG;
+}
+
+function applyAppBackground(color) {
+    const finalColor = color || DEFAULT_APP_BG;
+    document.documentElement.style.setProperty('--bg', finalColor);
+    try {
+        const [h, s, l] = hexToHSL(finalColor);
+
+        // Accent: same hue, much darker — used by all colored buttons (white text) and colored text
+        const aS = Math.min(85, Math.max(35, s * 0.8));
+        const aL = Math.max(22, l * 0.35);
+        document.documentElement.style.setProperty('--accent', hslToHex(h, aS, aL));
+
+        // Accent surface: very pale tint for passive bg elements (format btn backgrounds)
+        document.documentElement.style.setProperty('--accent-surface', hslToHex(h, Math.max(5, s * 0.18), 97));
+
+        // Heatmap: 4-step gradient in the chosen hue
+        document.documentElement.style.setProperty('--heat-0', hslToHex(h, Math.max(5,  s * 0.20), 98));
+        document.documentElement.style.setProperty('--heat-1', hslToHex(h, Math.max(15, s * 0.55), Math.min(95, l)));
+        document.documentElement.style.setProperty('--heat-2', hslToHex(h, Math.min(100, s * 0.90), 72));
+        document.documentElement.style.setProperty('--heat-3', hslToHex(h, Math.min(100, s), 55));
+    } catch(e) { /* noop on malformed color */ }
+}
+
+function makeColorSwatch(color) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'color-swatch';
+    btn.style.background = color;
+    btn.title = color;
+    btn.dataset.color = color;
+    btn.onclick = function() {
+        previewBgColor = color;
+        applyAppBackground(color);
+        updateSwatchSelection();
+        const customInput = document.getElementById('customColorInput');
+        if (customInput) customInput.value = color;
+    };
+    return btn;
+}
+
+function updateSwatchSelection() {
+    const allSwatches = document.querySelectorAll('#personalizeModal .color-swatch');
+    allSwatches.forEach(function(swatch) {
+        swatch.classList.toggle('selected', swatch.dataset.color === previewBgColor);
+    });
+}
+
+function renderPersonalizeSwatches() {
+    const paleGrid = document.getElementById('paleColorsGrid');
+    const moreGrid = document.getElementById('moreColorsGrid');
+    const recentGrid = document.getElementById('recentColorsGrid');
+    const recentSection = document.getElementById('recentColorsSection');
+    if (!paleGrid || !moreGrid) return;
+
+    paleGrid.innerHTML = '';
+    moreGrid.innerHTML = '';
+
+    // Recent colors
+    const recentColors = (db.profile && db.profile.recentBgColors) || [];
+    if (recentGrid && recentSection) {
+        recentGrid.innerHTML = '';
+        if (recentColors.length > 0) {
+            recentColors.forEach(function(color) {
+                recentGrid.appendChild(makeColorSwatch(color));
+            });
+            recentSection.style.display = 'block';
+        } else {
+            recentSection.style.display = 'none';
+        }
+    }
+
+    PALE_BG_COLORS.forEach(function(color) {
+        paleGrid.appendChild(makeColorSwatch(color));
+    });
+
+    MORE_BG_COLORS.forEach(function(color) {
+        moreGrid.appendChild(makeColorSwatch(color));
+    });
+
+    updateSwatchSelection();
+}
+
+function openPersonalizeModal() {
+    persistedBgColor = getSavedBackgroundColor();
+    previewBgColor = persistedBgColor;
+
+    const moreWrap = document.getElementById('moreColorsWrap');
+    const moreBtn = document.getElementById('moreColorsBtn');
+    if (moreWrap) moreWrap.classList.remove('open');
+    if (moreBtn) moreBtn.innerText = 'More Colors';
+
+    renderPersonalizeSwatches();
+
+    const customInput = document.getElementById('customColorInput');
+    if (customInput) customInput.value = previewBgColor;
+
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('personalizeModal').style.display = 'block';
+}
+
+function toggleMoreColors() {
+    const moreWrap = document.getElementById('moreColorsWrap');
+    const moreBtn = document.getElementById('moreColorsBtn');
+    if (!moreWrap || !moreBtn) return;
+
+    moreWrap.classList.toggle('open');
+    moreBtn.innerText = moreWrap.classList.contains('open') ? 'Less Colors' : 'More Colors';
+}
+
+function selectCustomColor(color) {
+    previewBgColor = color;
+    applyAppBackground(color);
+    updateSwatchSelection();
+}
+
+function closePersonalizeModal(shouldRevert = true) {
+    if (shouldRevert) applyAppBackground(getSavedBackgroundColor());
+
+    const modal = document.getElementById('personalizeModal');
+    if (modal) modal.style.display = 'none';
+
+    const overlay = document.getElementById('overlay');
+    const hasOtherModalOpen = [
+        'editProfileModal',
+        'calModal',
+        'catModal',
+        'noteViewer',
+        'renameModal',
+        'deleteConfirmModal',
+        'eventEditModal'
+    ].some(function(id) {
+        const el = document.getElementById(id);
+        return el && getComputedStyle(el).display !== 'none';
+    });
+
+    if (overlay && !hasOtherModalOpen) overlay.style.display = 'none';
+}
+
+function saveBackgroundPreference() {
+    if (!db.profile) db.profile = {};
+    const selectedColor = previewBgColor || getSavedBackgroundColor();
+
+    // Push to recent colors (max 5, no duplicates, newest first)
+    let recent = db.profile.recentBgColors ? db.profile.recentBgColors.slice() : [];
+    recent = recent.filter(function(c) { return c !== selectedColor; });
+    recent.unshift(selectedColor);
+    if (recent.length > 5) recent = recent.slice(0, 5);
+    db.profile.recentBgColors = recent;
+
+    db.profile.appBgColor = selectedColor;
+    applyAppBackground(selectedColor);
+    save();
+    closePersonalizeModal(false);
+    showToast('Background saved!');
+}
+
 function openEditProfile() {
     document.getElementById('overlay').style.display = 'block';
     document.getElementById('editProfileModal').style.display = 'block';
@@ -2260,6 +2502,8 @@ function loadProfileUI() {
     
     const picEl = document.getElementById('profileDisplay');
     if(picEl && db.profile.pic) picEl.src = db.profile.pic;
+
+    applyAppBackground(getSavedBackgroundColor());
 }
 
 // Navigation Logic
@@ -2305,6 +2549,8 @@ function showSettings() {
 
 // App Initialization
 document.addEventListener("DOMContentLoaded", () => {
+    applyAppBackground(getSavedBackgroundColor());
+
     if(authHeader) {
         document.getElementById('loginOverlay').style.display = 'none';
         loadProfileUI();
@@ -3199,6 +3445,8 @@ function deleteNote(id) {
 function closeAllModals() {
     document.getElementById('calModal').style.display = 'none';
     document.getElementById('catModal').style.display = 'none';
+    document.getElementById('editProfileModal').style.display = 'none';
+    closePersonalizeModal(true);
     const viewerAll = document.getElementById('noteViewer');
     viewerAll.classList.remove('open');
     setTimeout(() => { viewerAll.style.display = 'none'; }, 350);

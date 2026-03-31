@@ -2745,12 +2745,7 @@ setupAutoListDetection('noteViewerContent', 'viewer-btn-bullet', 'viewer-btn-che
     const noteBox = document.getElementById('noteContent');
     const container = noteBox.closest('.note-container');
     noteBox.addEventListener('focus', () => {
-        // Prevent iOS from scrolling to the focused element
-        const scrollY = window.scrollY;
         container.classList.add('editing');
-        // iOS fires scroll at various timings, so hold position briefly
-        const hold = setInterval(() => window.scrollTo(0, scrollY), 16);
-        setTimeout(() => clearInterval(hold), 300);
     });
     noteBox.addEventListener('blur', () => {
         // Small delay so the commit button click still registers

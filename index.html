@@ -630,6 +630,91 @@ input:checked + .sld:before { transform: translateX(16px); }
 .circle-day.range-end { background: #000 !important; color: white !important; border-radius: 0 50% 50% 0 !important; }
 .circle-day.range-mid { background: #e8f5e9 !important; border-radius: 0 !important; color: #000 !important; }
 .circle-day.range-single { background: #000 !important; color: white !important; border-radius: 50% !important; }
+
+/* Sort Dropdown Menu */
+.sort-menu-container {
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    margin: 4px 0 2px 0;
+    padding: 0 5px;
+}
+.sort-hamburger {
+    background: rgba(255,255,255,0.25);
+    border: 1.5px solid white;
+    border-radius: 10px;
+    padding: 6px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: white;
+    font-weight: 700;
+    font-size: 0.75rem;
+    transition: background 0.2s;
+}
+.sort-hamburger:hover { background: rgba(255,255,255,0.35); }
+.sort-hamburger .hamburger-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.sort-hamburger .hamburger-lines span {
+    display: block;
+    width: 16px;
+    height: 2px;
+    background: white;
+    border-radius: 2px;
+}
+.sort-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 5px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+    z-index: 3000;
+    min-width: 200px;
+    padding: 6px 0;
+    margin-top: 4px;
+    overflow: hidden;
+}
+.sort-dropdown.open { display: block; }
+.sort-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #333;
+    transition: background 0.15s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+}
+.sort-option:hover { background: #f3f8f4; }
+.sort-option.active { color: var(--accent); background: #e8f5e9; }
+.sort-option .sort-label { flex: 1; }
+.sort-arrow-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #aaa;
+    padding: 2px 6px;
+    border-radius: 6px;
+    transition: color 0.15s, background 0.15s;
+    display: flex;
+    align-items: center;
+}
+.sort-arrow-btn:hover { background: #f0f0f0; }
+.sort-option.active .sort-arrow-btn { color: var(--accent); }
 </style>
 </head>
 <!-- Replace your existing <body> content with this updated version -->
@@ -673,6 +758,28 @@ input:checked + .sld:before { transform: translateX(16px); }
 <div class="calendar-strip" id="strip"></div>
 
 <div class="filter-container" id="filterContainer"></div>
+
+<!-- Sort Dropdown Menu -->
+<div class="sort-menu-container" id="sortMenuContainer">
+    <button class="sort-hamburger" onclick="toggleSortMenu(event)">
+        <div class="hamburger-lines"><span></span><span></span><span></span></div>
+        <span id="sortLabel">Sort</span>
+    </button>
+    <div class="sort-dropdown" id="sortDropdown">
+        <div class="sort-option" data-sort="created" onclick="setSortCriteria('created')">
+            <span class="sort-label">Date Created</span>
+            <button class="sort-arrow-btn" onclick="event.stopPropagation(); toggleSortDirection('created')">↑</button>
+        </div>
+        <div class="sort-option" data-sort="edited" onclick="setSortCriteria('edited')">
+            <span class="sort-label">Last Edited</span>
+            <button class="sort-arrow-btn" onclick="event.stopPropagation(); toggleSortDirection('edited')">↑</button>
+        </div>
+        <div class="sort-option" data-sort="viewed" onclick="setSortCriteria('viewed')">
+            <span class="sort-label">Recently Viewed</span>
+            <button class="sort-arrow-btn" onclick="event.stopPropagation(); toggleSortDirection('viewed')">↑</button>
+        </div>
+    </div>
+</div>
 
 <div class="deck-header" id="deckHeader">
     <!-- Arrow will appear here via JS -->
@@ -818,6 +925,7 @@ input:checked + .sld:before { transform: translateX(16px); }
         </div>
         <div style="display:flex; gap:15px; align-items:center;">
             <button id="viewerRangeBtn" onclick="openRangeModal()" style="border:none; background:#e8f5e9; border-radius:8px; padding:6px 10px; cursor:pointer; font-size: 1.1rem; color:var(--accent);">🗓️</button>
+            <button id="viewerPinBtn" title="Pin note" onclick="togglePinFromViewer()" style="background:none; border:none; cursor:pointer; padding:4px; display:flex; align-items:center;"><svg id="viewerPinSvg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-2l-3-3V7h1V3H7v4h1v5l-3 3v2z"/></svg></button>
             <button class="note-menu-btn" style="position:static; color: #000; font-size: 1.4rem; opacity: 1;" onclick="openMenu(event, activeNote.id)">⋮</button>
         </div>
     </div>
@@ -1220,6 +1328,7 @@ function showMain() {
     document.querySelector('header').style.display = 'flex';
     document.getElementById('strip').style.display = 'flex';
     document.getElementById('filterContainer').style.display = 'flex';
+    document.getElementById('sortMenuContainer').style.display = 'flex';
     document.getElementById('noteDeck').style.display = 'grid';
     document.querySelector('.note-container').style.display = 'block';
     document.getElementById('settingsView').style.display = 'none';
@@ -1236,6 +1345,7 @@ function showSettings() {
     document.querySelector('header').style.display = 'none';
     document.getElementById('strip').style.display = 'none';
     document.getElementById('filterContainer').style.display = 'none';
+    document.getElementById('sortMenuContainer').style.display = 'none';
     document.getElementById('noteDeck').style.display = 'none';
     document.querySelector('.note-container').style.display = 'none';
     document.getElementById('settingsView').style.display = 'block';
@@ -1344,9 +1454,10 @@ async function commitNote() {
         const existing = db.notes_list.find(n => n.date === dateKey && n.tags[0].toLowerCase() === cat);
         if (existing && getGroupable().includes(cat)) {
             existing.content += "<br>" + text;
+            existing.lastEdited = Date.now();
             if (mirrorId) existing.mirrorId = mirrorId;
         } else {
-            db.notes_list.unshift({ id: Date.now() + Math.random(), date: dateKey, tags: [cat], content: text, checkedIndices: [], mirrorId: mirrorId });
+            db.notes_list.unshift({ id: Date.now() + Math.random(), date: dateKey, tags: [cat], content: text, checkedIndices: [], mirrorId: mirrorId, createdAt: Date.now(), lastEdited: Date.now(), lastViewed: null });
         }
         cur.setDate(cur.getDate() + 1);
     }
@@ -1381,6 +1492,25 @@ function renderDeck() {
         return dMatch && cMatch;
     });
 
+    // Separate pinned and unpinned
+    const pinned = filtered.filter(n => n.pinned);
+    const unpinned = filtered.filter(n => !n.pinned);
+
+    // Apply sort to unpinned notes
+    if (sortCriteria) {
+        const dir = sortDirections[sortCriteria] === 'desc' ? -1 : 1;
+        const getSortVal = (n) => {
+            if (sortCriteria === 'created') return n.createdAt || n.id || 0;
+            if (sortCriteria === 'edited') return n.lastEdited || n.createdAt || n.id || 0;
+            if (sortCriteria === 'viewed') return n.lastViewed || 0;
+            return 0;
+        };
+        unpinned.sort((a, b) => (getSortVal(a) - getSortVal(b)) * dir);
+        pinned.sort((a, b) => (getSortVal(a) - getSortVal(b)) * dir);
+    }
+
+    const sortedFiltered = [...pinned, ...unpinned];
+
     // Removed the "View All" Arrow
     // if (filtered.length > 4) {
     //     header.innerHTML = `
@@ -1391,7 +1521,7 @@ function renderDeck() {
     // }
 
     // Slice the list if not in "View All" mode
-    const displayList = isViewAllMode ? filtered : filtered.slice(0, 4);
+    const displayList = isViewAllMode ? sortedFiltered : sortedFiltered.slice(0, 4);
 
     displayList.forEach(note => {
         const card = document.createElement('div');
@@ -1400,6 +1530,9 @@ function renderDeck() {
         let lines = note.content.split(/<br>|<div>|<\/div>|\n/gi);
         lines = lines.map(l => l.replace(/<[^>]*>/g, '').trim()).filter(l => l !== "");
         let html = `<button class="note-menu-btn" onclick="event.stopPropagation(); openMenu(event, ${note.id})">⋮</button>`;
+        if (note.pinned) {
+            html += `<svg width="14" height="14" viewBox="0 0 24 24" fill="#2d5a3a" stroke="#2d5a3a" stroke-width="2" style="position:absolute; top:10px; right:28px; opacity:0.7;"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-2l-3-3V7h1V3H7v4h1v5l-3 3v2z"/></svg>`;
+        }
         html += `<span class="saved-note-title">${note.tags[0]}</span><div class="card-checklist">`;
         lines.forEach((l, i) => {
             const hasCheckbox = l.includes('☐');
@@ -1510,6 +1643,9 @@ function toggleLine(id, idx) {
 
 function openNoteViewer(note) {
     activeNote = note;
+    // Track last viewed timestamp
+    note.lastViewed = Date.now();
+    save();
     const editor = document.getElementById('noteViewerContent');
     // iOS ✔ bubble support (blur = keyboard "done")
 if (!editor.dataset.blurBound) {
@@ -1536,6 +1672,8 @@ if (!editor.dataset.blurBound) {
         rangeBtn.style.background = '#e8f5e9';
         rangeBtn.style.color = 'var(--accent)';
     }
+    // Set pin icon to match current state
+    updatePinIcon(note);
     // This detects when you start typing and "activates" the bottom button
     editor.oninput = () => {
         saveBtn.style.opacity = "1";
@@ -1566,16 +1704,36 @@ if (!editor.dataset.blurBound) {
         }, 10);
     };
 }
+function updatePinIcon(note) {
+    const svg = document.getElementById('viewerPinSvg');
+    if (svg) {
+        svg.setAttribute('stroke', note.pinned ? '#2d5a3a' : '#bbb');
+        svg.setAttribute('fill', note.pinned ? '#2d5a3a' : 'none');
+    }
+    const pinBtn = document.getElementById('viewerPinBtn');
+    if (pinBtn) pinBtn.title = note.pinned ? 'Unpin note' : 'Pin note';
+}
+function togglePinFromViewer() {
+    if (!activeNote) return;
+    activeNote.pinned = !activeNote.pinned;
+    updatePinIcon(activeNote);
+    save();
+    renderDeck();
+}
 function closeNoteViewer() {
     if (activeNote) {
         const editor = document.getElementById('noteViewerContent');
         const newContent = editor.innerHTML; // Get formatted HTML
         if (activeNote.mirrorId) {
             db.notes_list.forEach(n => { 
-                if (n.mirrorId === activeNote.mirrorId) n.content = newContent; 
+                if (n.mirrorId === activeNote.mirrorId) {
+                    n.content = newContent;
+                    n.lastEdited = Date.now();
+                }
             });
         } else {
             activeNote.content = newContent;
+            activeNote.lastEdited = Date.now();
         }
         save();
         renderDeck();
@@ -1871,6 +2029,63 @@ if (data && (data.notes_list || data.profile)) {
 let rangeStart = null;
 let rangeEnd = null;
 let rangeViewDate = new Date();
+
+// --- SORT STATE ---
+let sortCriteria = null; // 'created', 'edited', 'viewed'
+let sortDirections = { created: 'desc', edited: 'desc', viewed: 'desc' };
+
+function toggleSortMenu(e) {
+    e.stopPropagation();
+    const dropdown = document.getElementById('sortDropdown');
+    dropdown.classList.toggle('open');
+}
+
+function setSortCriteria(criteria) {
+    if (sortCriteria === criteria) {
+        sortCriteria = null; // Deselect
+    } else {
+        sortCriteria = criteria;
+    }
+    updateSortUI();
+    renderDeck();
+    document.getElementById('sortDropdown').classList.remove('open');
+}
+
+function toggleSortDirection(criteria) {
+    sortDirections[criteria] = sortDirections[criteria] === 'desc' ? 'asc' : 'desc';
+    updateSortUI();
+    if (sortCriteria === criteria) renderDeck();
+}
+
+function updateSortUI() {
+    const options = document.querySelectorAll('.sort-option');
+    options.forEach(opt => {
+        const key = opt.dataset.sort;
+        const arrow = opt.querySelector('.sort-arrow-btn');
+        if (key === sortCriteria) {
+            opt.classList.add('active');
+        } else {
+            opt.classList.remove('active');
+        }
+        arrow.textContent = sortDirections[key] === 'desc' ? '↓' : '↑';
+    });
+    const label = document.getElementById('sortLabel');
+    if (sortCriteria) {
+        const names = { created: 'Created', edited: 'Edited', viewed: 'Viewed' };
+        label.textContent = names[sortCriteria] + (sortDirections[sortCriteria] === 'desc' ? ' ↓' : ' ↑');
+    } else {
+        label.textContent = 'Sort';
+    }
+}
+
+// Close sort dropdown when clicking outside
+window.addEventListener('mousedown', (e) => {
+    const container = document.getElementById('sortMenuContainer');
+    const dropdown = document.getElementById('sortDropdown');
+    if (dropdown && dropdown.classList.contains('open') && !container.contains(e.target)) {
+        dropdown.classList.remove('open');
+    }
+});
 
 function openRangeModal() {
     rangeStart = new Date(selectedDate);

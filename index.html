@@ -47,11 +47,13 @@
 }
 
 :root {
-    --bg:#77c98d;
+    --bg:#f4f8f5;
     --card:#ffffff;
     --text:#000000;
     --accent:#2d5a3a;
     --muted:#666666;
+    --text-on-bg:#2d5a3a;
+    --muted-on-bg:rgba(45,90,58,0.55);
     --heat-0:#f0fdf4;
     --heat-1:#dcfce7;
     --heat-2:#86efac;
@@ -60,31 +62,44 @@
 
 #noteContent {
     width: 100%;
-    height: 35vh;
+    height: 0;
+    min-height: 0;
+    max-height: 0;
     border: none;
     outline: none;
-    font-size: 1.5rem;
+    font-size: 1rem;
     line-height: 1.6;
     font-family: inherit;
-    overflow-y: auto;
+    overflow: hidden;
     background: white;
     text-align: left;
-    padding: 5px;
+    padding: 0 5px;
     white-space: pre-wrap;
     word-break: break-word;
     -webkit-overflow-scrolling: touch;
-    /* Prevents accidental horizontal scroll */
     overscroll-behavior-y: contain;
-    max-height: 50vh;
-    min-height: 80px;
-    /* Smooth scroll for iOS */
     scroll-behavior: smooth;
+    transition: height 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+                max-height 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+                padding 0.3s ease;
+}
+.note-container.editing #noteContent {
+    height: auto;
+    min-height: 120px;
+    max-height: 40vh;
+    overflow-y: auto;
+    padding: 5px;
 }
 
 /* This makes the placeholder text show up when the box is empty */
 #noteContent:empty:before {
     content: attr(data-placeholder);
     color: #aaa;
+}
+/* Hide the collapsed placeholder when editing or when there's content */
+.note-container.editing .compose-placeholder,
+.note-container.has-content .compose-placeholder {
+    display: none;
 }
 body {
     margin: 0;
@@ -116,13 +131,13 @@ header {
 
 /* Updated for stacked look */
 .month-label { 
-    font-size: 1.4rem; 
-    font-weight: 900; 
-    color: white; 
-    text-transform: uppercase; 
+    font-size: 1.25rem; 
+    font-weight: 700; 
+    color: var(--text-on-bg); 
     text-align: center;
     line-height: 1.1;
     cursor: pointer;
+    letter-spacing: -0.01em;
 }
 
 /* Month/Year Picker */
@@ -268,9 +283,9 @@ header {
     padding: 2px 12px;
 }
 #todayBtn {
-    background: rgba(255,255,255,0.25);
-    border: 1px solid white;
-    color: white;
+    background: transparent;
+    border: 1.5px solid var(--text-on-bg);
+    color: var(--text-on-bg);
     padding: 4px 14px;
     border-radius: 20px;
     font-size: 0.7rem;
@@ -339,7 +354,7 @@ header {
     border: 1px solid rgba(0,0,0,0.05); /* Added subtle border for definition */
     white-space: nowrap;
 }
-.bubble.active { background: var(--accent); color: white; border: 2px solid white !important; }
+.bubble.active { background: var(--accent); color: white; }
 
 .add-cat-btn {
     background: rgba(255,255,255,0.3);
@@ -444,23 +459,39 @@ header {
 .editor-checklist-text.done { text-decoration: line-through; color: #aaa; }
 
 .note-container {
-    width: 95%; /* Slightly wider for mobile, but constrained by box-sizing */
+    width: 95%;
     max-width: 500px;
     background: var(--card);
-    border-radius: 24px;
-    padding: 20px;
+    border-radius: 18px;
+    padding: 14px 18px;
+    min-height: 70px;
     position: relative;
-    margin: 15px auto; /* Centers it */
-    transition: width 0.35s cubic-bezier(0.25, 1, 0.5, 1),
-                max-width 0.35s cubic-bezier(0.25, 1, 0.5, 1),
-                border-radius 0.35s cubic-bezier(0.25, 1, 0.5, 1),
-                box-shadow 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+    margin: 10px auto;
+    cursor: text;
+    transition: border-radius 0.3s ease, box-shadow 0.3s ease, padding 0.3s ease;
+}
+/* Hide format buttons row and commit button when not editing */
+.note-container .format-row {
+    display: none;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+.note-container.editing .format-row {
+    display: flex;
+}
+.note-container .add-note {
+    display: none;
+}
+.note-container.editing .add-note {
+    display: flex;
 }
 .note-container.editing {
     width: 100%;
     max-width: 100vw;
     border-radius: 18px;
+    padding: 16px 18px;
     box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    cursor: auto;
 }
 /* Styling for the View All arrow */
 .deck-header {
@@ -615,12 +646,12 @@ textarea {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: rgba(255,255,255,0.4); /* Dimmed when inactive */
+    color: var(--muted-on-bg);
     transition: 0.3s;
 }
 
 #bottomTabs button.active-tab {
-    color: #ffffff; /* White when active */
+    color: var(--text-on-bg);
 }
 
 /* Hide the old underline line */
@@ -1176,6 +1207,7 @@ input:checked + .sld:before { transform: translateX(16px); }
     display: flex;
     align-items: center;
     flex-shrink: 0;
+    color: var(--text-on-bg);
 }
 
 /* --- MAIN DOTS MENU (2 options) --- */
@@ -1788,12 +1820,12 @@ input:checked + .sld:before { transform: translateX(16px); }
   <div class="month-label" id="dateDisplay" onclick="openMonthPicker()">Loading...</div>
   
   <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
-      <span id="yearDisplay" style="font-size: 1.1rem; font-weight: 700; color: rgba(255,255,255,0.8); cursor:pointer;" onclick="openYearPicker()">2026</span>
+      <span id="yearDisplay" style="font-size: 1rem; font-weight: 500; color: rgba(255,255,255,0.7); cursor:pointer;" onclick="openYearPicker()">2026</span>
       <button class="cal-icon" onclick="toggleModal()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>
   </div>
 
   <!-- The "Today" button moves below the date -->
-  <button id="todayBtn" onclick="jumpToToday()" style="margin-top:12px; background:rgba(255,255,255,0.2); border:1.5px solid white; color:white; padding:6px 16px; border-radius:20px; font-size:0.75rem; font-weight:900; text-transform:uppercase;">Today</button>
+  <button id="todayBtn" onclick="jumpToToday()" style="margin-top:12px; padding:6px 16px; border-radius:20px; font-size:0.75rem; font-weight:900; text-transform:uppercase;">Today</button>
   <div id="headerRangeIndicator" style="display:none; margin-top:8px; background:white; color:var(--accent); padding:4px 14px; border-radius:20px; font-size:0.7rem; font-weight:900; text-transform:uppercase; cursor:pointer;" onclick="toggleModal()">Range Active</div>
 </header>
 
@@ -1816,7 +1848,7 @@ input:checked + .sld:before { transform: translateX(16px); }
 
 <!-- Sort Dropdown Menu -->
 <div class="sort-menu-container" id="sortMenuContainer">
-    <button id="searchToggleBtn" onclick="toggleGlobalSearch()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+    <button id="searchToggleBtn" onclick="toggleGlobalSearch()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
     <div id="globalSearchBar">
         <input type="text" id="globalSearchInput" placeholder="Search all notes...">
         <button id="globalSearchClose" onclick="exitSearchMode()">✕</button>
@@ -1864,16 +1896,16 @@ input:checked + .sld:before { transform: translateX(16px); }
 </div>
 <div id="noteDeck"></div>
 
-<div class="note-container">
-    <!-- This is the new header for the note box -->
-    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:10px;">
-       <div style="display:flex; gap:5px;">
-    <button id="btn-bullet" class="format-btn" onclick="toggleListMode('• ')">•</button>
-    <button id="btn-check" class="format-btn" onclick="toggleListMode('☐ ')">☐</button>
-    <button id="btn-bold" class="format-btn" onclick="execStyle('bold', 'bold')">B</button>
-    <button id="btn-italic" class="format-btn" onclick="execStyle('italic', 'italic')">I</button>
-    <button id="btn-under" class="format-btn" onclick="execStyle('underline', 'under')">U</button>
-</div>
+<div class="note-container" onclick="if(!this.classList.contains('editing')){document.getElementById('noteContent').focus();}">
+    <!-- Collapsed placeholder shown when not editing -->
+    <div class="compose-placeholder" style="color:#aaa; font-size:0.95rem; pointer-events:none;">Type your notes...</div>
+    <!-- Format buttons row, hidden until editing -->
+    <div class="format-row">
+        <button id="btn-bullet" class="format-btn" onclick="toggleListMode('• ')">•</button>
+        <button id="btn-check" class="format-btn" onclick="toggleListMode('☐ ')">☐</button>
+        <button id="btn-bold" class="format-btn" onclick="execStyle('bold', 'bold')">B</button>
+        <button id="btn-italic" class="format-btn" onclick="execStyle('italic', 'italic')">I</button>
+        <button id="btn-under" class="format-btn" onclick="execStyle('underline', 'under')">U</button>
     </div>
     <div id="noteContent" contenteditable="true" data-placeholder="Type your notes..."></div>
     <button class="add-note" onclick="commitNote()">✔</button>
@@ -2044,15 +2076,7 @@ input:checked + .sld:before { transform: translateX(16px); }
 
     <div class="personalize-grid" id="paleColorsGrid"></div>
 
-    <button id="moreColorsBtn" class="btn-sml" onclick="toggleMoreColors()" style="margin-top:12px; width:100%;">More Colors</button>
-
-    <div id="moreColorsWrap" class="personalize-more">
-        <div class="personalize-grid" id="moreColorsGrid"></div>
-        <div style="margin-top:12px;">
-            <label for="customColorInput" style="display:block; font-size:0.75rem; font-weight:800; color:#666; margin-bottom:6px; text-transform:uppercase;">Custom</label>
-            <input type="color" id="customColorInput" value="#77c98d" onchange="selectCustomColor(this.value)" style="width:100%; height:42px; border:none; padding:0; background:none; cursor:pointer;">
-        </div>
-    </div>
+    <div id="moreColorsWrap" style="display:none;"><div class="personalize-grid" id="moreColorsGrid"></div></div>
 
     <button onclick="saveBackgroundPreference()" style="width:100%; background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; cursor:pointer; font-weight:bold; margin-top:14px;">Save</button>
     <button onclick="closePersonalizeModal()" style="width:100%; background:none; border:none; color:gray; margin-top:8px; cursor:pointer; font-size:0.8rem;">Cancel</button>
@@ -2304,9 +2328,30 @@ let currentCategory = null;
 let isRegistering = false;
 let activeNote = null;
 
-const DEFAULT_APP_BG = '#77c98d';
-const PALE_BG_COLORS = ['#fef3c7', '#ffedd5', '#fee2e2', '#fce7f3', '#ede9fe', '#e0e7ff', '#dbeafe', '#cffafe', '#ccfbf1', '#dcfce7'];
-const MORE_BG_COLORS = ['#fef9c3', '#fde68a', '#fed7aa', '#fdba74', '#fecaca', '#fca5a5', '#fbcfe8', '#f9a8d4', '#ddd6fe', '#c4b5fd', '#bfdbfe', '#93c5fd', '#a5f3fc', '#67e8f9', '#99f6e4', '#5eead4', '#bbf7d0', '#86efac', '#e5e7eb', '#d1d5db'];
+const DEFAULT_APP_BG = '#f4f8f5';
+const PALE_BG_COLORS = [
+    '#f4f8f5', // sage white (default)
+    '#f0f4f8', // cool slate white
+    '#f5f0eb', // warm linen
+    '#faf7f2', // warm cream
+    '#f2f0f7', // soft lavender
+    '#f0ede8', // dusty stone
+    '#eef4f0', // mint mist
+    '#f5f2ef', // pale sand
+    '#eef2f7', // powder blue
+    '#f7f0f2', // blush white
+    '#e8f0ed', // deeper sage
+    '#e8ecf2', // deeper slate
+    '#ede8f0', // deeper lavender
+    '#f0e8e8', // deeper blush
+    '#e8ede8', // deeper mint
+    '#ede9e3', // warm taupe
+    '#e3e8ed', // steel blue
+    '#ede3e8', // mauve
+    '#e3ede6', // forest mist
+    '#f0ece3',  // soft parchment
+];
+const MORE_BG_COLORS = [];
 let previewBgColor = null;
 let persistedBgColor = null;
 
@@ -2450,6 +2495,19 @@ function applyAppBackground(color) {
         document.documentElement.style.setProperty('--heat-1', hslToHex(h, Math.max(15, s * 0.55), Math.min(95, l)));
         document.documentElement.style.setProperty('--heat-2', hslToHex(h, Math.min(100, s * 0.90), 72));
         document.documentElement.style.setProperty('--heat-3', hslToHex(h, Math.min(100, s), 55));
+
+        // Adaptive text on background: dark on light bg, white on dark bg
+        if (l > 65) {
+            document.documentElement.style.setProperty('--text-on-bg', hslToHex(h, aS, aL));
+            document.documentElement.style.setProperty('--muted-on-bg', hslToHex(h, Math.max(15, aS * 0.55), Math.min(62, aL + 18)));
+        } else {
+            document.documentElement.style.setProperty('--text-on-bg', '#ffffff');
+            document.documentElement.style.setProperty('--muted-on-bg', 'rgba(255,255,255,0.45)');
+        }
+
+        // Update yearDisplay inline color to match
+        const yearElBg = document.getElementById('yearDisplay');
+        if (yearElBg) yearElBg.style.color = l > 65 ? hslToHex(h, Math.max(15, aS * 0.55), Math.min(62, aL + 18)) : 'rgba(255,255,255,0.7)';
     } catch(e) { /* noop on malformed color */ }
 }
 
@@ -2503,10 +2561,6 @@ function renderPersonalizeSwatches() {
 
     PALE_BG_COLORS.forEach(function(color) {
         paleGrid.appendChild(makeColorSwatch(color));
-    });
-
-    MORE_BG_COLORS.forEach(function(color) {
-        moreGrid.appendChild(makeColorSwatch(color));
     });
 
     updateSwatchSelection();
@@ -4256,16 +4310,20 @@ setupAutoListDetection('noteViewerContent', 'viewer-btn-bullet', 'viewer-btn-che
     const container = noteBox.closest('.note-container');
     noteBox.addEventListener('focus', () => {
         container.classList.add('editing');
-        // Scroll so the whole container (including format buttons) is visible
         setTimeout(() => {
             container.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
     });
+    noteBox.addEventListener('input', () => {
+        container.classList.toggle('has-content', noteBox.innerHTML.trim() !== '' && noteBox.innerHTML.trim() !== '<br>');
+    });
     noteBox.addEventListener('blur', () => {
-        // Small delay so the commit button click still registers
         setTimeout(() => {
             if (!container.contains(document.activeElement)) {
                 container.classList.remove('editing');
+                if (noteBox.innerHTML.trim() === '' || noteBox.innerHTML.trim() === '<br>') {
+                    container.classList.remove('has-content');
+                }
             }
         }, 100);
     });

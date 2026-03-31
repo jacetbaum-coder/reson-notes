@@ -1606,6 +1606,8 @@ input:checked + .sld:before { transform: translateX(16px); }
     <div class="picker-grid" id="yearPickerGrid"></div>
 </div>
 
+<div id="eventBar" style="width:100%; max-width:500px;"></div>
+
 <div class="calendar-strip" id="strip"></div>
 
 <div class="filter-container" id="filterContainer"></div>
@@ -2267,6 +2269,7 @@ function showMain() {
     // 1. UI Visibility
     document.querySelector('header').style.display = 'flex';
     document.getElementById('strip').style.display = 'flex';
+    document.getElementById('eventBar').style.display = 'block';
     document.getElementById('filterContainer').style.display = 'flex';
     document.getElementById('sortMenuContainer').style.display = 'flex';
     document.getElementById('noteDeck').style.display = 'grid';
@@ -2504,42 +2507,8 @@ function renderDeck() {
     // Add select-mode class to deck
     deck.className = isSelectMode ? 'select-mode' : '';
 
-    // Render holiday cards for this date
-    if (!isSelectMode) {
-        const dateHolidays = getHolidaysForDate(key);
-        dateHolidays.forEach(holiday => {
-            const hCard = document.createElement('div');
-            hCard.className = 'event-card holiday-card';
-            if (holiday.isBuiltIn) {
-                hCard.innerHTML = '<div class="event-info"><div class="event-title"></div><div class="event-meta">Holiday</div></div>';
-            } else {
-                hCard.innerHTML = '<div class="event-info"><div class="event-title"></div><div class="event-meta">Holiday (custom)</div></div><div class="event-actions"><button class="event-edit-btn">✎</button><button class="event-delete-btn">✕</button></div>';
-                hCard.querySelector('.event-edit-btn').onclick = (e) => { e.stopPropagation(); editHoliday(holiday.id); };
-                hCard.querySelector('.event-delete-btn').onclick = (e) => { e.stopPropagation(); deleteHoliday(holiday.id); };
-                hCard.onclick = () => editHoliday(holiday.id);
-            }
-            hCard.querySelector('.event-title').textContent = holiday.name;
-            deck.appendChild(hCard);
-        });
-
-        // Render event cards for this date
-        const dateEvents = (db.events || []).filter(ev => {
-            if (ev.date !== key) return false;
-            if (currentCategory && ev.category !== currentCategory) return false;
-            return true;
-        });
-        dateEvents.forEach(ev => {
-            const eCard = document.createElement('div');
-            eCard.className = 'event-card meeting-card';
-            eCard.innerHTML = '<div class="event-info"><div class="event-title"></div><div class="event-meta"></div></div><div class="event-actions"><button class="event-edit-btn">✎</button><button class="event-delete-btn">✕</button></div>';
-            eCard.querySelector('.event-title').textContent = ev.title;
-            eCard.querySelector('.event-meta').textContent = (ev.time ? ev.time + ' \u00B7 ' : '') + (ev.category || '');
-            eCard.querySelector('.event-edit-btn').onclick = (e) => { e.stopPropagation(); editEvent(ev.id); };
-            eCard.querySelector('.event-delete-btn').onclick = (e) => { e.stopPropagation(); deleteEvent(ev.id); };
-            eCard.onclick = () => editEvent(ev.id);
-            deck.appendChild(eCard);
-        });
-    }
+    // Render event bar above the strip
+    renderEventBar();
 
     displayList.forEach(note => {
         const card = document.createElement('div');
@@ -3997,6 +3966,7 @@ function exitSearchMode() {
     if (isSearchMode) {
         isSearchMode = false;
         document.getElementById('strip').style.display = 'flex';
+        document.getElementById('eventBar').style.display = 'block';
         document.getElementById('filterContainer').style.display = 'flex';
         document.getElementById('sortMenuContainer').style.display = 'flex';
         document.getElementById('deckHeader').style.display = 'flex';
@@ -4022,6 +3992,7 @@ function performSearch(query) {
     }
     isSearchMode = true;
     document.getElementById('strip').style.display = 'none';
+    document.getElementById('eventBar').style.display = 'none';
     document.getElementById('filterContainer').style.display = 'none';
     document.getElementById('sortMenuContainer').style.display = 'none';
     document.getElementById('deckHeader').style.display = 'none';
@@ -4521,6 +4492,46 @@ function detectEventFromText(plainText) {
     }
 
     return { isEvent: false };
+}
+
+function renderEventBar() {
+    const bar = document.getElementById('eventBar');
+    if (!bar) return;
+    bar.innerHTML = '';
+    const key = formatDateKey(selectedDate);
+
+    const dateHolidays = getHolidaysForDate(key);
+    dateHolidays.forEach(holiday => {
+        const hCard = document.createElement('div');
+        hCard.className = 'event-card holiday-card';
+        if (holiday.isBuiltIn) {
+            hCard.innerHTML = '<div class="event-info"><div class="event-title"></div><div class="event-meta">Holiday</div></div>';
+        } else {
+            hCard.innerHTML = '<div class="event-info"><div class="event-title"></div><div class="event-meta">Holiday (custom)</div></div><div class="event-actions"><button class="event-edit-btn">✎</button><button class="event-delete-btn">✕</button></div>';
+            hCard.querySelector('.event-edit-btn').onclick = (e) => { e.stopPropagation(); editHoliday(holiday.id); };
+            hCard.querySelector('.event-delete-btn').onclick = (e) => { e.stopPropagation(); deleteHoliday(holiday.id); };
+            hCard.onclick = () => editHoliday(holiday.id);
+        }
+        hCard.querySelector('.event-title').textContent = holiday.name;
+        bar.appendChild(hCard);
+    });
+
+    const dateEvents = (db.events || []).filter(ev => {
+        if (ev.date !== key) return false;
+        if (currentCategory && ev.category !== currentCategory) return false;
+        return true;
+    });
+    dateEvents.forEach(ev => {
+        const eCard = document.createElement('div');
+        eCard.className = 'event-card meeting-card';
+        eCard.innerHTML = '<div class="event-info"><div class="event-title"></div><div class="event-meta"></div></div><div class="event-actions"><button class="event-edit-btn">✎</button><button class="event-delete-btn">✕</button></div>';
+        eCard.querySelector('.event-title').textContent = ev.title;
+        eCard.querySelector('.event-meta').textContent = (ev.time ? ev.time + ' \u00B7 ' : '') + (ev.category || '');
+        eCard.querySelector('.event-edit-btn').onclick = (e) => { e.stopPropagation(); editEvent(ev.id); };
+        eCard.querySelector('.event-delete-btn').onclick = (e) => { e.stopPropagation(); deleteEvent(ev.id); };
+        eCard.onclick = () => editEvent(ev.id);
+        bar.appendChild(eCard);
+    });
 }
 
 function addHolidayPrompt() {

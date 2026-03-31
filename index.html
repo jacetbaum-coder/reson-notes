@@ -635,7 +635,10 @@ textarea {
     box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
     z-index: 6000; 
     padding: 8px; 
-    min-width: 120px; 
+    min-width: 200px; 
+    max-height: 280px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 #catMgmtDropdown {
@@ -848,6 +851,15 @@ input:checked + .sld:before { transform: translateX(16px); }
     position: relative;
     margin: 4px 0 2px 0;
     padding: 0 5px;
+    overflow: hidden;
+    max-height: 60px;
+    transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
+}
+.sort-menu-container.toolbar-hidden {
+    max-height: 0;
+    opacity: 0;
+    margin: 0;
+    pointer-events: none;
 }
 .sort-hamburger {
     background: rgba(255,255,255,0.25);
@@ -3700,12 +3712,12 @@ function openMenu(e, id) {
     const hidden = db.hidden_base_categories || [];
     const baseCats = ['todo', 'work', 'groceries', 'errands'].filter(c => !hidden.includes(c));
     const allCats = [...baseCats, ...(db.custom_categories || [])];
-    let catOptions = allCats.map(c => `<div onclick="moveNote(${id}, '${c}')" style="padding:8px; font-size:0.8rem; cursor:pointer; border-bottom:1px solid #f0f0f0;">→ Move to ${c}</div>`).join('');
+    let catOptions = allCats.map(c => `<div onclick="moveNote(${id}, '${c}')" style="padding:12px 10px; font-size:1rem; cursor:pointer; border-bottom:1px solid #f0f0f0;">→ Move to ${c}</div>`).join('');
 
     menu.innerHTML = `
-        <div style="font-weight:800; font-size:0.6rem; color:#aaa; padding:5px; text-transform:uppercase;">Options</div>
+        <div style="font-weight:800; font-size:0.8rem; color:#aaa; padding:8px 10px 4px; text-transform:uppercase;">Options</div>
         ${catOptions}
-        <button onclick="deleteNote(${id})" style="color:red; width:100%; padding:10px; background:none; border:none; text-align:left; cursor:pointer; font-weight:bold; border-top:1px solid #eee;">Delete Note</button>
+        <button onclick="deleteNote(${id})" style="color:red; width:100%; padding:12px 10px; background:none; border:none; text-align:left; cursor:pointer; font-weight:bold; font-size:1rem; border-top:1px solid #eee;">Delete Note</button>
     `;
 }
 
@@ -3765,8 +3777,8 @@ function closeAllModals() {
     // Pulls the note editor back to the front for next time
     viewerAll.style.zIndex = "6000"; 
 }
-// Global click listener to close menus when clicking away
-window.addEventListener('mousedown', (e) => {
+// Global click/touch listener to close menus when clicking away
+function _handleMenuDismiss(e) {
     const menu = document.getElementById('noteMenu');
     if (menu.style.display === 'block' && !menu.contains(e.target) && !e.target.classList.contains('note-menu-btn')) {
         menu.style.display = 'none';
@@ -3775,7 +3787,23 @@ window.addEventListener('mousedown', (e) => {
     if (catMgmt && catMgmt.classList.contains('open') && !catMgmt.contains(e.target) && !e.target.closest('[onclick*="toggleMainDotsMenu"]')) {
         catMgmt.classList.remove('open');
     }
-});
+}
+window.addEventListener('mousedown', _handleMenuDismiss);
+window.addEventListener('touchstart', _handleMenuDismiss, { passive: true });
+
+// Hide/show sort toolbar on scroll
+let _lastScrollY = 0;
+window.addEventListener('scroll', () => {
+    const current = window.scrollY;
+    const bar = document.getElementById('sortMenuContainer');
+    if (!bar || bar.style.display === 'none') { _lastScrollY = current; return; }
+    if (current > _lastScrollY && current > 60) {
+        bar.classList.add('toolbar-hidden');
+    } else {
+        bar.classList.remove('toolbar-hidden');
+    }
+    _lastScrollY = current;
+}, { passive: true });
 async function sendVerificationEmail() {
     const email = document.getElementById('editEm').value.trim();
     if (!email) return alert("Please enter an email address.");

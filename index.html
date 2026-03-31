@@ -21,7 +21,29 @@
     /* Disables double-tap to zoom */
     touch-action: manipulation; 
     /* Prevents auto-zooming/scaling text when rotating the phone */
-    -webkit-text-size-adjust: none; 
+    -webkit-text-size-adjust: none;
+    /* Removes tap highlight flash on mobile (blue/grey overlay when tapping) */
+    -webkit-tap-highlight-color: transparent;
+    /* Prevents iOS long-press callout popup (Copy / Look Up / Share) */
+    -webkit-touch-callout: none;
+}
+
+/* Mobile app-like: prevent text selection and overscroll on small screens */
+@media (max-width: 768px) {
+    * {
+        -webkit-user-select: none;
+        user-select: none;
+    }
+    /* Re-enable selection inside text inputs and editable areas */
+    input, textarea, [contenteditable] {
+        -webkit-user-select: text;
+        user-select: text;
+        -webkit-touch-callout: default;
+    }
+    body {
+        /* Prevents pull-to-refresh and overscroll bounce */
+        overscroll-behavior: none;
+    }
 }
 
 :root {

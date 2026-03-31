@@ -1325,6 +1325,7 @@ function cleanupData() {
 async function commitNote() {
     const text = document.getElementById('noteContent').innerHTML.trim();
     if (!text) return;
+    
     await syncWithCloud(); 
     const cat = currentCategory ? currentCategory.toLowerCase() : "general";
     const mirrorId = (document.getElementById('mirrorToggle').checked && rangeEnd) ? "m_" + Date.now() : null;
@@ -1505,6 +1506,16 @@ function toggleLine(id, idx) {
 function openNoteViewer(note) {
     activeNote = note;
     const editor = document.getElementById('noteViewerContent');
+    // iOS ✔ bubble support (blur = keyboard "done")
+if (!editor.dataset.blurBound) {
+    editor.dataset.blurBound = "true";
+    editor.addEventListener('blur', function () {
+        if (window.innerWidth <= 768) {
+            const text = editor.innerHTML.trim();
+            if (text) commitNote();
+        }
+    });
+}
     editor.innerHTML = note.content;
     // Reset the "Save Changes" button to the light/faded look every time a note opens
     const saveBtn = document.getElementById('viewerSaveBtn');

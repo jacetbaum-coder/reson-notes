@@ -842,6 +842,139 @@ input:checked + .sld:before { transform: translateX(16px); }
 }
 .sort-arrow-btn:hover { background: #f0f0f0; }
 .sort-option.active .sort-arrow-btn { color: var(--accent); }
+
+/* Recently Deleted Section */
+.deleted-section {
+    margin-top: 20px;
+    text-align: left;
+}
+.deleted-section h3 {
+    color: var(--accent);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    font-weight: 900;
+}
+#deletedNotesList {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+.deleted-note-card {
+    background: #f9f9f9;
+    border-radius: 18px;
+    padding: 12px;
+    position: relative;
+    height: 150px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.deleted-note-card .deleted-note-cat {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--accent);
+    text-transform: uppercase;
+    opacity: 0.6;
+    margin-bottom: 2px;
+}
+.deleted-note-card .deleted-note-preview {
+    font-size: 0.75rem;
+    color: #444;
+    line-height: 1.2;
+    flex: 1;
+    overflow: hidden;
+    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+}
+.deleted-note-card .deleted-note-meta {
+    font-size: 0.55rem;
+    color: #aaa;
+    margin-top: 2px;
+}
+.deleted-note-actions {
+    display: flex;
+    gap: 4px;
+    margin-top: 6px;
+}
+.deleted-note-actions button {
+    flex: 1;
+    padding: 6px 4px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 700;
+    font-size: 0.65rem;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.deleted-note-actions .restore-btn {
+    background: var(--accent);
+    color: white;
+}
+.deleted-note-actions .perm-delete-btn {
+    background: #ffe5e5;
+    color: #cc3333;
+}
+.deleted-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.deleted-header-row h3 {
+    margin: 0;
+}
+.deleted-sort-hamburger {
+    background: rgba(0,0,0,0.06);
+    border: 1.5px solid #ddd;
+    border-radius: 10px;
+    padding: 6px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.75rem;
+    transition: background 0.2s;
+    position: relative;
+}
+.deleted-sort-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+    z-index: 3000;
+    min-width: 200px;
+    padding: 6px 0;
+    margin-top: 4px;
+    overflow: hidden;
+}
+.deleted-sort-dropdown.open { display: block; }
+.deleted-empty {
+    text-align: center;
+    color: #aaa;
+    font-size: 0.85rem;
+    padding: 30px 0;
+    font-weight: 600;
+    grid-column: 1 / -1;
+}
+.delete-all-btn {
+    background: #ff4444;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 10px;
+    width: 100%;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.8rem;
+    margin-top: 10px;
+    grid-column: 1 / -1;
+}
 </style>
 </head>
 <!-- Replace your existing <body> content with this updated version -->
@@ -969,6 +1102,34 @@ input:checked + .sld:before { transform: translateX(16px); }
         <hr style="opacity:0.1; margin-bottom:20px;">
         <button id="loadCloudBtn" style="background:none; color:var(--accent); border:2px solid var(--accent); padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold; margin-bottom: 12px;">Sync with Cloud</button>
         <button onclick="logout()" style="background:#ff4444; color:white; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold;">Logout</button>
+    </div>
+
+    <!-- Recently Deleted Section -->
+    <div class="note-container deleted-section">
+        <div class="deleted-header-row">
+            <h3>Recently Deleted</h3>
+            <div style="position:relative;">
+                <button class="deleted-sort-hamburger" onclick="toggleDeletedSortMenu(event)">
+                    <div class="hamburger-lines"><span></span><span></span><span></span></div>
+                    <span id="deletedSortLabel">Sort</span>
+                </button>
+                <div class="deleted-sort-dropdown" id="deletedSortDropdown">
+                    <div class="sort-option" data-sort="deleted" onclick="setDeletedSortCriteria('deleted')">
+                        <span class="sort-label">Date Deleted</span>
+                        <button class="sort-arrow-btn" onclick="event.stopPropagation(); toggleDeletedSortDirection('deleted')">↓</button>
+                    </div>
+                    <div class="sort-option" data-sort="created" onclick="setDeletedSortCriteria('created')">
+                        <span class="sort-label">Date Created</span>
+                        <button class="sort-arrow-btn" onclick="event.stopPropagation(); toggleDeletedSortDirection('created')">↑</button>
+                    </div>
+                    <div class="sort-option" data-sort="edited" onclick="setDeletedSortCriteria('edited')">
+                        <span class="sort-label">Last Edited</span>
+                        <button class="sort-arrow-btn" onclick="event.stopPropagation(); toggleDeletedSortDirection('edited')">↑</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="deletedNotesList"></div>
     </div>
 </div>
 
@@ -1222,9 +1383,11 @@ function handleCheckboxToggleInEditor(e) {
 const WORKER_URL = "https://reson-api.jacetbaum.workers.dev"; 
 let db = JSON.parse(localStorage.getItem('reson_db')) || { 
     notes_list: [], 
+    deleted_notes: [],
     custom_categories: [],
     profile: { username: '', phone: '', pic: '' } 
 };
+if (!db.deleted_notes) db.deleted_notes = [];
 let authHeader = localStorage.getItem('reson_auth'); 
 let selectedDate = new Date();
 let currentCategory = null;
@@ -1469,6 +1632,8 @@ function showSettings() {
     document.querySelector('.note-container').style.display = 'none';
     document.getElementById('settingsView').style.display = 'block';
     loadProfileUI();
+    purgeExpiredDeletedNotes();
+    renderDeletedNotes();
 
     // Tab Highlighting
     document.getElementById('navSettings').classList.add('active-tab');
@@ -2269,10 +2434,25 @@ function moveNote(id, newCat) {
 }
 
 function deleteNote(id) {
+    const note = db.notes_list.find(n => n.id === id);
+    if (note) {
+        note.deletedAt = Date.now();
+        if (!db.deleted_notes) db.deleted_notes = [];
+        db.deleted_notes.push(note);
+    }
     db.notes_list = db.notes_list.filter(n => n.id !== id);
     save();
     renderDeck();
     document.getElementById('noteMenu').style.display = 'none';
+    // Close the note viewer if it's open
+    const viewer = document.getElementById('noteViewer');
+    if (viewer.classList.contains('open')) {
+        viewer.classList.remove('open');
+        setTimeout(() => { viewer.style.display = 'none'; }, 350);
+        document.getElementById('overlay').style.display = 'none';
+        activeNote = null;
+    }
+    showToast('Note moved to Recently Deleted');
 }
 
 function closeAllModals() {
@@ -2401,9 +2581,11 @@ if (data && (data.notes_list || data.profile)) {
     // If the cloud has data, WE TRUST THE CLOUD COMPLETELY for a fresh sync
     db = {
         notes_list: data.notes_list || [],
+        deleted_notes: data.deleted_notes || [],
         custom_categories: data.custom_categories || [],
         profile: data.profile || db.profile
     };
+    if (!db.deleted_notes) db.deleted_notes = [];
     
     localStorage.setItem('reson_db', JSON.stringify(db));
             
@@ -2862,6 +3044,154 @@ closeAllModals = function() {
     const sRes = document.getElementById('searchResults');
     if(sRes) sRes.innerHTML = '';
 };
+
+// --- RECENTLY DELETED ---
+let deletedSortCriteria = 'deleted';
+let deletedSortDirections = { deleted: 'desc', created: 'desc', edited: 'desc' };
+
+function purgeExpiredDeletedNotes() {
+    if (!db.deleted_notes) return;
+    const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    const before = db.deleted_notes.length;
+    db.deleted_notes = db.deleted_notes.filter(n => (now - (n.deletedAt || 0)) < thirtyDays);
+    if (db.deleted_notes.length !== before) save();
+}
+
+function renderDeletedNotes() {
+    const container = document.getElementById('deletedNotesList');
+    if (!container) return;
+    container.innerHTML = '';
+    if (!db.deleted_notes || db.deleted_notes.length === 0) {
+        container.innerHTML = '<div class="deleted-empty">No recently deleted notes</div>';
+        return;
+    }
+
+    // Sort deleted notes
+    const sorted = [...db.deleted_notes];
+    const dir = deletedSortDirections[deletedSortCriteria] === 'desc' ? -1 : 1;
+    sorted.sort((a, b) => {
+        let va, vb;
+        if (deletedSortCriteria === 'deleted') { va = a.deletedAt || 0; vb = b.deletedAt || 0; }
+        else if (deletedSortCriteria === 'created') { va = a.createdAt || a.id || 0; vb = b.createdAt || b.id || 0; }
+        else if (deletedSortCriteria === 'edited') { va = a.lastEdited || a.createdAt || 0; vb = b.lastEdited || b.createdAt || 0; }
+        else { va = 0; vb = 0; }
+        return (va - vb) * dir;
+    });
+
+    sorted.forEach(note => {
+        const card = document.createElement('div');
+        card.className = 'deleted-note-card';
+        const plainText = note.content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        const preview = plainText.length > 80 ? plainText.substring(0, 80) + '...' : plainText;
+        const daysLeft = Math.max(0, 30 - Math.floor((Date.now() - (note.deletedAt || 0)) / (24 * 60 * 60 * 1000)));
+        card.innerHTML = `
+            <div class="deleted-note-cat">${note.tags ? note.tags[0] : 'general'}</div>
+            <div class="deleted-note-preview">${preview}</div>
+            <div class="deleted-note-meta">Auto-deletes in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}</div>
+            <div class="deleted-note-actions">
+                <button class="restore-btn" onclick="restoreDeletedNote(${note.id})">Restore</button>
+                <button class="perm-delete-btn" onclick="permanentlyDeleteNote(${note.id})">Delete Forever</button>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+
+    // Add "Delete All" button
+    const deleteAllBtn = document.createElement('button');
+    deleteAllBtn.className = 'delete-all-btn';
+    deleteAllBtn.textContent = 'Delete All Forever';
+    deleteAllBtn.onclick = deleteAllDeletedNotes;
+    container.appendChild(deleteAllBtn);
+
+    updateDeletedSortUI();
+}
+
+function restoreDeletedNote(id) {
+    const idx = db.deleted_notes.findIndex(n => n.id === id);
+    if (idx === -1) return;
+    const note = db.deleted_notes.splice(idx, 1)[0];
+    delete note.deletedAt;
+    db.notes_list.unshift(note);
+    save();
+    renderDeletedNotes();
+    showToast('Note restored');
+}
+
+function permanentlyDeleteNote(id) {
+    db.deleted_notes = db.deleted_notes.filter(n => n.id !== id);
+    save();
+    renderDeletedNotes();
+    showToast('Note permanently deleted');
+}
+
+function deleteAllDeletedNotes() {
+    if (!db.deleted_notes || db.deleted_notes.length === 0) return;
+    if (confirm('Permanently delete all ' + db.deleted_notes.length + ' note(s)? This cannot be undone.')) {
+        db.deleted_notes = [];
+        save();
+        renderDeletedNotes();
+        showToast('All deleted notes removed');
+    }
+}
+
+function toggleDeletedSortMenu(e) {
+    e.stopPropagation();
+    const dropdown = document.getElementById('deletedSortDropdown');
+    dropdown.classList.toggle('open');
+}
+
+function setDeletedSortCriteria(criteria) {
+    if (deletedSortCriteria === criteria) {
+        deletedSortCriteria = null;
+    } else {
+        deletedSortCriteria = criteria;
+    }
+    updateDeletedSortUI();
+    renderDeletedNotes();
+    document.getElementById('deletedSortDropdown').classList.remove('open');
+}
+
+function toggleDeletedSortDirection(criteria) {
+    deletedSortDirections[criteria] = deletedSortDirections[criteria] === 'desc' ? 'asc' : 'desc';
+    updateDeletedSortUI();
+    if (deletedSortCriteria === criteria) renderDeletedNotes();
+}
+
+function updateDeletedSortUI() {
+    const dropdown = document.getElementById('deletedSortDropdown');
+    if (!dropdown) return;
+    dropdown.querySelectorAll('.sort-option').forEach(opt => {
+        const key = opt.dataset.sort;
+        const arrow = opt.querySelector('.sort-arrow-btn');
+        if (key === deletedSortCriteria) {
+            opt.classList.add('active');
+        } else {
+            opt.classList.remove('active');
+        }
+        if (arrow) arrow.textContent = deletedSortDirections[key] === 'desc' ? '↓' : '↑';
+    });
+    const label = document.getElementById('deletedSortLabel');
+    if (label) {
+        if (deletedSortCriteria) {
+            const names = { deleted: 'Deleted', created: 'Created', edited: 'Edited' };
+            label.textContent = (names[deletedSortCriteria] || 'Sort') + (deletedSortDirections[deletedSortCriteria] === 'desc' ? ' ↓' : ' ↑');
+        } else {
+            label.textContent = 'Sort';
+        }
+    }
+}
+
+// Close deleted sort dropdown when clicking outside
+window.addEventListener('mousedown', (e) => {
+    const dropdown = document.getElementById('deletedSortDropdown');
+    if (dropdown && dropdown.classList.contains('open') && !e.target.closest('.deleted-sort-hamburger') && !dropdown.contains(e.target)) {
+        dropdown.classList.remove('open');
+    }
+});
+
+// Purge expired deleted notes on app load
+purgeExpiredDeletedNotes();
 </script>
 </body>
 </html>

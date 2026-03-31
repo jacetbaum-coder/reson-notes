@@ -74,8 +74,12 @@ body {
     /* Updated Padding: 20px top/sides, 150px bottom */
     padding: 20px 20px 150px 20px; 
     min-height: 100vh;
+    min-height: -webkit-fill-available;
     overflow-x: hidden;
     width: 100%;
+}
+html {
+    height: -webkit-fill-available;
 }
 
 header { 
@@ -2740,7 +2744,14 @@ setupAutoListDetection('noteViewerContent', 'viewer-btn-bullet', 'viewer-btn-che
 (function() {
     const noteBox = document.getElementById('noteContent');
     const container = noteBox.closest('.note-container');
-    noteBox.addEventListener('focus', () => container.classList.add('editing'));
+    noteBox.addEventListener('focus', () => {
+        // Prevent iOS from scrolling to the focused element
+        const scrollY = window.scrollY;
+        container.classList.add('editing');
+        // iOS fires scroll at various timings, so hold position briefly
+        const hold = setInterval(() => window.scrollTo(0, scrollY), 16);
+        setTimeout(() => clearInterval(hold), 300);
+    });
     noteBox.addEventListener('blur', () => {
         // Small delay so the commit button click still registers
         setTimeout(() => {
@@ -2749,6 +2760,23 @@ setupAutoListDetection('noteViewerContent', 'viewer-btn-bullet', 'viewer-btn-che
             }
         }, 100);
     });
+})();
+
+// Hide bottom tabs when iOS keyboard is open
+(function() {
+    const tabs = document.getElementById('bottomTabs');
+    if (window.visualViewport) {
+        let initialHeight = window.visualViewport.height;
+        window.visualViewport.addEventListener('resize', () => {
+            // If viewport shrinks significantly, keyboard is open
+            if (window.visualViewport.height < initialHeight * 0.75) {
+                tabs.style.display = 'none';
+            } else {
+                tabs.style.display = 'flex';
+                initialHeight = window.visualViewport.height;
+            }
+        });
+    }
 })();
 
 // --- SEARCH & CALENDAR GLOBAL FUNCTIONS ---

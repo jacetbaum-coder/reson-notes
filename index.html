@@ -490,25 +490,29 @@ textarea {
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) scale(0.92);
-    width: 94%;
-    max-width: 500px;
-    background: var(--bg); 
-    border: 2px solid white;
+    transform: translate(-50%, -50%) scale(0.97);
+    width: 88%;
+    max-width: 480px;
+    background: var(--card);
+    border: none;
     z-index: 6000;
     display: none;
-    padding: 25px;
-    border-radius: 30px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.18);
     opacity: 0;
-    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+    transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1),
                 opacity 0.3s ease,
-                width 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+                width 0.35s cubic-bezier(0.25, 1, 0.5, 1),
+                max-width 0.35s cubic-bezier(0.25, 1, 0.5, 1),
+                border-radius 0.35s cubic-bezier(0.25, 1, 0.5, 1);
 }
 #noteViewer.open {
     transform: translate(-50%, -50%) scale(1);
     opacity: 1;
-    width: 96%;
+    width: calc(100vw - 20px);
+    max-width: 100vw;
+    border-radius: 18px;
 }
 
 #noteViewerContent {
@@ -520,6 +524,7 @@ textarea {
     font-size: 1.5rem;
     font-family: inherit;
     white-space: pre-wrap;
+    color: var(--text);
 }
 #noteViewerClose {
     position: absolute;
@@ -777,6 +782,30 @@ input:checked + .sld:before { transform: translateX(16px); }
     80% { opacity: 1; bottom: 80px; }
     100% { opacity: 0; bottom: 60px; }
 }
+/* Auto-sort toast */
+#autoSortToast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 12px 16px 10px;
+    border-radius: 18px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    z-index: 9998;
+    display: none;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+    min-width: 230px;
+    max-width: 88vw;
+}
+#autoSortToast .ast-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+#autoSortToast .ast-label { color: #999; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 2px; }
+#autoSortToast .ast-cat { color: var(--accent); font-size: 0.95rem; font-weight: 800; }
+#autoSortToast .ast-pills { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
+#autoSortToast .ast-pill { background: #f2f2f2; border: none; border-radius: 20px; padding: 4px 11px; font-size: 0.76rem; font-weight: 700; cursor: pointer; color: #444; }
+#autoSortToast .ast-pill:active { background: var(--accent); color: white; }
+#autoSortToast .ast-dismiss { background: none; border: none; color: #bbb; font-size: 1.1rem; cursor: pointer; padding: 0; line-height: 1; flex-shrink: 0; }
 /* Login Screen Style */
 #loginOverlay { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:9000; display:flex; flex-direction:column; align-items:center; justify-content:center; }
 .login-box { background:white; padding:30px; border-radius:30px; width:80%; max-width:300px; box-shadow:0 10px 30px rgba(0,0,0,0.1); text-align:center; }
@@ -1689,6 +1718,16 @@ input:checked + .sld:before { transform: translateX(16px); }
 
 <body>
 <div id="toast">Changes Saved!</div>
+<div id="autoSortToast">
+    <div class="ast-row">
+        <div>
+            <div class="ast-label">Auto-sorted to</div>
+            <div class="ast-cat" id="autoSortCatLabel"></div>
+        </div>
+        <button class="ast-dismiss" onclick="dismissAutoSortToast()">&#x2715;</button>
+    </div>
+    <div class="ast-pills" id="autoSortPills"></div>
+</div>
 <!-- UPDATED LOGIN/REGISTER OVERLAY -->
 <div id="loginOverlay">
     <div class="login-box">
@@ -1760,6 +1799,10 @@ input:checked + .sld:before { transform: translateX(16px); }
         <button class="main-dots-option" onclick="enterSelectMode()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
             Select
+        </button>
+        <button class="main-dots-option" id="autoSortToggleBtn" onclick="toggleAutoSort()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span class="ast-toggle-label">Auto-Sort: On</span>
         </button>
     </div>
     <button class="sort-hamburger" onclick="toggleSortMenu(event)">
@@ -2001,7 +2044,7 @@ input:checked + .sld:before { transform: translateX(16px); }
     <button id="bubbleSaveBtn" aria-label="Save" style="display:none; position: absolute; top: 18px; right: 18px; width: 44px; height: 44px; border-radius: 50%; background: #fff; color: #2d5a3a; border: 2px solid #2d5a3a; font-size: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.10); z-index: 7000; align-items: center; justify-content: center;" onclick="closeNoteViewer()">✔</button>
 
     <!-- The Text Editor Area -->
-    <div id="noteViewerContent" contenteditable="true" style="width:100%; height:45vh; outline:none; overflow-y:auto; background:#fff; padding: 15px; border-radius: 15px;"></div>
+    <div id="noteViewerContent" contenteditable="true" style="width:100%; height:45vh; outline:none; overflow-y:auto; background:#f7f7f7; padding: 12px; border-radius: 12px;"></div>
 
     <!-- The Single "Save Changes" button moved to the bottom with your favorite look -->
     <button id="viewerSaveBtn" onclick="closeNoteViewer()" style="width:100%; background:var(--accent); color:white; border:none; padding:14px; border-radius:15px; font-weight:900; text-transform:uppercase; margin-top:20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); opacity: 0.3; pointer-events: none; transition: opacity 0.3s;">Save Changes</button>
@@ -2212,12 +2255,15 @@ let db = JSON.parse(localStorage.getItem('reson_db')) || {
     deleted_notes: [],
     custom_categories: [],
     sub_categories: {},
+    keyword_rules: {},
     profile: { username: '', phone: '', pic: '' } 
 };
 if (!db.deleted_notes) db.deleted_notes = [];
 if (!db.sub_categories) db.sub_categories = {};
 if (!db.holidays) db.holidays = [];
 if (!db.events) db.events = [];
+if (!db.keyword_rules) db.keyword_rules = {};
+if (db.profile && db.profile.autoSortEnabled === undefined) db.profile.autoSortEnabled = true;
 let authHeader = localStorage.getItem('reson_auth'); 
 let selectedDate = new Date();
 let currentCategory = null;
@@ -2772,9 +2818,11 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById('loginOverlay').style.display = 'none';
         loadProfileUI();
         cleanupData();
+        bootstrapTeacherMode();
         renderFilters();
         setupCalendar();
         renderDeck();
+        updateAutoSortToggleUI();
         syncWithCloud();
     } else {
         document.getElementById('loginOverlay').style.display = 'flex';
@@ -2869,11 +2917,19 @@ async function commitNote() {
         }
     }
 
+    // Keyword auto-sort: only fires when user hasn't explicitly selected a category
+    let autoSortedCat = null;
+    if (!currentCategory && cat === 'general' && db.profile.autoSortEnabled !== false) {
+        const detectedCat = detectCategoryByKeywords(plainNoteText);
+        if (detectedCat) { cat = detectedCat; autoSortedCat = detectedCat; }
+    }
+
     const mirrorId = (document.getElementById('mirrorToggle').checked && rangeEnd) ? "m_" + Date.now() : null;
 
     let start = rangeStart || selectedDate;
     let end = rangeEnd || start;
     let cur = new Date(start);
+    let autoSortNoteId = null;
 
     while (cur <= end) {
         const dateKey = formatDateKey(cur);
@@ -2882,8 +2938,11 @@ async function commitNote() {
             existing.content += "<br>" + text;
             existing.lastEdited = Date.now();
             if (mirrorId) existing.mirrorId = mirrorId;
+            if (autoSortedCat && autoSortNoteId === null) autoSortNoteId = existing.id;
         } else {
-            db.notes_list.unshift({ id: Date.now() + Math.random(), date: dateKey, tags: [cat], content: text, checkedIndices: [], mirrorId: mirrorId, createdAt: Date.now(), lastEdited: Date.now(), lastViewed: null });
+            const newNote = { id: Date.now() + Math.random(), date: dateKey, tags: [cat], content: text, checkedIndices: [], mirrorId: mirrorId, createdAt: Date.now(), lastEdited: Date.now(), lastViewed: null };
+            if (autoSortedCat && autoSortNoteId === null) autoSortNoteId = newNote.id;
+            db.notes_list.unshift(newNote);
         }
         cur.setDate(cur.getDate() + 1);
     }
@@ -2911,6 +2970,7 @@ async function commitNote() {
     rangeMode = false;
     updateHeaderRangeIndicator();
     renderDeck();
+    if (autoSortedCat && autoSortNoteId !== null) showAutoSortToast(autoSortNoteId, autoSortedCat);
 }
 
 let isViewAllMode = false; // Track if we are looking at "all notes" or just 4
@@ -3144,6 +3204,7 @@ function toggleMainDotsMenu(e) {
     const dropdown = document.getElementById('mainDotsDropdown');
     document.getElementById('sortDropdown').classList.remove('open');
     dropdown.classList.toggle('open');
+    if (dropdown.classList.contains('open')) updateAutoSortToggleUI();
 }
 
 function renderCatMgmtList() {}
@@ -3795,10 +3856,12 @@ if (data && (data.notes_list || data.profile)) {
         sub_categories: data.sub_categories || db.sub_categories || {},
         holidays: data.holidays || db.holidays || [],
         events: data.events || db.events || [],
+        keyword_rules: data.keyword_rules || db.keyword_rules || {},
         profile: data.profile || db.profile
     };
     if (!db.deleted_notes) db.deleted_notes = [];
     if (!db.sub_categories) db.sub_categories = {};
+    if (!db.keyword_rules) db.keyword_rules = {};
     
     localStorage.setItem('reson_db', JSON.stringify(db));
             
@@ -4668,6 +4731,15 @@ function renderSubCategoryView(container) {
     });
     html += `<button class="ecp-subcat-add" onclick="addSubCategory('${catId}')">+ Add</button>`;
     html += '</div>';
+    // Keyword triggers editor
+    const kwRules = (db.keyword_rules && db.keyword_rules[catId]) || [];
+    const escapedCatId = catId.replace(/'/g, "\\'");
+    html += `<div style="margin-top:20px;">
+        <div style="color:rgba(255,255,255,0.8); font-size:0.8rem; font-weight:700; text-transform:uppercase; margin-bottom:8px;">Keyword Triggers</div>
+        <p style="color:rgba(255,255,255,0.6); font-size:0.75rem; margin:0 0 10px 0; line-height:1.4;">Comma-separated words — notes matching these auto-sort here.</p>
+        <textarea id="kwInput_${catId}" style="width:100%; min-height:70px; padding:10px; border-radius:12px; border:none; font-size:0.82rem; resize:vertical; box-sizing:border-box; outline:none; color:#333;">${kwRules.join(', ')}</textarea>
+        <button onclick="saveKeywordsForCategory('${escapedCatId}')" style="margin-top:8px; width:100%; padding:10px; background:white; color:var(--accent); border:none; border-radius:12px; font-weight:700; cursor:pointer; font-size:0.85rem;">Save Keywords</button>
+    </div>`;
     container.innerHTML = html;
 }
 
@@ -5210,6 +5282,105 @@ function deleteEvent(id) {
     db.events = (db.events || []).filter(e => e.id !== id);
     save(); renderDeck(); setupCalendar();
     showToast('Event removed');
+}
+
+// --- AUTO-SORT BY KEYWORDS ---
+
+function bootstrapTeacherMode() {
+    if (!db.keyword_rules) db.keyword_rules = {};
+    if (!db.custom_categories) db.custom_categories = [];
+    const defaultRules = {
+        'students':  ['student','kid','class','grade','progress','child','report','assessment','reading level','behavior log','iep','conference'],
+        'behavior':  ['behavior','behaviour','misbehaved','incident','disrupted','office','warning','call home','acting out','fight','push','hit','yelling','disruptive','consequence','redirect'],
+        'supplies':  ['buy','order','need','copies','supplies','paper','markers','glue','staples','pencil','printer','laminate','construction paper','crayons','scissors','tape','dry erase'],
+        'ideas':     ['idea','try','next year','maybe','what if','could try','brainstorm','new lesson','activity','project','fun','game','center','station'],
+        'todo':      ['remind','deadline','due','submit',"don't forget",'tomorrow','follow up','return','send','email','by friday','by monday','by wednesday']
+    };
+    ['students','behavior','supplies','ideas'].forEach(function(id) {
+        if (!db.custom_categories.includes(id)) db.custom_categories.push(id);
+    });
+    Object.entries(defaultRules).forEach(function([id, kws]) {
+        if (!db.keyword_rules[id] || db.keyword_rules[id].length === 0) db.keyword_rules[id] = kws;
+    });
+    if (db.profile && db.profile.autoSortEnabled === undefined) db.profile.autoSortEnabled = true;
+    save();
+}
+
+function detectCategoryByKeywords(plainText) {
+    if (!db.keyword_rules || Object.keys(db.keyword_rules).length === 0) return null;
+    const lowerText = ' ' + plainText.toLowerCase() + ' ';
+    const scores = {};
+    Object.entries(db.keyword_rules).forEach(function([catId, keywords]) {
+        let score = 0;
+        (keywords || []).forEach(function(kw) {
+            const k = kw.toLowerCase().trim();
+            if (k && lowerText.includes(k)) score++;
+        });
+        if (score > 0) scores[catId] = score;
+    });
+    const winners = Object.entries(scores).sort(function(a, b) { return b[1] - a[1]; });
+    if (winners.length === 0) return null;
+    return winners[0][0];
+}
+
+let autoSortToastTimer = null;
+
+function showAutoSortToast(noteId, catId) {
+    const allCats = getAllCategories();
+    const catEntry = allCats.find(function(c) { return c.id === catId; });
+    const catLabel = catEntry ? catEntry.label : (catId.charAt(0).toUpperCase() + catId.slice(1));
+    const labelEl = document.getElementById('autoSortCatLabel');
+    const pillsEl = document.getElementById('autoSortPills');
+    const toast = document.getElementById('autoSortToast');
+    if (!labelEl || !pillsEl || !toast) return;
+    labelEl.textContent = catLabel;
+    const others = allCats.filter(function(c) { return c.id !== null && c.id !== catId; }).slice(0, 5);
+    pillsEl.innerHTML = others.map(function(c) {
+        return '<button class="ast-pill" onclick="astMoveTo(' + noteId + ', \'' + c.id + '\')">' + c.label + '</button>';
+    }).join('');
+    toast.style.display = 'block';
+    if (autoSortToastTimer) clearTimeout(autoSortToastTimer);
+    autoSortToastTimer = setTimeout(dismissAutoSortToast, 5000);
+}
+
+function astMoveTo(noteId, newCatId) {
+    dismissAutoSortToast();
+    moveNote(noteId, newCatId);
+}
+
+function dismissAutoSortToast() {
+    const toast = document.getElementById('autoSortToast');
+    if (toast) toast.style.display = 'none';
+    if (autoSortToastTimer) { clearTimeout(autoSortToastTimer); autoSortToastTimer = null; }
+}
+
+function toggleAutoSort() {
+    if (!db.profile) db.profile = {};
+    db.profile.autoSortEnabled = db.profile.autoSortEnabled === false ? true : false;
+    save();
+    updateAutoSortToggleUI();
+    document.getElementById('mainDotsDropdown').classList.remove('open');
+    showToast('Auto-sort ' + (db.profile.autoSortEnabled !== false ? 'on' : 'off'));
+}
+
+function updateAutoSortToggleUI() {
+    const btn = document.getElementById('autoSortToggleBtn');
+    if (!btn) return;
+    const on = !db.profile || db.profile.autoSortEnabled !== false;
+    const span = btn.querySelector('.ast-toggle-label');
+    if (span) span.textContent = 'Auto-Sort: ' + (on ? 'On' : 'Off');
+    btn.style.opacity = on ? '1' : '0.55';
+}
+
+function saveKeywordsForCategory(catId) {
+    const input = document.getElementById('kwInput_' + catId);
+    if (!input) return;
+    const raw = input.value.trim();
+    const keywords = raw.split(',').map(function(s) { return s.trim().toLowerCase(); }).filter(Boolean);
+    if (!db.keyword_rules) db.keyword_rules = {};
+    db.keyword_rules[catId] = keywords;
+    save();
+    showToast('Keywords saved');
 }
 </script>
 </body>

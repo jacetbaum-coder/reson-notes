@@ -49,6 +49,14 @@
     text-align: left;
     padding: 5px;
     white-space: pre-wrap;
+    word-break: break-word;
+    -webkit-overflow-scrolling: touch;
+    /* Prevents accidental horizontal scroll */
+    overscroll-behavior-y: contain;
+    max-height: 50vh;
+    min-height: 80px;
+    /* Smooth scroll for iOS */
+    scroll-behavior: smooth;
 }
 
 /* This makes the placeholder text show up when the box is empty */
@@ -807,6 +815,8 @@ input:checked + .sld:before { transform: translateX(16px); }
             <button class="note-menu-btn" style="position:static; color: #000; font-size: 1.4rem; opacity: 1;" onclick="openMenu(event, activeNote.id)">⋮</button>
         </div>
     </div>
+    <!-- Floating checkmark for iOS/iPhone inside the white bubble -->
+    <button id="bubbleSaveBtn" aria-label="Save" style="display:none; position: absolute; top: 18px; right: 18px; width: 44px; height: 44px; border-radius: 50%; background: #fff; color: #2d5a3a; border: 2px solid #2d5a3a; font-size: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.10); z-index: 7000; align-items: center; justify-content: center;" onclick="closeNoteViewer()">✔</button>
 
     <!-- The Text Editor Area -->
     <div id="noteViewerContent" contenteditable="true" style="width:100%; height:45vh; outline:none; font-size:1.1rem; overflow-y:auto; background:#fff; padding: 15px; border-radius: 15px;"></div>
@@ -914,6 +924,17 @@ document.addEventListener('touchstart', function (event) {
 
 document.addEventListener('gesturestart', function (event) {
     event.preventDefault(); // Blocks zoom gestures on iOS
+});
+
+// Show the floating checkmark in the note viewer bubble on iOS only
+document.addEventListener('DOMContentLoaded', function() {
+    function isIOS() {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    }
+    var bubbleBtn = document.getElementById('bubbleSaveBtn');
+    if (bubbleBtn && isIOS()) {
+        bubbleBtn.style.display = 'flex';
+    }
 });
 // --- CORE DATA CONFIG ---
 
@@ -1928,12 +1949,19 @@ function execStyle(cmd, type, editorId = 'noteContent', btnId = 'btn-' + type) {
     editor.focus();
     document.execCommand(cmd, false, null);
     const btn = document.getElementById(btnId);
-    if (btn) btn.classList.toggle('active', document.queryCommandState(cmd));
+    // Use queryCommandState to set active reliably
+    if (btn) {
+        setTimeout(() => {
+            btn.classList.toggle('active', document.queryCommandState(cmd));
+        }, 0);
+    }
 }
 
 function toggleListMode(prefix, editorId = 'noteContent', bulletBtnId = 'btn-bullet', checkBtnId = 'btn-check') {
     const btnId = prefix === '• ' ? bulletBtnId : checkBtnId;
     const btn = document.getElementById(btnId);
+    const editor = document.getElementById(editorId);
+    // Toggle button active state and listMode
     if (listMode === prefix) {
         listMode = null;
         btn.classList.remove('active');
@@ -1942,19 +1970,36 @@ function toggleListMode(prefix, editorId = 'noteContent', bulletBtnId = 'btn-bul
         document.getElementById(checkBtnId).classList.remove('active');
         listMode = prefix;
         btn.classList.add('active');
-        const editor = document.getElementById(editorId);
-        if (editor.innerText.trim() === "") {
-            editor.innerHTML = prefix;
-            // Move cursor to end
-            const range = document.createRange();
-            const sel = window.getSelection();
-            range.selectNodeContents(editor);
-            range.collapse(false);
-            sel.removeAllRanges();
-            sel.addRange(range);
+    }
+    // Insert prefix at cursor if not present at start of line
+    editor.focus();
+    const sel = window.getSelection();
+    if (sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        // Find the current line/container
+        let node = range.startContainer;
+        // If text node, get parent div/span
+        if (node.nodeType === 3) node = node.parentNode;
+        // If at root, wrap in span for manipulation
+        if (node === editor) {
+            // Insert prefix at caret
+            document.execCommand('insertText', false, prefix);
+        } else {
+            // Check if line already starts with prefix
+            let lineText = node.textContent;
+            if (!lineText.startsWith(prefix)) {
+                // Insert prefix at start of line
+                node.textContent = prefix + lineText;
+                // Move cursor to end of prefix
+                const newRange = document.createRange();
+                newRange.setStart(node.firstChild, prefix.length);
+                newRange.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(newRange);
+            }
         }
     }
-    document.getElementById(editorId).focus();
+    editor.focus();
 }
 
 // Resets formatting buttons for a given editor and toolbar
@@ -2094,6 +2139,10 @@ document.getElementById('noteContent').addEventListener('keydown', function(e) {
                 // Otherwise, add a new line with the bullet/checkbox
                 document.execCommand('insertHTML', false, '<br>' + listMode);
             }
+        } else {
+            // Not in list mode: treat Enter as save (commitNote)
+            e.preventDefault();
+            commitNote();
         }
     }
     // Auto-update button highlights based on cursor position

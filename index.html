@@ -1919,6 +1919,7 @@ input:checked + .sld:before { transform: translateX(16px); }
         <button id="btn-bold" class="format-btn" onclick="execStyle('bold', 'bold')">B</button>
         <button id="btn-italic" class="format-btn" onclick="execStyle('italic', 'italic')">I</button>
         <button id="btn-under" class="format-btn" onclick="execStyle('underline', 'under')">U</button>
+        <button id="btn-indefinite" class="format-btn" title="Indefinitely (shows on all days)" onclick="toggleIndefiniteCompose()" style="font-size:1.1rem;">∞</button>
     </div>
     <div id="noteContent" contenteditable="true" data-placeholder="Type your notes..."></div>
     <button class="add-note" onclick="commitNote()">✔</button>
@@ -2137,6 +2138,7 @@ input:checked + .sld:before { transform: translateX(16px); }
             <button id="viewer-btn-under" class="format-btn" onclick="execStyle('underline', 'under', 'noteViewerContent', 'viewer-btn-under')">U</button>
         </div>
         <div style="display:flex; gap:15px; align-items:center;">
+            <span id="viewerIndefiniteBadge" style="display:none; font-size:0.8rem; font-weight:800; color:#2d5a3a; opacity:0.7;" title="Indefinitely (shows on all days)">∞</span>
             <button id="viewerPinBtn" title="Pin note" onclick="togglePinFromViewer()" style="background:none; border:none; cursor:pointer; padding:4px; display:flex; align-items:center;"><svg id="viewerPinSvg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-2l-3-3V7h1V3H7v4h1v5l-3 3v2z"/></svg></button>
             <button class="note-menu-btn" style="position:static; color: #000; font-size: 1.4rem; opacity: 1;" onclick="openMenu(event, activeNote.id)">⋮</button>
         </div>
@@ -2370,6 +2372,7 @@ let selectedDate = new Date();
 let currentCategory = null;
 let isRegistering = false;
 let activeNote = null;
+let composeIndefinite = false; // Tracks if new note should be indefinite
 
 const DEFAULT_APP_BG = '#f4f8f5';
 const PALE_BG_COLORS = [
@@ -2895,7 +2898,7 @@ function loadProfileUI() {
 function computeStreak() {
     const today = new Date();
     const todayKey = formatDateKey(today);
-    const hasToday = db.notes_list.some(n => n.date === todayKey);
+    const hasToday = db.notes_list.some(n => n.date === todayKey && !n.indefinite);
     // Grace period: if nothing written today yet, keep streak alive from yesterday
     const offset = hasToday ? 0 : 1;
     let streak = 0;
@@ -2903,7 +2906,7 @@ function computeStreak() {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
         const key = formatDateKey(d);
-        if (db.notes_list.some(n => n.date === key)) {
+        if (db.notes_list.some(n => n.date === key && !n.indefinite)) {
             streak++;
         } else {
             break;
@@ -3166,6 +3169,7 @@ async function commitNote() {
             if (autoSortedCat && autoSortNoteId === null) autoSortNoteId = existing.id;
         } else {
             const newNote = { id: Date.now() + Math.random(), date: dateKey, tags: [cat], content: text, checkedIndices: [], mirrorId: mirrorId, createdAt: Date.now(), lastEdited: Date.now(), lastViewed: null };
+            if (composeIndefinite) newNote.indefinite = true;
             if (autoSortedCat && autoSortNoteId === null) autoSortNoteId = newNote.id;
             db.notes_list.unshift(newNote);
         }
@@ -3193,6 +3197,9 @@ async function commitNote() {
     document.getElementById('noteContent').closest('.note-container').classList.remove('editing');
     rangeStart = null; rangeEnd = null;
     rangeMode = false;
+    composeIndefinite = false;
+    const iBtn = document.getElementById('btn-indefinite');
+    if (iBtn) iBtn.classList.remove('active');
     updateHeaderRangeIndicator();
     renderDeck();
     if (autoSortedCat && autoSortNoteId !== null) showAutoSortToast(autoSortNoteId, autoSortedCat);
@@ -3216,7 +3223,7 @@ function renderDeck() {
     }
 
     const filtered = db.notes_list.filter(n => {
-        const dMatch = n.date === key;
+        const dMatch = n.date === key || n.indefinite === true;
         const cMatch = matchesCategory(n, currentCategory);
         return dMatch && cMatch;
     });
@@ -3273,6 +3280,9 @@ function renderDeck() {
         }
         if (note.pinned) {
             html += `<svg width="14" height="14" viewBox="0 0 24 24" fill="#2d5a3a" stroke="#2d5a3a" stroke-width="2" style="position:absolute; top:10px; right:28px; opacity:0.7;"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-2l-3-3V7h1V3H7v4h1v5l-3 3v2z"/></svg>`;
+        }
+        if (note.indefinite) {
+            html += `<span style="position:absolute; top:8px; right:${note.pinned ? '46px' : '28px'}; font-size:0.75rem; color:#2d5a3a; opacity:0.6; font-weight:700;">∞</span>`;
         }
         html += `<span class="saved-note-title">${displayTag}</span><div class="card-checklist">`;
         lines.forEach((l, i) => {
@@ -3573,6 +3583,8 @@ if (!editor.dataset.blurBound) {
     viewer.classList.add('open');
     // Set pin icon to match current state
     updatePinIcon(note);
+    // Set indefinite indicator
+    updateIndefiniteIndicator(note);
     // This detects when you start typing and "activates" the bottom button
     editor.oninput = () => {
         saveBtn.style.opacity = "1";
@@ -3602,6 +3614,10 @@ if (!editor.dataset.blurBound) {
             if(uBtn) uBtn.classList.toggle('active', document.queryCommandState('underline'));
         }, 10);
     };
+}
+function updateIndefiniteIndicator(note) {
+    const badge = document.getElementById('viewerIndefiniteBadge');
+    if (badge) badge.style.display = note && note.indefinite ? 'inline' : 'none';
 }
 function updatePinIcon(note) {
     const svg = document.getElementById('viewerPinSvg');
@@ -3822,7 +3838,7 @@ function renderHeatmap() {
     for (let i = 1; i <= daysInMonth; i++) {
         const d = new Date(year, month, i);
         const k = formatDateKey(d);
-        const noteCount = db.notes_list.filter(n => n.date === k).length;
+        const noteCount = db.notes_list.filter(n => n.date === k && !n.indefinite).length;
         const hDot = dateHasHoliday(k);
         const eDot = dateHasEvent(k);
         const eventCount = (hDot ? 1 : 0) + ((db.events || []).filter(ev => ev.date === k).length);
@@ -3905,11 +3921,32 @@ function openMenu(e, id) {
     const allCats = [...baseCats, ...(db.custom_categories || [])];
     let catOptions = allCats.map(c => `<div onclick="moveNote(${id}, '${c}')" style="padding:12px 10px; font-size:1rem; cursor:pointer; border-bottom:1px solid #f0f0f0;">→ Move to ${c}</div>`).join('');
 
+    const note = db.notes_list.find(n => n.id === id);
+    const isIndef = note && note.indefinite;
+
     menu.innerHTML = `
         <div style="font-weight:800; font-size:0.8rem; color:#aaa; padding:8px 10px 4px; text-transform:uppercase;">Options</div>
         ${catOptions}
+        <div onclick="toggleIndefinite(${id})" style="padding:12px 10px; font-size:1rem; cursor:pointer; border-top:1px solid #eee; ${isIndef ? 'color:#2d5a3a; font-weight:700;' : ''}">${isIndef ? '∞ Remove Indefinitely' : '∞ Make Indefinitely'}</div>
         <button onclick="deleteNote(${id})" style="color:red; width:100%; padding:12px 10px; background:none; border:none; text-align:left; cursor:pointer; font-weight:bold; font-size:1rem; border-top:1px solid #eee;">Delete Note</button>
     `;
+}
+
+function toggleIndefinite(id) {
+    const note = db.notes_list.find(n => n.id === id);
+    if (!note) return;
+    note.indefinite = !note.indefinite;
+    save();
+    renderDeck();
+    document.getElementById('noteMenu').style.display = 'none';
+    updateIndefiniteIndicator(note);
+    showToast(note.indefinite ? 'Note set to Indefinitely' : 'Indefinitely removed');
+}
+
+function toggleIndefiniteCompose() {
+    composeIndefinite = !composeIndefinite;
+    const btn = document.getElementById('btn-indefinite');
+    if (btn) btn.classList.toggle('active', composeIndefinite);
 }
 
 function moveNote(id, newCat) {
@@ -5070,7 +5107,7 @@ function toggleNoteSelection(id) {
 function toggleSelectAll() {
     const key = formatDateKey(selectedDate);
     const filtered = db.notes_list.filter(n => {
-        const dMatch = n.date === key;
+        const dMatch = n.date === key || n.indefinite === true;
         const cMatch = matchesCategory(n, currentCategory);
         return dMatch && cMatch;
     });

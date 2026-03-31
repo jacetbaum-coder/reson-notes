@@ -489,7 +489,7 @@ textarea {
     -webkit-backdrop-filter: blur(12px); 
 }
 
-.note-menu-btn { position: absolute; top: 8px; right: 8px; background: none; border: none; color: #ccc; cursor: pointer; font-size: 1.1rem; }
+.note-menu-btn { position: absolute; top: 8px; right: 8px; background: none; border: none; color: #000; cursor: pointer; font-size: 1.1rem; z-index: 10; padding: 4px 8px; }
 
 #bottomTabs { 
     position: fixed; 
@@ -536,6 +536,59 @@ textarea {
     z-index: 6000; 
     padding: 8px; 
     min-width: 120px; 
+}
+
+#catMgmtDropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 5px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+    z-index: 3000;
+    min-width: 220px;
+    padding: 6px 0;
+    margin-top: 4px;
+    overflow: hidden;
+}
+#catMgmtDropdown.open { display: block; }
+.cat-mgmt-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+}
+.cat-mgmt-item:last-child { border-bottom: none; }
+.cat-mgmt-item .cat-mgmt-name { flex: 1; }
+.cat-mgmt-actions { display: flex; gap: 4px; }
+.cat-mgmt-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+}
+.cat-mgmt-actions button svg {
+    width: 16px;
+    height: 16px;
+}
+.cat-mgmt-actions button:hover { background: #f3f3f3; }
+.cat-mgmt-actions button.cat-delete-btn { color: #cc3333; }
+.cat-mgmt-actions button.cat-delete-btn:hover { background: #fff0f0; }
+.cat-mgmt-empty {
+    padding: 14px;
+    font-size: 0.8rem;
+    color: #aaa;
+    text-align: center;
+    font-weight: 600;
 }
 
 #catInput {
@@ -625,7 +678,6 @@ input:checked + .sld:before { transform: translateX(16px); }
 .login-box input { width:100%; padding:12px; margin:10px 0; border-radius:10px; border:1px solid #ddd; box-sizing:border-box; font-size: 16px; outline: none; }
 .login-box button { width:100%; padding:12px; background:var(--accent); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; margin-top: 10px; }
     /* Range Selection Styles */
-#rangeBtn.active { background: var(--accent) !important; color: white !important; }
 .circle-day.range-start { background: #000 !important; color: white !important; border-radius: 50% 0 0 50% !important; }
 .circle-day.range-end { background: #000 !important; color: white !important; border-radius: 0 50% 50% 0 !important; }
 .circle-day.range-mid { background: #e8f5e9 !important; border-radius: 0 !important; color: #000 !important; }
@@ -748,11 +800,12 @@ input:checked + .sld:before { transform: translateX(16px); }
   
   <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
       <span id="yearDisplay" style="font-size: 0.9rem; font-weight: 700; color: rgba(255,255,255,0.8);">2026</span>
-      <button class="cal-icon" onclick="toggleModal()">🗓️</button>
+      <button class="cal-icon" onclick="toggleModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>
   </div>
 
   <!-- The "Today" button moves below the date -->
   <button id="todayBtn" onclick="jumpToToday()" style="margin-top:12px; background:rgba(255,255,255,0.2); border:1.5px solid white; color:white; padding:6px 16px; border-radius:20px; font-size:0.75rem; font-weight:900; text-transform:uppercase;">Today</button>
+  <div id="headerRangeIndicator" style="display:none; margin-top:8px; background:white; color:var(--accent); padding:4px 14px; border-radius:20px; font-size:0.7rem; font-weight:900; text-transform:uppercase; cursor:pointer;" onclick="toggleModal()">Range Active</div>
 </header>
 
 <div class="calendar-strip" id="strip"></div>
@@ -761,6 +814,10 @@ input:checked + .sld:before { transform: translateX(16px); }
 
 <!-- Sort Dropdown Menu -->
 <div class="sort-menu-container" id="sortMenuContainer">
+    <button class="sort-hamburger" onclick="toggleCatMgmt(event)" title="Manage Categories" style="padding:6px 10px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+    </button>
+    <div id="catMgmtDropdown"></div>
     <button class="sort-hamburger" onclick="toggleSortMenu(event)">
         <div class="hamburger-lines"><span></span><span></span><span></span></div>
         <span id="sortLabel">Sort</span>
@@ -796,7 +853,6 @@ input:checked + .sld:before { transform: translateX(16px); }
     <button id="btn-italic" class="format-btn" onclick="execStyle('italic', 'italic')">I</button>
     <button id="btn-under" class="format-btn" onclick="execStyle('underline', 'under')">U</button>
 </div>
-        <button id="rangeBtn" onclick="openRangeModal()" style="border:none;background:#f3f3f3;border-radius:8px;padding:6px 10px;cursor:pointer; font-size: 1.1rem;">🗓️</button>
     </div>
     <div id="noteContent" contenteditable="true" data-placeholder="Type your notes..."></div>
     <button class="add-note" onclick="commitNote()">✔</button>
@@ -924,7 +980,6 @@ input:checked + .sld:before { transform: translateX(16px); }
             <button id="viewer-btn-under" class="format-btn" onclick="execStyle('underline', 'under', 'noteViewerContent', 'viewer-btn-under')">U</button>
         </div>
         <div style="display:flex; gap:15px; align-items:center;">
-            <button id="viewerRangeBtn" onclick="openRangeModal()" style="border:none; background:#e8f5e9; border-radius:8px; padding:6px 10px; cursor:pointer; font-size: 1.1rem; color:var(--accent);">🗓️</button>
             <button id="viewerPinBtn" title="Pin note" onclick="togglePinFromViewer()" style="background:none; border:none; cursor:pointer; padding:4px; display:flex; align-items:center;"><svg id="viewerPinSvg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-2l-3-3V7h1V3H7v4h1v5l-3 3v2z"/></svg></button>
             <button class="note-menu-btn" style="position:static; color: #000; font-size: 1.4rem; opacity: 1;" onclick="openMenu(event, activeNote.id)">⋮</button>
         </div>
@@ -972,7 +1027,24 @@ input:checked + .sld:before { transform: translateX(16px); }
         <div class="modal-grid" id="fullGrid"></div>
     </div>
     
-    <button onclick="closeAllModals()" style="width:100%; margin-top:20px; background:white; color:black; border:none; padding:12px; border-radius:10px; font-weight:800; text-transform:uppercase;">Close</button>
+    <!-- Range Selection Controls -->
+    <div id="rangeControls" style="margin-top:15px;">
+        <button id="rangeToggleBtn" onclick="toggleRangeMode()" style="width:100%; padding:12px; border:2px solid white; background:transparent; color:white; border-radius:12px; font-weight:800; text-transform:uppercase; cursor:pointer; font-size:0.8rem;">Select Date Range</button>
+        <div id="rangeInfoArea" style="display:none; margin-top:12px;">
+            <div id="rangeStatusText" style="font-size:0.8rem; color:rgba(255,255,255,0.9); text-align:center; margin-bottom:10px;">Tap a start date, then an end date</div>
+            <div style="padding:12px; background:rgba(255,255,255,0.2); border-radius:20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-weight:900; font-size:0.75rem; color:white; text-transform:uppercase;">Mirror Updates</div>
+                        <div style="font-size:0.6rem; color:rgba(255,255,255,0.8);">Editing one changes all days</div>
+                    </div>
+                    <label class="sw"><input type="checkbox" id="mirrorToggle" checked><span class="sld"></span></label>
+                </div>
+            </div>
+            <button onclick="clearRange()" style="width:100%; margin-top:10px; padding:10px; border:1.5px solid rgba(255,255,255,0.5); background:transparent; color:white; border-radius:10px; font-weight:700; cursor:pointer; font-size:0.75rem;">Clear Range</button>
+        </div>
+    </div>
+    <button onclick="closeCalModal()" style="width:100%; margin-top:15px; background:white; color:black; border:none; padding:12px; border-radius:10px; font-weight:800; text-transform:uppercase;">Close</button>
 </div>
 
 <!-- Category Creator Modal -->
@@ -982,52 +1054,29 @@ input:checked + .sld:before { transform: translateX(16px); }
     <button onclick="createNewCategory()" style="width:100%; background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; font-weight:bold;">Create</button>
 </div>
 
+<!-- Rename Category Modal -->
+<div id="renameModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:85%; max-width:360px; background:var(--bg); border:2px solid white; border-radius:24px; padding:28px; z-index:7000; color:white; text-align:center;">
+    <h3 style="margin:0 0 16px 0; font-size:1rem; font-weight:800; text-transform:uppercase;">Rename Category</h3>
+    <input type="text" id="renameInput" placeholder="New name..." style="width:100%; padding:12px; border-radius:12px; border:none; font-size:1rem; outline:none; margin-bottom:14px;">
+    <div style="display:flex; gap:10px;">
+        <button onclick="closeRenameModal()" style="flex:1; padding:12px; border-radius:10px; border:2px solid white; background:transparent; color:white; font-weight:bold; cursor:pointer;">Cancel</button>
+        <button onclick="confirmRename()" style="flex:1; padding:12px; border-radius:10px; border:none; background:white; color:var(--accent); font-weight:bold; cursor:pointer;">Rename</button>
+    </div>
+</div>
+
+<!-- Delete Category Confirm Modal -->
+<div id="deleteConfirmModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:85%; max-width:360px; background:var(--bg); border:2px solid white; border-radius:24px; padding:28px; z-index:7000; color:white; text-align:center;">
+    <h3 style="margin:0 0 8px 0; font-size:1rem; font-weight:800; text-transform:uppercase;">Delete Category</h3>
+    <p id="deleteConfirmMsg" style="font-size:0.9rem; margin:0 0 18px 0; line-height:1.4;"></p>
+    <div style="display:flex; gap:10px;">
+        <button onclick="closeDeleteConfirmModal()" style="flex:1; padding:12px; border-radius:10px; border:2px solid white; background:transparent; color:white; font-weight:bold; cursor:pointer;">Cancel</button>
+        <button onclick="confirmDelete()" style="flex:1; padding:12px; border-radius:10px; border:none; background:#ff4444; color:white; font-weight:bold; cursor:pointer;">Delete</button>
+    </div>
+</div>
+
 <!-- Context Menu for Deleting -->
 <div id="noteMenu"></div>
-<!-- Range Selection Modal -->
-<div id="rangeModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:400px; background: var(--bg); border: 2px solid white; border-radius:30px; padding:25px; z-index:7000; box-shadow:0 20px 60px rgba(0,0,0,0.4); color: white;">
-    
-    <!-- Search Icon - Moved up to top:12px -->
-    <div id="rangeSearchIcon" style="position:absolute; top:12px; right:55px; cursor:pointer; z-index: 10;" onclick="toggleRangeSearch()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-    </div>
 
-    <!-- Close Button - Moved up to top:10px -->
-    <button onclick="closeRangeModal()" style="position:absolute; top:10px; right:15px; background:none; border:none; font-size:1.5rem; cursor:pointer; color:white; font-weight:bold; z-index: 10;">✕</button>
-
-    <!-- Search Bar - Adjusted margin -->
-    <div id="rangeSearchBar" style="display:none; margin-bottom:15px; margin-top: -5px;">
-        <input type="text" id="rangeDateSearchInput" placeholder="Search date..." oninput="execRangeDateSearch()" style="width:100%; padding:10px; border-radius:10px; border:none; outline:none; font-size:0.9rem;">
-        <div id="rangeSearchResults" style="max-height:150px; overflow-y:auto; margin-top:10px; background:rgba(255,255,255,0.1); border-radius:10px;"></div>
-    </div>
-
-    <div id="rangeMainUI">
-        <div class="month-nav" style="margin-top:10px;">
-            <div class="nav-arrow" onclick="changeRangeMonth(-1)">&lt;</div>
-            <div id="rangeMonthTitle">
-                <span id="rangeMText">MONTH</span>
-                <span id="rangeYText" class="year-pill" onclick="selectYear('range')" style="cursor:pointer;">2026</span>
-            </div>
-            <div class="nav-arrow" onclick="changeRangeMonth(1)">&gt;</div>
-        </div>
-        <div class="day-headers">
-            <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
-        </div>
-        <div class="modal-grid" id="rangeGrid" style="height: 315px;"></div>
-    </div>
-
-    <div style="margin-top:15px; padding:12px; background:rgba(255,255,255,0.2); border-radius:20px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div>
-                <div style="font-weight:900; font-size:0.75rem; color:white; text-transform:uppercase;">Mirror Updates</div>
-                <div style="font-size:0.6rem; color:rgba(255,255,255,0.8);">Editing one changes all days</div>
-            </div>
-            <label class="sw"><input type="checkbox" id="mirrorToggle" checked><span class="sld"></span></label>
-        </div>
-    </div>
-    
-    <button onclick="applyRange()" style="width:100%; margin-top:15px; background:white; color:black; border:none; padding:14px; border-radius:12px; font-weight:900; text-transform:uppercase; cursor:pointer;">Done</button>
-</div>
 <script>
 // Add this at the very top of your <script> section
 document.addEventListener('touchstart', function (event) {
@@ -1104,22 +1153,6 @@ function showToast(message) {
 // Persistent browsing state for the modal
 // This variable tracks which month the user is currently looking at in the popup
 let modalViewDate = new Date(); 
-
-function toggleModal() {
-    const m = document.getElementById('calModal');
-    const o = document.getElementById('overlay');
-    const isOpening = m.style.display !== 'block';
-    
-    if (isOpening) {
-        // Reset the browsing view to the currently selected date when opening
-        modalViewDate = new Date(selectedDate);
-        renderHeatmap();
-        m.style.display = 'block';
-        o.style.display = 'block';
-    } else {
-        closeAllModals();
-    }
-}
 
 // THIS FUNCTION MAKES THE ARROWS WORK
 function changeModalMonth(offset) {
@@ -1412,7 +1445,8 @@ function save() {
 }
 
 function getGroupable() {
-    const base = ['todo', 'work', 'groceries', 'errands'];
+    const hidden = db.hidden_base_categories || [];
+    const base = ['todo', 'work', 'groceries', 'errands'].filter(c => !hidden.includes(c));
     return [...base, ...(db.custom_categories || [])];
 }
 
@@ -1464,8 +1498,8 @@ async function commitNote() {
     save();
     document.getElementById('noteContent').innerHTML = '';
     rangeStart = null; rangeEnd = null;
-    document.getElementById('rangeBtn').innerHTML = "🗓️";
-    document.getElementById('rangeBtn').classList.remove('active');
+    rangeMode = false;
+    updateHeaderRangeIndicator();
     renderDeck();
 }
 
@@ -1529,7 +1563,7 @@ function renderDeck() {
         // This splits the HTML content into separate lines correctly
         let lines = note.content.split(/<br>|<div>|<\/div>|\n/gi);
         lines = lines.map(l => l.replace(/<[^>]*>/g, '').trim()).filter(l => l !== "");
-        let html = `<button class="note-menu-btn" onclick="event.stopPropagation(); openMenu(event, ${note.id})">⋮</button>`;
+        let html = `<button class="note-menu-btn" data-note-menu-id="${note.id}">⋮</button>`;
         if (note.pinned) {
             html += `<svg width="14" height="14" viewBox="0 0 24 24" fill="#2d5a3a" stroke="#2d5a3a" stroke-width="2" style="position:absolute; top:10px; right:28px; opacity:0.7;"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-2l-3-3V7h1V3H7v4h1v5l-3 3v2z"/></svg>`;
         }
@@ -1540,13 +1574,29 @@ function renderDeck() {
             const done = note.checkedIndices && note.checkedIndices.includes(i);
             html += `<div class="checklist-item">`;
             if (hasCheckbox) {
-                html += `<div><input type="checkbox" ${done ? 'checked' : ''} style="margin-top:2px; display:block;" onclick="event.stopPropagation(); toggleLine(${note.id}, ${i})"></div>`;
+                html += `<div><input type="checkbox" ${done ? 'checked' : ''} style="margin-top:2px; display:block;" data-toggle-note="${note.id}" data-toggle-idx="${i}"></div>`;
             }
             html += `<div class="checklist-text ${done ? 'done' : ''}" style="display:block;">${cleanText}</div>`;
             html += `</div>`;
         });
         html += `</div>`;
         card.innerHTML = html;
+        // Menu button handler (uses data attribute to avoid float precision issues)
+        const menuBtn = card.querySelector('.note-menu-btn');
+        if (menuBtn) {
+            menuBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                openMenu(e, note.id);
+            });
+        }
+        // Checkbox handlers
+        card.querySelectorAll('[data-toggle-note]').forEach(cb => {
+            cb.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleLine(note.id, parseInt(this.dataset.toggleIdx));
+            });
+        });
         card.onclick = () => openNoteViewer(note);
         deck.appendChild(card);
     });
@@ -1566,18 +1616,23 @@ function switchCategory(catId, btn) {
     renderDeck();
 }
 
+function getAllCategories() {
+    const hidden = db.hidden_base_categories || [];
+    const renames = db.base_category_renames || {};
+    const baseCats = [
+        { id: null, label: 'Home', isBase: true },
+        { id: 'todo', label: renames['todo'] || 'To-do', isBase: true },
+        { id: 'work', label: renames['work'] || 'Work', isBase: true },
+        { id: 'groceries', label: renames['groceries'] || 'Groceries', isBase: true },
+        { id: 'errands', label: renames['errands'] || 'Errands', isBase: true }
+    ].filter(c => c.id === null || !hidden.includes(c.id));
+    const custom = (db.custom_categories || []).map(cat => ({ id: cat.toLowerCase(), label: cat, isBase: false }));
+    return [...baseCats, ...custom];
+}
+
 function renderFilters() {
     const container = document.getElementById('filterContainer');
-    const baseCats = [
-        { id: null, label: 'Home' },
-        { id: 'todo', label: 'To-do' },
-        { id: 'work', label: 'Work' },
-        { id: 'groceries', label: 'Groceries' },
-        { id: 'errands', label: 'Errands' }
-    ];
-    
-    const custom = (db.custom_categories || []).map(cat => ({ id: cat.toLowerCase(), label: cat }));
-    const all = [...baseCats, ...custom];
+    const all = getAllCategories();
     
     container.innerHTML = all.map(cat => `
         <button class="bubble ${currentCategory === cat.id ? 'active' : ''}" 
@@ -1593,8 +1648,7 @@ function openCatModal() {
     document.getElementById('catInput').focus();
 }
 function selectYear(type) {
-    // Determine which viewing date object we are currently manipulating
-    let viewDate = (type === 'modal') ? modalViewDate : rangeViewDate;
+    let viewDate = modalViewDate;
     
     // Ask the user for the year
     let newYear = prompt("Enter Year:", viewDate.getFullYear());
@@ -1604,18 +1658,126 @@ function selectYear(type) {
         let yearInt = parseInt(newYear);
         if (!isNaN(yearInt) && yearInt > 1900 && yearInt < 2200) {
             viewDate.setFullYear(yearInt);
-            
-            // Re-render the correct heatmap based on which modal is open
-            if (type === 'modal') {
-                renderHeatmap();
-            } else {
-                renderRangeHeatmap();
-            }
+            renderHeatmap();
         } else {
             showToast("Please enter a valid year (e.g., 2025)");
         }
     }
 }
+function toggleCatMgmt(e) {
+    e.stopPropagation();
+    const dropdown = document.getElementById('catMgmtDropdown');
+    // Close sort dropdown if open
+    document.getElementById('sortDropdown').classList.remove('open');
+    const isOpen = dropdown.classList.contains('open');
+    dropdown.classList.toggle('open');
+    if (!isOpen) renderCatMgmtList();
+}
+
+function renderCatMgmtList() {
+    const dropdown = document.getElementById('catMgmtDropdown');
+    const all = getAllCategories().filter(c => c.id !== null);
+    if (all.length === 0) {
+        dropdown.innerHTML = '<div class="cat-mgmt-empty">No categories</div>';
+        return;
+    }
+    const renameIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+    const deleteIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>';
+    dropdown.innerHTML = all.map(cat => {
+        const escaped = cat.label.replace(/'/g, "\\'");
+        const typeFlag = cat.isBase ? 'base' : 'custom';
+        return `<div class="cat-mgmt-item">
+            <span class="cat-mgmt-name">${cat.label}</span>
+            <div class="cat-mgmt-actions">
+                <button title="Rename" onclick="event.stopPropagation(); renameCategoryPrompt('${cat.id}', '${escaped}', '${typeFlag}')">${renameIcon}</button>
+                <button class="cat-delete-btn" title="Delete" onclick="event.stopPropagation(); deleteCategoryWithNotes('${cat.id}', '${escaped}', '${typeFlag}')">${deleteIcon}</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+let pendingRename = null;
+let pendingDelete = null;
+
+function renameCategoryPrompt(catId, catLabel, catType) {
+    document.getElementById('catMgmtDropdown').classList.remove('open');
+    pendingRename = { catId, catLabel, catType };
+    document.getElementById('renameInput').value = catLabel;
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('renameModal').style.display = 'block';
+    setTimeout(() => document.getElementById('renameInput').focus(), 100);
+}
+
+function closeRenameModal() {
+    document.getElementById('renameModal').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+    pendingRename = null;
+}
+
+function confirmRename() {
+    if (!pendingRename) return;
+    const trimmed = document.getElementById('renameInput').value.trim();
+    if (!trimmed) return;
+    const { catId, catType } = pendingRename;
+    if (catType === 'base') {
+        if (!db.base_category_renames) db.base_category_renames = {};
+        db.base_category_renames[catId] = trimmed;
+    } else {
+        const idx = (db.custom_categories || []).findIndex(c => c.toLowerCase() === catId);
+        if (idx === -1) { closeRenameModal(); return; }
+        db.custom_categories[idx] = trimmed;
+        db.notes_list.forEach(n => {
+            if (n.tags && n.tags[0] && n.tags[0].toLowerCase() === catId) {
+                n.tags[0] = trimmed.toLowerCase();
+            }
+        });
+        if (currentCategory === catId) currentCategory = trimmed.toLowerCase();
+    }
+    save();
+    renderFilters();
+    renderDeck();
+    closeRenameModal();
+    showToast('Renamed to ' + trimmed);
+}
+
+function deleteCategoryWithNotes(catId, catLabel, catType) {
+    document.getElementById('catMgmtDropdown').classList.remove('open');
+    const notesInCat = db.notes_list.filter(n => n.tags && n.tags[0] && n.tags[0].toLowerCase() === catId);
+    const count = notesInCat.length;
+    pendingDelete = { catId, catLabel, catType, count };
+    const msg = count > 0
+        ? `Delete "<strong>${catLabel}</strong>" and its <strong>${count} note${count > 1 ? 's' : ''}</strong>? This cannot be undone.`
+        : `Delete "<strong>${catLabel}</strong>"? This cannot be undone.`;
+    document.getElementById('deleteConfirmMsg').innerHTML = msg;
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('deleteConfirmModal').style.display = 'block';
+}
+
+function closeDeleteConfirmModal() {
+    document.getElementById('deleteConfirmModal').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+    pendingDelete = null;
+}
+
+function confirmDelete() {
+    if (!pendingDelete) return;
+    const { catId, catLabel, catType, count } = pendingDelete;
+    db.notes_list = db.notes_list.filter(n => !(n.tags && n.tags[0] && n.tags[0].toLowerCase() === catId));
+    if (catType === 'base') {
+        if (!db.hidden_base_categories) db.hidden_base_categories = [];
+        if (!db.hidden_base_categories.includes(catId)) db.hidden_base_categories.push(catId);
+        if (db.base_category_renames) delete db.base_category_renames[catId];
+    } else {
+        db.custom_categories = (db.custom_categories || []).filter(c => c.toLowerCase() !== catId);
+    }
+    if (currentCategory === catId) currentCategory = null;
+    save();
+    renderFilters();
+    renderDeck();
+    closeDeleteConfirmModal();
+    showToast('Deleted ' + catLabel + (count > 0 ? ' and ' + count + ' note' + (count > 1 ? 's' : '') : ''));
+}
+
 function createNewCategory() {
     const input = document.getElementById('catInput');
     const val = input.value.trim();
@@ -1664,14 +1826,6 @@ if (!editor.dataset.blurBound) {
     saveBtn.style.pointerEvents = "none";
     document.getElementById('overlay').style.display = 'block';
     document.getElementById('noteViewer').style.display = 'block';
-    const rangeBtn = document.getElementById('viewerRangeBtn');
-    if(note.mirrorId) {
-        rangeBtn.style.background = 'var(--accent)';
-        rangeBtn.style.color = 'white';
-    } else {
-        rangeBtn.style.background = '#e8f5e9';
-        rangeBtn.style.color = 'var(--accent)';
-    }
     // Set pin icon to match current state
     updatePinIcon(note);
     // This detects when you start typing and "activates" the bottom button
@@ -1748,7 +1902,6 @@ function setupCalendar() {
     strip.innerHTML = '';
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
-    const days = new Date(year, month + 1, 0).getDate();
     
     // 1. Get the date string and split it into "Day, Month Date" and "Year"
     const options = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
@@ -1766,22 +1919,29 @@ function setupCalendar() {
     const isTodaySelected = formatDateKey(new Date()) === formatDateKey(selectedDate);
     document.getElementById('todayBtn').style.display = isTodaySelected ? 'none' : 'block';
 
-    // 4. Create the day cards (this part remains the same)
-    for (let i = 1; i <= days; i++) {
-        const d = new Date(year, month, i);
+    // 4. Create day cards spanning one month before and one month after selectedDate
+    const startDate = new Date(year, month - 1, selectedDate.getDate());
+    const endDate = new Date(year, month + 1, selectedDate.getDate());
+    
+    let selCard = null;
+    const cur = new Date(startDate);
+    while (cur <= endDate) {
+        const d = new Date(cur);
         const isSel = formatDateKey(d) === formatDateKey(selectedDate);
         const card = document.createElement('div');
         card.className = `day-card ${isSel ? 'active' : ''}`;
-        card.innerHTML = `<div style="font-size:0.7rem;">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</div><div style="font-weight:800;font-size:1.2rem;">${i}</div>`;
+        card.innerHTML = `<div style="font-size:0.7rem;">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</div><div style="font-weight:800;font-size:1.2rem;">${d.getDate()}</div>`;
         card.onclick = () => { selectedDate = d; setupCalendar(); renderDeck(); };
         strip.appendChild(card);
-        
-        if (isSel) {
-            setTimeout(() => {
-                const scrollLeft = card.offsetLeft - (strip.offsetWidth / 2) + (card.offsetWidth / 2);
-                strip.scrollTo({ left: scrollLeft, behavior: 'smooth' });
-            }, 10);
-        }
+        if (isSel) selCard = card;
+        cur.setDate(cur.getDate() + 1);
+    }
+    
+    if (selCard) {
+        setTimeout(() => {
+            const scrollLeft = selCard.offsetLeft - (strip.offsetWidth / 2) + (selCard.offsetWidth / 2);
+            strip.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+        }, 10);
     }
 }
 function jumpToToday() {
@@ -1794,7 +1954,25 @@ function toggleModal() {
     const m = document.getElementById('calModal');
     const o = document.getElementById('overlay');
     const open = m.style.display === 'block';
-    if (!open) renderHeatmap();
+    if (!open) {
+        modalViewDate = new Date(selectedDate);
+        // Restore range mode UI state if range is already active
+        const btn = document.getElementById('rangeToggleBtn');
+        const info = document.getElementById('rangeInfoArea');
+        if (rangeStart) {
+            rangeMode = true;
+            if (btn) { btn.style.background = 'white'; btn.style.color = 'black'; btn.innerText = 'EXIT RANGE MODE'; }
+            if (info) info.style.display = 'block';
+            updateRangeStatusText();
+        } else {
+            rangeMode = false;
+            if (btn) { btn.style.background = 'transparent'; btn.style.color = 'white'; btn.innerText = 'SELECT DATE RANGE'; }
+            if (info) info.style.display = 'none';
+        }
+        renderHeatmap();
+    } else {
+        updateHeaderRangeIndicator();
+    }
     m.style.display = open ? 'none' : 'block';
     o.style.display = open ? 'none' : 'block';
 }
@@ -1840,12 +2018,35 @@ function renderHeatmap() {
         else if (count === 1) el.style.backgroundColor = 'var(--heat-1)';
         else if (count >= 2 && count <= 3) el.style.backgroundColor = 'var(--heat-2)';
         else el.style.backgroundColor = 'var(--heat-3)';
+
+        // Range highlighting
+        if (rangeMode) {
+            if (rangeStart && k === formatDateKey(rangeStart)) el.classList.add(rangeEnd ? 'range-start' : 'range-single');
+            else if (rangeEnd && k === formatDateKey(rangeEnd)) el.classList.add('range-end');
+            else if (rangeStart && rangeEnd && d > rangeStart && d < rangeEnd) el.classList.add('range-mid');
+        }
         
         el.onclick = () => { 
-            selectedDate = d; 
-            setupCalendar();  
-            renderDeck();     
-            closeAllModals(); 
+            if (rangeMode) {
+                if (!rangeStart || (rangeStart && rangeEnd)) {
+                    rangeStart = d;
+                    rangeEnd = null;
+                } else {
+                    if (d < rangeStart) {
+                        rangeEnd = rangeStart;
+                        rangeStart = d;
+                    } else {
+                        rangeEnd = d;
+                    }
+                }
+                updateRangeStatusText();
+                renderHeatmap();
+            } else {
+                selectedDate = d; 
+                setupCalendar();  
+                renderDeck();     
+                closeAllModals(); 
+            }
         };
         grid.appendChild(el);
     }
@@ -1864,7 +2065,8 @@ function openMenu(e, id) {
     menu.style.left = leftPos + 'px';
 
     // Generate Category list for moving
-    const baseCats = ['todo', 'work', 'groceries', 'errands'];
+    const hidden = db.hidden_base_categories || [];
+    const baseCats = ['todo', 'work', 'groceries', 'errands'].filter(c => !hidden.includes(c));
     const allCats = [...baseCats, ...(db.custom_categories || [])];
     let catOptions = allCats.map(c => `<div onclick="moveNote(${id}, '${c}')" style="padding:8px; font-size:0.8rem; cursor:pointer; border-bottom:1px solid #f0f0f0;">→ Move to ${c}</div>`).join('');
 
@@ -1897,19 +2099,27 @@ function closeAllModals() {
     document.getElementById('calModal').style.display = 'none';
     document.getElementById('catModal').style.display = 'none';
     document.getElementById('noteViewer').style.display = 'none';
-    document.getElementById('rangeModal').style.display = 'none';
+    document.getElementById('renameModal').style.display = 'none';
+    document.getElementById('deleteConfirmModal').style.display = 'none';
     document.getElementById('overlay').style.display = 'none';
     document.getElementById('noteMenu').style.display = 'none';
+    document.getElementById('catMgmtDropdown').classList.remove('open');
+    pendingRename = null;
+    pendingDelete = null;
+    updateHeaderRangeIndicator();
     
     // Pulls the note editor back to the front for next time
     document.getElementById('noteViewer').style.zIndex = "6000"; 
 }
-// Global click listener to close the delete menu when clicking away
+// Global click listener to close menus when clicking away
 window.addEventListener('mousedown', (e) => {
     const menu = document.getElementById('noteMenu');
-    // If menu is open and we click something that isn't the menu or the menu button
     if (menu.style.display === 'block' && !menu.contains(e.target) && !e.target.classList.contains('note-menu-btn')) {
         menu.style.display = 'none';
+    }
+    const catMgmt = document.getElementById('catMgmtDropdown');
+    if (catMgmt.classList.contains('open') && !catMgmt.contains(e.target) && !e.target.closest('[onclick*="toggleCatMgmt"]')) {
+        catMgmt.classList.remove('open');
     }
 });
 async function sendVerificationEmail() {
@@ -2028,7 +2238,72 @@ if (data && (data.notes_list || data.profile)) {
 }
 let rangeStart = null;
 let rangeEnd = null;
-let rangeViewDate = new Date();
+let rangeMode = false;
+
+function toggleRangeMode() {
+    rangeMode = !rangeMode;
+    const btn = document.getElementById('rangeToggleBtn');
+    const info = document.getElementById('rangeInfoArea');
+    if (rangeMode) {
+        btn.style.background = 'white';
+        btn.style.color = 'black';
+        btn.innerText = 'EXIT RANGE MODE';
+        info.style.display = 'block';
+        rangeStart = new Date(selectedDate);
+        rangeEnd = null;
+        updateRangeStatusText();
+    } else {
+        btn.style.background = 'transparent';
+        btn.style.color = 'white';
+        btn.innerText = 'SELECT DATE RANGE';
+        info.style.display = 'none';
+    }
+    renderHeatmap();
+}
+
+function clearRange() {
+    rangeStart = null;
+    rangeEnd = null;
+    rangeMode = false;
+    const btn = document.getElementById('rangeToggleBtn');
+    const info = document.getElementById('rangeInfoArea');
+    if (btn) { btn.style.background = 'transparent'; btn.style.color = 'white'; btn.innerText = 'SELECT DATE RANGE'; }
+    if (info) info.style.display = 'none';
+    renderHeatmap();
+    updateHeaderRangeIndicator();
+}
+
+function updateRangeStatusText() {
+    const el = document.getElementById('rangeStatusText');
+    if (!el) return;
+    if (rangeStart && rangeEnd) {
+        const opts = { month: 'short', day: 'numeric' };
+        el.innerText = rangeStart.toLocaleDateString('en-US', opts) + ' → ' + rangeEnd.toLocaleDateString('en-US', opts);
+    } else if (rangeStart) {
+        const opts = { month: 'short', day: 'numeric' };
+        el.innerText = rangeStart.toLocaleDateString('en-US', opts) + ' → tap end date';
+    } else {
+        el.innerText = 'Tap a start date, then an end date';
+    }
+}
+
+function updateHeaderRangeIndicator() {
+    const indicator = document.getElementById('headerRangeIndicator');
+    if (!indicator) return;
+    if (rangeStart && rangeEnd) {
+        const opts = { month: 'short', day: 'numeric' };
+        indicator.innerText = rangeStart.toLocaleDateString('en-US', opts) + ' → ' + rangeEnd.toLocaleDateString('en-US', opts);
+        indicator.style.display = 'block';
+    } else {
+        indicator.style.display = 'none';
+    }
+}
+
+function closeCalModal() {
+    document.getElementById('calModal').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+    updateHeaderRangeIndicator();
+}
 
 // --- SORT STATE ---
 let sortCriteria = null; // 'created', 'edited', 'viewed'
@@ -2036,6 +2311,7 @@ let sortDirections = { created: 'desc', edited: 'desc', viewed: 'desc' };
 
 function toggleSortMenu(e) {
     e.stopPropagation();
+    document.getElementById('catMgmtDropdown').classList.remove('open');
     const dropdown = document.getElementById('sortDropdown');
     dropdown.classList.toggle('open');
 }
@@ -2086,90 +2362,6 @@ window.addEventListener('mousedown', (e) => {
         dropdown.classList.remove('open');
     }
 });
-
-function openRangeModal() {
-    rangeStart = new Date(selectedDate);
-    rangeEnd = null;
-    rangeViewDate = new Date(selectedDate);
-    
-    // Pushes the note editor behind the blur
-    document.getElementById('noteViewer').style.zIndex = "4000"; 
-    
-    document.getElementById('overlay').style.display = 'block';
-    document.getElementById('rangeModal').style.display = 'block';
-    renderRangeHeatmap();
-}
-function closeRangeModal() {
-    // Hide modal and overlay
-    document.getElementById('rangeModal').style.display = 'none';
-    document.getElementById('overlay').style.display = 'none';
-
-    // Reset the Search UI inside the Range Modal so it's fresh for next time
-    const bar = document.getElementById('rangeSearchBar');
-    const main = document.getElementById('rangeMainUI');
-    const icon = document.getElementById('rangeSearchIcon');
-    const searchInput = document.getElementById('rangeDateSearchInput');
-    const searchResults = document.getElementById('rangeSearchResults');
-
-    if (bar) bar.style.display = 'none';
-    if (main) main.style.display = 'block';
-    if (icon) icon.style.display = 'block'; // Ensures magnifying glass is back
-    if (searchInput) searchInput.value = '';
-    if (searchResults) searchResults.innerHTML = '';
-}
-function changeRangeMonth(offset) {
-    rangeViewDate.setMonth(rangeViewDate.getMonth() + offset);
-    renderRangeHeatmap();
-}
-
-function renderRangeHeatmap() {
-    const grid = document.getElementById('rangeGrid');
-    grid.innerHTML = '';
-    const year = rangeViewDate.getFullYear();
-    const month = rangeViewDate.getMonth();
-    
-    document.getElementById('rangeMText').innerText = rangeViewDate.toLocaleString('default', { month: 'long' }).toUpperCase();
-    document.getElementById('rangeYText').innerText = year;
-    
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const firstDayIndex = new Date(year, month, 1).getDay();
-
-    for (let x = 0; x < firstDayIndex; x++) {
-        const empty = document.createElement('div');
-        empty.className = 'empty-day';
-        grid.appendChild(empty);
-    }
-
-    for (let i = 1; i <= daysInMonth; i++) {
-        const d = new Date(year, month, i);
-        const k = formatDateKey(d);
-        const el = document.createElement('div');
-        el.className = 'circle-day';
-        el.innerText = i;
-        el.style.color = "#333";
-        el.style.backgroundColor = "var(--heat-0)";
-
-        if (rangeStart && k === formatDateKey(rangeStart)) el.classList.add(rangeEnd ? 'range-start' : 'range-single');
-        else if (rangeEnd && k === formatDateKey(rangeEnd)) el.classList.add('range-end');
-       else if (rangeStart && rangeEnd && d > rangeStart && d < rangeEnd) el.classList.add('range-mid');
-        
-        el.onclick = () => {
-            if (!rangeStart || (rangeStart && rangeEnd)) {
-                rangeStart = d;
-                rangeEnd = null;
-            } else {
-                if (d < rangeStart) {
-                    rangeEnd = rangeStart;
-                    rangeStart = d;
-                } else {
-                    rangeEnd = d;
-                }
-            }
-            renderRangeHeatmap();
-        };
-        grid.appendChild(el);
-    }
-}
 
 // --- FORMATTING LOGIC ---
 let listMode = null; // Tracks if we are in Bullet or Checkbox mode
@@ -2248,18 +2440,6 @@ function insertCheckbox() {
     }
     textarea.setRangeText(textToInsert, s, s, "end");
     textarea.focus();
-}
-function applyRange() {
-    const btn = document.getElementById('rangeBtn');
-    if (rangeStart && rangeEnd) {
-        btn.innerHTML = "🗓️ Range Set";
-        btn.classList.add('active');
-    } else {
-        btn.innerHTML = "🗓️";
-        btn.classList.remove('active');
-    }
-    document.getElementById('rangeModal').style.display = 'none';
-    document.getElementById('overlay').style.display = 'none';
 }
 // --- APP INITIALIZATION ---
 document.addEventListener("DOMContentLoaded", () => {

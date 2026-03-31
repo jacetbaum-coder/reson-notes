@@ -1584,6 +1584,105 @@ input:checked + .sld:before { transform: translateX(16px); }
     box-sizing: border-box;
     background: white;
 }
+
+/* --- STATS DASHBOARD --- */
+.stats-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+.stat-card {
+    background: var(--accent-surface, #f0fdf4);
+    border-radius: 18px;
+    padding: 14px 6px 12px;
+    text-align: center;
+    flex: 1;
+    min-width: 0;
+    transition: background 0.3s;
+}
+.stat-value {
+    font-size: 1.85rem;
+    font-weight: 900;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 2px;
+}
+.stat-value-text {
+    font-size: 1.85rem;
+    font-weight: 900;
+    line-height: 1;
+}
+.stat-value-sub {
+    font-size: 1.05rem;
+}
+.stat-label {
+    font-size: 0.58rem;
+    font-weight: 800;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.stat-card.streak-card .stat-value {
+    color: var(--accent);
+}
+.cat-bars-section {
+    border-top: 1px solid #f0f0f0;
+    padding-top: 14px;
+}
+.cat-bars-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #bbb;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+}
+.cat-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 9px;
+}
+.cat-bar-name {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #555;
+    width: 58px;
+    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-transform: capitalize;
+}
+.cat-bar-track {
+    flex: 1;
+    height: 6px;
+    background: #f0f0f0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+.cat-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 10px;
+    width: 0;
+    transition: width 0.75s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.cat-bar-count {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #bbb;
+    width: 24px;
+    text-align: right;
+    flex-shrink: 0;
+}
 </style>
 </head>
 <!-- Replace your existing <body> content with this updated version -->
@@ -1729,6 +1828,13 @@ input:checked + .sld:before { transform: translateX(16px); }
         <hr style="opacity:0.1; margin-bottom:20px;">
         <button id="loadCloudBtn" style="background:none; color:var(--accent); border:2px solid var(--accent); padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold; margin-bottom: 12px;">Sync with Cloud</button>
         <button onclick="logout()" style="background:#ff4444; color:white; border:none; padding:12px; border-radius:10px; width:100%; cursor:pointer; font-weight: bold;">Logout</button>
+    </div>
+
+    <!-- Stats Dashboard -->
+    <div class="note-container" id="statsDashboard">
+        <div style="font-size:0.8rem; font-weight:900; color:var(--accent); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:14px;">Overview</div>
+        <div class="stats-row" id="statsGrid"></div>
+        <div class="cat-bars-section" id="catBars" style="display:none;"></div>
     </div>
 
     <!-- Recently Deleted Section -->
@@ -2515,6 +2621,110 @@ function loadProfileUI() {
 // Navigation Logic
 // Navigation Logic
 // Navigation Logic
+function computeStreak() {
+    const today = new Date();
+    const todayKey = formatDateKey(today);
+    const hasToday = db.notes_list.some(n => n.date === todayKey);
+    // Grace period: if nothing written today yet, keep streak alive from yesterday
+    const offset = hasToday ? 0 : 1;
+    let streak = 0;
+    for (let i = offset; i < 370; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const key = formatDateKey(d);
+        if (db.notes_list.some(n => n.date === key)) {
+            streak++;
+        } else {
+            break;
+        }
+    }
+    return streak;
+}
+
+function renderStatsDashboard() {
+    const grid = document.getElementById('statsGrid');
+    const catBarsEl = document.getElementById('catBars');
+    if (!grid || !catBarsEl) return;
+
+    const total = db.notes_list.length;
+    const streak = computeStreak();
+
+    // Category counts
+    const catCounts = {};
+    db.notes_list.forEach(n => {
+        const cat = (n.tags && n.tags[0]) ? n.tags[0].toLowerCase() : 'general';
+        catCounts[cat] = (catCounts[cat] || 0) + 1;
+    });
+    const sortedCats = Object.entries(catCounts).sort((a, b) => b[1] - a[1]);
+    const renames = db.base_category_renames || {};
+
+    // Build display name for top category
+    let topCatDisplay = '—';
+    if (sortedCats.length > 0) {
+        const tc = sortedCats[0][0];
+        const renamed = renames[tc];
+        if (renamed) {
+            topCatDisplay = renamed;
+        } else if (tc.includes('/')) {
+            topCatDisplay = tc.split('/').pop();
+        } else {
+            topCatDisplay = tc.charAt(0).toUpperCase() + tc.slice(1);
+        }
+    }
+    // Clamp display name length
+    if (topCatDisplay.length > 9) topCatDisplay = topCatDisplay.slice(0, 8) + '…';
+
+    const streakIcon = streak > 0 ? '<span class="stat-value-sub">🔥</span>' : '';
+
+    grid.innerHTML = `
+        <div class="stat-card">
+            <div class="stat-value"><span class="stat-value-text">${total}</span></div>
+            <div class="stat-label">Total Notes</div>
+        </div>
+        <div class="stat-card streak-card">
+            <div class="stat-value"><span class="stat-value-text">${streak}</span>${streakIcon}</div>
+            <div class="stat-label">Day Streak</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" style="font-size: ${topCatDisplay.length > 6 ? '1.1rem' : '1.5rem'};"><span class="stat-value-text" style="font-size:inherit;">${topCatDisplay}</span></div>
+            <div class="stat-label">Top Category</div>
+        </div>
+    `;
+
+    // Category bars (top 5)
+    const top5 = sortedCats.slice(0, 5);
+    if (top5.length === 0) {
+        catBarsEl.style.display = 'none';
+        return;
+    }
+    catBarsEl.style.display = 'block';
+    const maxCount = top5[0][1];
+    catBarsEl.innerHTML = `<div class="cat-bars-label">Categories</div>` +
+        top5.map(([cat, count]) => {
+            const renamed = renames[cat];
+            let label;
+            if (renamed) {
+                label = renamed;
+            } else if (cat.includes('/')) {
+                label = cat.split('/').pop();
+            } else {
+                label = cat.charAt(0).toUpperCase() + cat.slice(1);
+            }
+            return `<div class="cat-bar-row">
+                <div class="cat-bar-name">${label}</div>
+                <div class="cat-bar-track"><div class="cat-bar-fill" data-pct="${Math.round((count / maxCount) * 100)}"></div></div>
+                <div class="cat-bar-count">${count}</div>
+            </div>`;
+        }).join('');
+
+    // Animate bars on next tick so CSS transition fires
+    setTimeout(() => {
+        catBarsEl.querySelectorAll('.cat-bar-fill').forEach(el => {
+            el.style.width = el.dataset.pct + '%';
+        });
+    }, 30);
+}
+
 function showMain() {
     // 1. UI Visibility
     document.querySelector('header').style.display = 'flex';
@@ -2547,6 +2757,7 @@ function showSettings() {
     loadProfileUI();
     purgeExpiredDeletedNotes();
     renderDeletedNotes();
+    renderStatsDashboard();
 
     // Tab Highlighting
     document.getElementById('navSettings').classList.add('active-tab');

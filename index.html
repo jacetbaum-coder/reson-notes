@@ -2936,7 +2936,7 @@ function setupCalendar() {
         const card = document.createElement('div');
         card.className = `day-card ${isSel ? 'active' : ''}`;
         card.innerHTML = `<div style="font-size:0.7rem;">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</div><div style="font-weight:800;font-size:1.2rem;">${d.getDate()}</div>${(function(){ const dk=formatDateKey(d); const hh=dateHasHoliday(dk); const ee=dateHasEvent(dk); if(!hh&&!ee) return '<div class="day-card-dots"></div>'; let s='<div class="day-card-dots">'; if(hh) s+='<div class="cal-dot holiday"></div>'; if(ee) s+='<div class="cal-dot event"></div>'; return s+'</div>'; })()}`;
-        card.onclick = () => { selectedDate = d; setupCalendar(); renderDeck(); };
+        card.onclick = () => { selectedDate = d; setupCalendar(); renderDeck(); renderEventBar(); };
         strip.appendChild(card);
         if (isSel) selCard = card;
         cur.setDate(cur.getDate() + 1);
@@ -2953,6 +2953,7 @@ function jumpToToday() {
     selectedDate = new Date();
     setupCalendar();
     renderDeck();
+    renderEventBar();
 }
 
 // --- MONTH & YEAR PICKERS ---
@@ -2973,6 +2974,7 @@ function openMonthPicker() {
             closePickerModals();
             setupCalendar();
             renderDeck();
+            renderEventBar();
         };
         grid.appendChild(btn);
     });
@@ -2998,6 +3000,7 @@ function openYearPicker() {
             closePickerModals();
             setupCalendar();
             renderDeck();
+            renderEventBar();
         };
         grid.appendChild(btn);
         if (y === curYear) activeBtn = btn;
@@ -3120,12 +3123,14 @@ function renderHeatmap() {
                 selectedDate = d;
                 setupCalendar();
                 renderDeck();
+                renderEventBar();
                 updateEventAddModeUI();
                 renderHeatmap();
             } else {
                 selectedDate = d; 
                 setupCalendar();  
-                renderDeck();     
+                renderDeck();
+                renderEventBar();
                 renderHeatmap();
             }
         };
@@ -3982,6 +3987,7 @@ function performSearch(query) {
         if (isSearchMode) {
             isSearchMode = false;
             document.getElementById('strip').style.display = 'flex';
+            document.getElementById('eventBar').style.display = 'block';
             document.getElementById('filterContainer').style.display = 'flex';
             document.getElementById('sortMenuContainer').style.display = 'flex';
             document.getElementById('deckHeader').style.display = 'flex';
@@ -4627,6 +4633,7 @@ function confirmEventAdd() {
     renderDeck();
     setupCalendar();
     renderHeatmap();
+    renderEventBar();
 }
 
 let editingEventId = null;

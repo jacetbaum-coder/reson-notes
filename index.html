@@ -319,7 +319,12 @@ header {
     -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
 }
 
-.checklist-item { display: flex; align-items: flex-start; gap: 6px; }
+.checklist-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
 .checklist-text { font-size: 0.8rem; color: #444; line-height: 1.2; white-space: pre-wrap; }
 .checklist-text.done { text-decoration: line-through; color: #aaa; }
 .editor-checkbox {
@@ -1402,9 +1407,9 @@ function renderDeck() {
             const done = note.checkedIndices && note.checkedIndices.includes(i);
             html += `<div class="checklist-item">`;
             if (hasCheckbox) {
-                html += `<input type="checkbox" ${done ? 'checked' : ''} style="margin-top:2px;" onclick="event.stopPropagation(); toggleLine(${note.id}, ${i})">`;
+                html += `<div><input type="checkbox" ${done ? 'checked' : ''} style="margin-top:2px; display:block;" onclick="event.stopPropagation(); toggleLine(${note.id}, ${i})"></div>`;
             }
-            html += `<div class="checklist-text ${done ? 'done' : ''}">${cleanText}</div>`;
+            html += `<div class="checklist-text ${done ? 'done' : ''}" style="display:block;">${cleanText}</div>`;
             html += `</div>`;
         });
         html += `</div>`;
@@ -1982,32 +1987,16 @@ function toggleListMode(prefix, editorId = 'noteContent', bulletBtnId = 'btn-bul
         listMode = prefix;
         btn.classList.add('active');
     }
-    // Insert prefix at cursor if not present at start of line
+    // Always insert a new line with the prefix, never inline
     editor.focus();
     const sel = window.getSelection();
     if (sel.rangeCount > 0) {
         const range = sel.getRangeAt(0);
-        // Find the current line/container
-        let node = range.startContainer;
-        // If text node, get parent div/span
-        if (node.nodeType === 3) node = node.parentNode;
-        // If at root, wrap in span for manipulation
-        if (node === editor) {
-            // Insert prefix at caret
-            document.execCommand('insertText', false, prefix);
+        // Always insert a line break before the prefix, unless at very start
+        if (range.startOffset !== 0 || range.startContainer !== editor) {
+            document.execCommand('insertHTML', false, '<br>' + prefix);
         } else {
-            // Check if line already starts with prefix
-            let lineText = node.textContent;
-            if (!lineText.startsWith(prefix)) {
-                // Insert prefix at start of line
-                node.textContent = prefix + lineText;
-                // Move cursor to end of prefix
-                const newRange = document.createRange();
-                newRange.setStart(node.firstChild, prefix.length);
-                newRange.collapse(true);
-                sel.removeAllRanges();
-                sel.addRange(newRange);
-            }
+            document.execCommand('insertHTML', false, prefix);
         }
     }
     editor.focus();
@@ -2037,8 +2026,11 @@ document.addEventListener("DOMContentLoaded", () => {
 function insertCheckbox() {
     const s = textarea.selectionStart;
     const val = textarea.value;
-    const isAtStartOfLine = (s === 0 || val.charAt(s - 1) === '\n');
-    const textToInsert = isAtStartOfLine ? "☐ " : "\n☐ ";
+    // Always insert a newline before the checkbox unless at very start or already at a new line
+    let textToInsert = "\n☐ ";
+    if (s === 0 || val.charAt(s - 1) === '\n' || val.length === 0) {
+        textToInsert = "☐ ";
+    }
     textarea.setRangeText(textToInsert, s, s, "end");
     textarea.focus();
 }

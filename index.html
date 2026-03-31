@@ -96,6 +96,63 @@ header {
     text-transform: uppercase; 
     text-align: center;
     line-height: 1.1;
+    cursor: pointer;
+}
+
+/* Month/Year Picker */
+.header-picker {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 85%;
+    max-width: 340px;
+    background: var(--bg);
+    border: 2px solid white;
+    border-radius: 24px;
+    padding: 20px;
+    z-index: 8000;
+    color: white;
+    text-align: center;
+}
+.header-picker h3 {
+    margin: 0 0 14px 0;
+    font-size: 0.85rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.picker-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    max-height: 320px;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+.picker-grid::-webkit-scrollbar { display: none; }
+.picker-item {
+    padding: 12px 8px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    background: rgba(255,255,255,0.12);
+    transition: all 0.15s;
+    border: none;
+    color: white;
+}
+.picker-item:hover { background: rgba(255,255,255,0.25); }
+.picker-item.active { background: white; color: var(--accent); font-weight: 900; }
+#pickerOverlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 7500;
 }
 /* Navigation Header styling */
 .month-nav {
@@ -144,9 +201,7 @@ header {
     gap: 8px;
 }
 .year-pill {
-    border: 1.5px solid white;
     padding: 2px 10px;
-    border-radius: 20px;
     font-size: 0.9rem;
 }
 
@@ -184,10 +239,7 @@ header {
     cursor: default;
 }
 .year-pill {
-    border: 2px solid white;
-    border: 2px solid white;
     padding: 2px 12px;
-    border-radius: 20px;
 }
 #todayBtn {
     background: rgba(255,255,255,0.25);
@@ -796,17 +848,28 @@ input:checked + .sld:before { transform: translateX(16px); }
 
 <header>
   <!-- This is the stacked date display -->
-  <div class="month-label" id="dateDisplay">Loading...</div>
+  <div class="month-label" id="dateDisplay" onclick="openMonthPicker()">Loading...</div>
   
   <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
-      <span id="yearDisplay" style="font-size: 0.9rem; font-weight: 700; color: rgba(255,255,255,0.8);">2026</span>
-      <button class="cal-icon" onclick="toggleModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>
+      <span id="yearDisplay" style="font-size: 1.1rem; font-weight: 700; color: rgba(255,255,255,0.8); cursor:pointer;" onclick="openYearPicker()">2026</span>
+      <button class="cal-icon" onclick="toggleModal()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>
   </div>
 
   <!-- The "Today" button moves below the date -->
   <button id="todayBtn" onclick="jumpToToday()" style="margin-top:12px; background:rgba(255,255,255,0.2); border:1.5px solid white; color:white; padding:6px 16px; border-radius:20px; font-size:0.75rem; font-weight:900; text-transform:uppercase;">Today</button>
   <div id="headerRangeIndicator" style="display:none; margin-top:8px; background:white; color:var(--accent); padding:4px 14px; border-radius:20px; font-size:0.7rem; font-weight:900; text-transform:uppercase; cursor:pointer;" onclick="toggleModal()">Range Active</div>
 </header>
+
+<!-- Month Picker -->
+<div id="pickerOverlay" onclick="closePickerModals()"></div>
+<div class="header-picker" id="monthPicker">
+    <h3>Select Month</h3>
+    <div class="picker-grid" id="monthPickerGrid"></div>
+</div>
+<div class="header-picker" id="yearPicker">
+    <h3>Select Year</h3>
+    <div class="picker-grid" id="yearPickerGrid"></div>
+</div>
 
 <div class="calendar-strip" id="strip"></div>
 
@@ -1016,8 +1079,8 @@ input:checked + .sld:before { transform: translateX(16px); }
         <div class="month-nav">
             <div class="nav-arrow" onclick="changeModalMonth(-1)">&lt;</div>
             <div id="modalMonthTitle">
-                <span id="mText">MONTH</span>
-                <span id="yText" class="year-pill" onclick="selectYear('modal')" style="cursor:pointer;">2026</span>
+                <span id="mText" onclick="openCalMonthPicker()" style="cursor:pointer;">MONTH</span>
+                <span id="yText" class="year-pill" onclick="openCalYearPicker()" style="cursor:pointer;">2026</span>
             </div>
             <div class="nav-arrow" onclick="changeModalMonth(1)">&gt;</div>
         </div>
@@ -1647,22 +1710,48 @@ function openCatModal() {
     document.getElementById('catModal').style.display = 'block';
     document.getElementById('catInput').focus();
 }
-function selectYear(type) {
-    let viewDate = modalViewDate;
-    
-    // Ask the user for the year
-    let newYear = prompt("Enter Year:", viewDate.getFullYear());
-
-    // Validate that it's a number and exactly 4 digits
-    if (newYear !== null) {
-        let yearInt = parseInt(newYear);
-        if (!isNaN(yearInt) && yearInt > 1900 && yearInt < 2200) {
-            viewDate.setFullYear(yearInt);
+// --- CAL MODAL MONTH/YEAR PICKERS ---
+function openCalMonthPicker() {
+    const grid = document.getElementById('monthPickerGrid');
+    grid.innerHTML = '';
+    const curMonth = modalViewDate.getMonth();
+    MONTH_NAMES.forEach((name, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'picker-item' + (i === curMonth ? ' active' : '');
+        btn.innerText = name.substring(0, 3).toUpperCase();
+        btn.onclick = () => {
+            modalViewDate.setMonth(i);
+            closePickerModals();
             renderHeatmap();
-        } else {
-            showToast("Please enter a valid year (e.g., 2025)");
-        }
+        };
+        grid.appendChild(btn);
+    });
+    document.getElementById('pickerOverlay').style.display = 'block';
+    document.getElementById('monthPicker').style.display = 'block';
+}
+
+function openCalYearPicker() {
+    const grid = document.getElementById('yearPickerGrid');
+    grid.innerHTML = '';
+    const curYear = modalViewDate.getFullYear();
+    const startYear = curYear - 5;
+    const endYear = curYear + 10;
+    let activeBtn = null;
+    for (let y = startYear; y <= endYear; y++) {
+        const btn = document.createElement('button');
+        btn.className = 'picker-item' + (y === curYear ? ' active' : '');
+        btn.innerText = y;
+        btn.onclick = () => {
+            modalViewDate.setFullYear(y);
+            closePickerModals();
+            renderHeatmap();
+        };
+        grid.appendChild(btn);
+        if (y === curYear) activeBtn = btn;
     }
+    document.getElementById('pickerOverlay').style.display = 'block';
+    document.getElementById('yearPicker').style.display = 'block';
+    if (activeBtn) setTimeout(() => activeBtn.scrollIntoView({ block: 'center', behavior: 'instant' }), 10);
 }
 function toggleCatMgmt(e) {
     e.stopPropagation();
@@ -1948,6 +2037,64 @@ function jumpToToday() {
     selectedDate = new Date();
     setupCalendar();
     renderDeck();
+}
+
+// --- MONTH & YEAR PICKERS ---
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function openMonthPicker() {
+    const grid = document.getElementById('monthPickerGrid');
+    grid.innerHTML = '';
+    const curMonth = selectedDate.getMonth();
+    MONTH_NAMES.forEach((name, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'picker-item' + (i === curMonth ? ' active' : '');
+        btn.innerText = name.substring(0, 3).toUpperCase();
+        btn.onclick = () => {
+            const maxDay = new Date(selectedDate.getFullYear(), i + 1, 0).getDate();
+            const day = Math.min(selectedDate.getDate(), maxDay);
+            selectedDate = new Date(selectedDate.getFullYear(), i, day);
+            closePickerModals();
+            setupCalendar();
+            renderDeck();
+        };
+        grid.appendChild(btn);
+    });
+    document.getElementById('pickerOverlay').style.display = 'block';
+    document.getElementById('monthPicker').style.display = 'block';
+}
+
+function openYearPicker() {
+    const grid = document.getElementById('yearPickerGrid');
+    grid.innerHTML = '';
+    const curYear = selectedDate.getFullYear();
+    const startYear = curYear - 5;
+    const endYear = curYear + 10;
+    let activeBtn = null;
+    for (let y = startYear; y <= endYear; y++) {
+        const btn = document.createElement('button');
+        btn.className = 'picker-item' + (y === curYear ? ' active' : '');
+        btn.innerText = y;
+        btn.onclick = () => {
+            const maxDay = new Date(y, selectedDate.getMonth() + 1, 0).getDate();
+            const day = Math.min(selectedDate.getDate(), maxDay);
+            selectedDate = new Date(y, selectedDate.getMonth(), day);
+            closePickerModals();
+            setupCalendar();
+            renderDeck();
+        };
+        grid.appendChild(btn);
+        if (y === curYear) activeBtn = btn;
+    }
+    document.getElementById('pickerOverlay').style.display = 'block';
+    document.getElementById('yearPicker').style.display = 'block';
+    if (activeBtn) setTimeout(() => activeBtn.scrollIntoView({ block: 'center', behavior: 'instant' }), 10);
+}
+
+function closePickerModals() {
+    document.getElementById('monthPicker').style.display = 'none';
+    document.getElementById('yearPicker').style.display = 'none';
+    document.getElementById('pickerOverlay').style.display = 'none';
 }
 
 function toggleModal() {

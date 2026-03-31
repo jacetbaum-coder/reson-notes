@@ -204,28 +204,40 @@ header {
     margin-bottom: 20px;
     user-select: none;
 }
-/* Update format buttons to match the bullet point green */
+/* Unified pill toolbar for format buttons */
+.format-row {
+    background: var(--accent-surface, #f0f4f1);
+    border-radius: 12px;
+    padding: 4px;
+    display: inline-flex;
+    gap: 2px;
+    margin-bottom: 10px;
+}
 .format-btn {
     border: none;
-    background: var(--accent-surface, #e8f5e9);
+    background: transparent;
     border-radius: 8px;
-    padding: 10px 18px;
-    font-weight: 700;
+    padding: 6px 14px;
+    font-weight: 600;
     cursor: pointer;
     color: var(--accent, #2d5a3a);
-    transition: all 0.2s;
-    font-size: 1.3rem;
+    transition: background 0.15s, color 0.15s;
+    font-size: 0.95rem;
+    line-height: 1;
 }
-
-/* When a mode is "On", the button fills with accent color */
+.format-btn:active {
+    background: rgba(0,0,0,0.06);
+}
+/* When a mode is "On", the button fills softly */
 .format-btn.active {
     background: var(--accent, #2d5a3a) !important;
     color: white !important;
+    border-radius: 8px;
 }
 .nav-arrow {
     font-size: 1.5rem;
     cursor: pointer;
-    background: rgba(255,255,255,0.15);
+    background: rgba(0,0,0,0.07);
     width: 32px;
     height: 32px;
     display: flex;
@@ -233,6 +245,7 @@ header {
     justify-content: center;
     border-radius: 50%;
     font-weight: bold;
+    color: var(--text-on-bg);
 }
 #modalMonthTitle {
     font-size: 1rem;
@@ -345,25 +358,27 @@ header {
 }
 
 .bubble {
-    padding: 8px 16px; /* Much smaller than 12px 24px */
-    font-size: 0.9rem;  /* Slightly smaller text */
+    padding: 6px 14px;
+    font-size: 0.82rem;
     background: var(--card);
     border-radius: 20px;
-    font-weight: 700;
+    font-weight: 600;
     cursor: pointer;
-    border: 1px solid rgba(0,0,0,0.05); /* Added subtle border for definition */
+    border: 1px solid rgba(0,0,0,0.07);
     white-space: nowrap;
+    color: var(--text);
+    transition: background 0.15s, color 0.15s;
 }
-.bubble.active { background: var(--accent); color: white; }
+.bubble.active { background: var(--accent); color: white; border-color: transparent; }
 
 .add-cat-btn {
-    background: rgba(255,255,255,0.3);
-    color: white;
-    width: 35px;
-    height: 35px;
+    background: rgba(0,0,0,0.07);
+    color: var(--text-on-bg);
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    border: 2px solid white;
-    font-size: 1.2rem;
+    border: none;
+    font-size: 1.1rem;
     font-weight: bold;
     cursor: pointer;
     flex-shrink: 0;
@@ -473,11 +488,9 @@ header {
 /* Hide format buttons row and commit button when not editing */
 .note-container .format-row {
     display: none;
-    gap: 5px;
-    margin-bottom: 10px;
 }
 .note-container.editing .format-row {
-    display: flex;
+    display: inline-flex;
 }
 .note-container .add-note {
     display: none;
@@ -599,11 +612,11 @@ textarea {
     width: 90%;
     max-width: 400px;
     background: var(--bg);
-    border: 2px solid white;
+    border: 1.5px solid rgba(0,0,0,0.08);
     border-radius: 30px;
     padding: 30px;
-    z-index: 7000; /* Updated from 4000 */
-    color: white;
+    z-index: 7000;
+    color: var(--text-on-bg);
 }
 .modal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center; }
 .circle-day { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.9rem; font-weight: 700; cursor: pointer; color: #333; transition: 0.2s;}
@@ -893,20 +906,20 @@ input:checked + .sld:before { transform: translateX(16px); }
     pointer-events: none;
 }
 .sort-hamburger {
-    background: rgba(255,255,255,0.25);
-    border: 1.5px solid white;
+    background: rgba(0,0,0,0.06);
+    border: none;
     border-radius: 10px;
     padding: 6px 12px;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 6px;
-    color: white;
-    font-weight: 700;
+    color: var(--text-on-bg);
+    font-weight: 600;
     font-size: 0.75rem;
     transition: background 0.2s;
 }
-.sort-hamburger:hover { background: rgba(255,255,255,0.35); }
+.sort-hamburger:hover { background: rgba(0,0,0,0.1); }
 .sort-hamburger .hamburger-lines {
     display: flex;
     flex-direction: column;
@@ -916,7 +929,7 @@ input:checked + .sld:before { transform: translateX(16px); }
     display: block;
     width: 16px;
     height: 2px;
-    background: white;
+    background: var(--text-on-bg);
     border-radius: 2px;
 }
 .sort-dropdown {
@@ -1855,7 +1868,7 @@ input:checked + .sld:before { transform: translateX(16px); }
     </div>
     <div style="flex:1;"></div>
     <button class="sort-hamburger" onclick="toggleMainDotsMenu(event)" title="Options" style="padding:6px 10px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></svg>
     </button>
     <div class="main-dots-dropdown" id="mainDotsDropdown">
         <button class="main-dots-option" onclick="openEditCategories()">
@@ -1923,15 +1936,20 @@ input:checked + .sld:before { transform: translateX(16px); }
 <!-- UPDATED SETTINGS/PROFILE VIEW -->
 <!-- START OF SETTINGS/PROFILE UI -->
 <div id="settingsView" style="display:none; width:100%; max-width:500px; padding: 20px 0;">
-    <h2 style="color:white; text-align: center;">Profile</h2>
+    <h2 id="settingsGreeting" style="color:var(--text-on-bg); text-align: center; font-weight: 700; font-size: 1.4rem; margin-bottom: 16px;">Hi there</h2>
     <div class="note-container" style="text-align:center;">
         <!-- Static View Mode -->
         <div id="profileViewMode">
-            <img id="profileDisplay" src="https://via.placeholder.com/100" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid var(--accent); margin-bottom:10px;">
-            <div id="displayName" style="font-size: 1.5rem; font-weight: 800; color: var(--accent); margin-bottom: 20px;">Username</div>
+            <div style="position:relative; display:inline-block; margin-bottom:12px;" onclick="openEditProfile()">
+                <img id="profileDisplay" src="https://via.placeholder.com/100" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2.5px solid var(--accent); display:block;">
+                <div style="position:absolute; bottom:0; right:0; width:24px; height:24px; background:var(--accent); border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid white;">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </div>
+            </div>
+            <div id="displayName" style="font-size: 1.1rem; font-weight: 700; color: var(--accent); margin-bottom: 16px;">Username</div>
             
-            <button onclick="openEditProfile()" style="background:var(--accent); color:white; border:none; padding:10px 25px; border-radius:20px; cursor:pointer; font-weight:bold; margin-bottom:10px;">Edit Profile</button>
-            <button onclick="openPersonalizeModal()" style="background:#ffffff; color:var(--accent); border:2px solid var(--accent); padding:10px 25px; border-radius:20px; cursor:pointer; font-weight:bold; margin-bottom:25px;">Personalize</button>
+            <button onclick="openEditProfile()" style="background:var(--accent); color:white; border:none; padding:9px 22px; border-radius:20px; cursor:pointer; font-weight:600; margin-bottom:8px; font-size:0.85rem;">Edit Profile</button>
+            <button onclick="openPersonalizeModal()" style="background:#ffffff; color:var(--accent); border:1.5px solid var(--accent); padding:9px 22px; border-radius:20px; cursor:pointer; font-weight:600; margin-bottom:20px; font-size:0.85rem;">Personalize</button>
         </div>
 
         <hr style="opacity:0.1; margin-bottom:20px;">
@@ -1975,93 +1993,118 @@ input:checked + .sld:before { transform: translateX(16px); }
     </div>
 </div>
 
-<div id="editProfileModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:420px; background:white; padding:20px; border-radius:25px; z-index:5001; box-shadow:0 20px 50px rgba(0,0,0,0.3); max-height: 85vh; overflow-y: auto;">
+<div id="editProfileModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:420px; background:white; padding:24px; border-radius:25px; z-index:5001; box-shadow:0 20px 50px rgba(0,0,0,0.15); max-height: 85vh; overflow-y: auto;">
     <div class="set-sec">
-    <h3 style="margin-top:0">My Profile</h3>
-    <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
-        <img id="editPicPreview" src="" style="width:50px; height:50px; border-radius:50%; object-fit:cover; background:#eee;">
-        <button class="btn-sml" style="background:#000; color:#fff;" onclick="document.getElementById('picUpload').click()">+ Change Image</button>
-        <button class="btn-sml" onclick="db.profile.pic=''; saveProfile()">Remove</button>
+    <h3 style="margin-top:0; font-size:1rem; font-weight:700; color:#111;">Edit Profile</h3>
+
+    <!-- Avatar — tappable to change -->
+    <div style="display:flex; align-items:center; gap:14px; margin-bottom:18px;">
+        <div style="position:relative; cursor:pointer;" onclick="document.getElementById('picUpload').click()">
+            <img id="editPicPreview" src="" style="width:56px; height:56px; border-radius:50%; object-fit:cover; background:#eee; display:block;">
+            <div style="position:absolute; bottom:0; right:0; width:20px; height:20px; background:#111; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid white;">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
+        </div>
+        <div style="font-size:0.75rem; color:#999; line-height:1.4;">Tap photo to change<br><span style="color:#bbb; cursor:pointer;" onclick="db.profile.pic=''; saveProfile()">Remove photo</span></div>
         <input type="file" id="picUpload" style="display:none" accept="image/*" onchange="updateProfilePic(this)">
     </div>
-    
-    <!-- Real Name Row -->
+
+    <!-- Name Row -->
     <div class="set-row">
         <div style="flex:1"><label>First Name</label><input type="text" id="editFN"></div>
         <div style="flex:1"><label>Last Name</label><input type="text" id="editLN"></div>
     </div>
 
-    <!-- Birthday Row -->
+    <!-- Birthday -->
     <div style="margin-top:12px;">
-        <label style="display:block; font-size:0.7rem; font-weight:800; color:#666; margin-bottom:3px;">Birthday</label>
-        <input type="date" id="editBirthday" style="width:100%; padding:12px; border-radius:12px; border:1px solid #ddd; font-size:0.9rem; outline:none; background:#f9f9f9;">
+        <label style="display:block; font-size:0.7rem; font-weight:700; color:#888; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.4px;">Birthday</label>
+        <div id="birthdayDisplay" style="display:none; padding:12px; border-radius:12px; background:#f9f9f9; font-size:0.9rem; color:#444;"></div>
+        <input type="date" id="editBirthday" style="width:100%; padding:12px; border-radius:12px; border:1px solid #eee; font-size:0.9rem; outline:none; background:#f9f9f9;">
     </div>
 
-    <!-- Generated Username Row (Reddit Style) -->
+    <!-- Username -->
     <div style="margin-top:12px;">
-        <label style="display: block; font-size: 0.7rem; font-weight: 800; color: #666; margin-bottom: 3px;">Username</label>
-        <div style="position:relative; display:flex; align-items:center;">
-            <input type="text" id="editHandle" placeholder="Generated name..." 
-                   style="width:100%; padding: 12px; padding-right: 45px; border-radius: 12px; border: 1px solid #ddd; font-size: 0.9rem; outline: none; background: #f9f9f9;">
-            <button onclick="rollUsername()" 
-                    style="position:absolute; right:8px; background:none; border:none; cursor:pointer; font-size:1.2rem; display:flex; align-items:center; justify-content:center;">
-                🎲
+        <label style="display:block; font-size:0.7rem; font-weight:700; color:#888; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.4px;">Username</label>
+        <!-- Read-only view -->
+        <div id="handleDisplay" style="display:none; padding:12px; border-radius:12px; background:#f9f9f9; font-size:0.9rem; color:#444;"></div>
+        <span id="changeHandleLink" style="display:none; font-size:0.72rem; color:var(--accent); cursor:pointer; margin-top:4px; display:none;" onclick="openChangeUsernamePopup()">Change username</span>
+        <!-- Editable (first time only) -->
+        <div id="handleEditWrap" style="position:relative; display:flex; align-items:center;">
+            <input type="text" id="editHandle" placeholder="Generated name..."
+                   style="width:100%; padding:12px; padding-right:45px; border-radius:12px; border:1px solid #eee; font-size:0.9rem; outline:none; background:#f9f9f9;">
+            <button onclick="rollUsername()" title="Generate random username"
+                    style="position:absolute; right:10px; background:none; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#aaa;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="4"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
             </button>
         </div>
     </div>
 </div>
-   <div class="set-sec">
-        <h3>Account Security</h3>
-        <div class="set-row">
-            <div style="flex:1">
-                <label>Email</label>
-                <div style="display:flex; gap:5px;">
-                    <input type="text" id="editEm" placeholder="email@link.com">
-                    <button id="sendCodeBtn" class="btn-sml" onclick="sendVerificationEmail()">Verify</button>
-                </div>
+
+<!-- Change Username Popup -->
+<div id="changeUsernamePopup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:85%; max-width:340px; background:white; padding:24px; border-radius:20px; z-index:6500; box-shadow:0 20px 50px rgba(0,0,0,0.2);">
+    <h3 style="margin:0 0 6px 0; font-size:0.95rem; font-weight:700; color:#111;">Change Username</h3>
+    <p style="margin:0 0 14px 0; font-size:0.78rem; color:#999;">Pick something new or roll a random one.</p>
+    <div style="position:relative; display:flex; align-items:center;">
+        <input type="text" id="newHandleInput" placeholder="New username..."
+               style="width:100%; padding:12px; padding-right:45px; border-radius:12px; border:1px solid #eee; font-size:0.9rem; outline:none; background:#f9f9f9;">
+        <button onclick="rollUsernameInPopup()" title="Generate random username"
+                style="position:absolute; right:10px; background:none; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#aaa;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="4"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
+        </button>
+    </div>
+    <button onclick="confirmUsernameChange()" style="width:100%; margin-top:12px; background:var(--accent); color:white; border:none; padding:12px; border-radius:12px; font-weight:700; cursor:pointer;">Save</button>
+    <button onclick="document.getElementById('changeUsernamePopup').style.display='none'" style="width:100%; background:none; border:none; color:#bbb; margin-top:8px; cursor:pointer; font-size:0.82rem;">Cancel</button>
+</div>
+
+<!-- Change Email Popup -->
+<div id="changeEmailPopup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:85%; max-width:340px; background:white; padding:24px; border-radius:20px; z-index:6500; box-shadow:0 20px 50px rgba(0,0,0,0.2);">
+    <h3 style="margin:0 0 6px 0; font-size:0.95rem; font-weight:700; color:#111;">Change Email</h3>
+    <p style="margin:0 0 14px 0; font-size:0.78rem; color:#999;">Enter your new email address.</p>
+    <input type="text" id="newEmailInput" placeholder="new@email.com"
+           style="width:100%; padding:12px; border-radius:12px; border:1px solid #eee; font-size:0.9rem; outline:none; background:#f9f9f9;">
+    <button onclick="confirmEmailChange()" style="width:100%; margin-top:12px; background:var(--accent); color:white; border:none; padding:12px; border-radius:12px; font-weight:700; cursor:pointer;">Save</button>
+    <button onclick="document.getElementById('changeEmailPopup').style.display='none'" style="width:100%; background:none; border:none; color:#bbb; margin-top:8px; cursor:pointer; font-size:0.82rem;">Cancel</button>
+</div>
+
+<div class="set-sec">
+    <h3 style="font-size:0.7rem; font-weight:700; color:#888; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:12px;">Account</h3>
+    <div class="set-row">
+        <div style="flex:1">
+            <label>Email</label>
+            <!-- Read-only view -->
+            <div id="emailDisplay" style="display:none; padding:10px 0; font-size:0.9rem; color:#444;"></div>
+            <span id="changeEmailLink" style="display:none; font-size:0.72rem; color:var(--accent); cursor:pointer;" onclick="openChangeEmailPopup()">Change email</span>
+            <!-- Editable (first time only) -->
+            <div id="emailEditWrap" style="display:flex; gap:5px;">
+                <input type="text" id="editEm" placeholder="email@link.com">
+                <button id="sendCodeBtn" class="btn-sml" onclick="sendVerificationEmail()">Verify</button>
             </div>
-        </div>
-        <!-- This area is hidden until the user clicks 'Verify' -->
-        <div id="verifyArea" style="display:none; margin-top:10px; padding:10px; background:#f9f9f9; border-radius:10px;">
-            <label style="font-size:0.7rem; font-weight:800; color:#666;">Enter 6-digit Code</label>
-            <div style="display:flex; gap:5px;">
-                <input type="text" id="verifyCodeInput" placeholder="123456" style="text-align:center; letter-spacing:2px;">
-                <button class="btn-sml" style="background:var(--accent); color:white;" onclick="confirmCode()">Confirm</button>
-            </div>
-        </div>
-        <div class="set-row" style="margin-top:15px;">
-            <div style="flex:1">
-                <label>Password</label>
-                <button class="btn-sml" style="width:100%; background:#f5f5f5; border:1px solid #ddd; padding:10px; text-align:center; font-family:inherit;" onclick="promptPasswordChange()">Change Password</button>
-            </div>
-        </div>
-        <div class="set-row">
-            <span style="font-size:0.8rem; font-weight:700;">2-Step Verifications</span>
-            <label class="sw"><input type="checkbox" id="edit2Step"><span class="sld"></span></label>
         </div>
     </div>
-
-    <div class="set-sec" style="border:none;">
-        <h3>Support Access</h3>
-        <div class="set-row">
-            <span style="font-size:0.75rem; color:#666;">Allow support access until 2026</span>
-            <label class="sw"><input type="checkbox" checked><span class="sld"></span></label>
-        </div>
-        <div class="set-row">
-            <span style="font-size:0.8rem; font-weight:700;">Sessions</span>
-            <button class="btn-sml" onclick="logout()">Log out of all devices</button>
-        </div>
-        <div class="set-row">
-            <div>
-                <span style="font-size:0.8rem; font-weight:700; color:red;">Delete my account</span>
-                <div style="font-size:0.65rem; color:#999;">Permanently remove all data</div>
-            </div>
-            <button class="btn-sml" style="color:red;" onclick="deleteAccount()">Delete Account</button>
+    <div id="verifyArea" style="display:none; margin-top:10px; padding:10px; background:#f9f9f9; border-radius:10px;">
+        <label style="font-size:0.7rem; font-weight:700; color:#888; text-transform:uppercase;">Enter 6-digit Code</label>
+        <div style="display:flex; gap:5px;">
+            <input type="text" id="verifyCodeInput" placeholder="123456" style="text-align:center; letter-spacing:2px;">
+            <button class="btn-sml" style="background:var(--accent); color:white;" onclick="confirmCode()">Confirm</button>
         </div>
     </div>
+    <div class="set-row" style="margin-top:12px;">
+        <div style="flex:1">
+            <button class="btn-sml" style="width:100%; background:#f5f5f5; border:1px solid #eee; padding:10px; text-align:center; font-family:inherit;" onclick="promptPasswordChange()">Change Password</button>
+        </div>
+    </div>
+    <div class="set-row" style="margin-top:12px; padding-top:12px; border-top:1px solid #f0f0f0;">
+        <span style="font-size:0.82rem; font-weight:600; color:#555;">Log out of all devices</span>
+        <button class="btn-sml" onclick="logout()" style="font-size:0.75rem;">Log out</button>
+    </div>
+</div>
 
-    <button onclick="saveProfile()" style="width:100%; background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; cursor:pointer; font-weight:bold;">Save Changes</button>
-    <button onclick="closeEditProfile()" style="width:100%; background:none; border:none; color:gray; margin-top:8px; cursor:pointer; font-size:0.8rem;">Cancel</button>
+    <button onclick="saveProfile()" style="width:100%; background:var(--accent); color:white; border:none; padding:13px; border-radius:12px; cursor:pointer; font-weight:700; font-size:0.95rem;">Save Changes</button>
+    <button onclick="closeEditProfile()" style="width:100%; background:none; border:none; color:#bbb; margin-top:10px; cursor:pointer; font-size:0.82rem;">Cancel</button>
+
+    <div style="text-align:center; margin-top:20px; padding-top:16px; border-top:1px solid #f0f0f0;">
+        <button onclick="deleteAccount()" style="background:none; border:none; color:#cc3333; font-size:0.75rem; cursor:pointer; font-weight:600;">Delete account</button>
+    </div>
 </div>
 
 <div id="personalizeModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:420px; background:white; padding:20px; border-radius:25px; z-index:6000; box-shadow:0 20px 50px rgba(0,0,0,0.3); max-height: 85vh; overflow-y: auto;">
@@ -2143,7 +2186,7 @@ input:checked + .sld:before { transform: translateX(16px); }
     
     <!-- Range Selection Controls -->
     <div id="rangeControls" style="margin-top:15px;">
-        <button id="rangeToggleBtn" onclick="toggleRangeMode()" style="width:100%; padding:12px; border:2px solid white; background:transparent; color:white; border-radius:12px; font-weight:800; text-transform:uppercase; cursor:pointer; font-size:0.8rem;">Select Date Range</button>
+        <button id="rangeToggleBtn" onclick="toggleRangeMode()" style="width:100%; padding:12px; border:1.5px solid var(--text-on-bg); background:transparent; color:var(--text-on-bg); border-radius:12px; font-weight:800; text-transform:uppercase; cursor:pointer; font-size:0.8rem;">Select Date Range</button>
         <div id="rangeInfoArea" style="display:none; margin-top:12px;">
             <div id="rangeStatusText" style="font-size:0.8rem; color:rgba(255,255,255,0.9); text-align:center; margin-bottom:10px;">Tap a start date, then an end date</div>
             <div style="padding:12px; background:rgba(255,255,255,0.2); border-radius:20px;">
@@ -2159,19 +2202,19 @@ input:checked + .sld:before { transform: translateX(16px); }
         </div>
     </div>
     <div style="display:flex; gap:8px; margin-top:12px;">
-        <button id="calAddHolidayBtn" onclick="addHolidayPrompt()" style="flex:1; padding:10px; border:2px solid white; background:transparent; color:white; border-radius:10px; font-weight:700; cursor:pointer; font-size:0.75rem; text-transform:uppercase;">+ Holiday</button>
-        <button id="calAddEventBtn" onclick="addEventPrompt()" style="flex:1; padding:10px; border:2px solid white; background:transparent; color:white; border-radius:10px; font-weight:700; cursor:pointer; font-size:0.75rem; text-transform:uppercase;">+ Event</button>
+        <button id="calAddHolidayBtn" onclick="addHolidayPrompt()" style="flex:1; padding:10px; border:1.5px solid rgba(0,0,0,0.12); background:transparent; color:var(--text-on-bg); border-radius:10px; font-weight:700; cursor:pointer; font-size:0.75rem; text-transform:uppercase;">+ Holiday</button>
+        <button id="calAddEventBtn" onclick="addEventPrompt()" style="flex:1; padding:10px; border:1.5px solid rgba(0,0,0,0.12); background:transparent; color:var(--text-on-bg); border-radius:10px; font-weight:700; cursor:pointer; font-size:0.75rem; text-transform:uppercase;">+ Event</button>
     </div>
-    <div id="eventAddConfirmArea" style="display:none; margin-top:10px; padding:14px; background:rgba(255,255,255,0.15); border-radius:14px;">
-        <div id="eventAddDateLabel" style="font-size:0.75rem; font-weight:800; color:rgba(255,255,255,0.8); text-align:center; margin-bottom:8px;"></div>
+    <div id="eventAddConfirmArea" style="display:none; margin-top:10px; padding:14px; background:rgba(0,0,0,0.05); border-radius:14px;">
+        <div id="eventAddDateLabel" style="font-size:0.75rem; font-weight:800; color:var(--muted-on-bg); text-align:center; margin-bottom:8px;"></div>
         <input type="text" id="eventAddNameInput" placeholder="Name..." style="width:100%; padding:10px; border-radius:10px; border:none; outline:none; font-size:0.9rem; margin-bottom:6px; box-sizing:border-box;">
         <input type="text" id="eventAddTimeInput" placeholder="Time (e.g. 7:30 am) — events only" style="width:100%; padding:10px; border-radius:10px; border:none; outline:none; font-size:0.9rem; margin-bottom:8px; box-sizing:border-box;">
         <div style="display:flex; gap:8px;">
-            <button onclick="cancelEventAddMode()" style="flex:1; padding:10px; border:1.5px solid rgba(255,255,255,0.5); background:transparent; color:white; border-radius:10px; font-weight:700; cursor:pointer; font-size:0.75rem;">Cancel</button>
+            <button onclick="cancelEventAddMode()" style="flex:1; padding:10px; border:1.5px solid rgba(0,0,0,0.12); background:transparent; color:var(--text-on-bg); border-radius:10px; font-weight:700; cursor:pointer; font-size:0.75rem;">Cancel</button>
             <button onclick="confirmEventAdd()" style="flex:1; padding:10px; border:none; background:white; color:var(--accent); border-radius:10px; font-weight:700; cursor:pointer; font-size:0.75rem;">Confirm</button>
         </div>
     </div>
-    <button onclick="closeCalModal()" style="width:100%; margin-top:8px; background:white; color:black; border:none; padding:12px; border-radius:10px; font-weight:800; text-transform:uppercase;">Close</button>
+    <button onclick="closeCalModal()" style="width:100%; margin-top:8px; background:rgba(0,0,0,0.07); color:var(--text-on-bg); border:none; padding:12px; border-radius:10px; font-weight:800; text-transform:uppercase;">Close</button>
 </div>
 
 <!-- Category Creator Modal -->
@@ -2429,9 +2472,45 @@ const nouns = [
 function rollUsername() {
     const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
     const noun = nouns[Math.floor(Math.random() * nouns.length)];
-    // Fill ONLY the handle box, not the real name
     document.getElementById('editHandle').value = adj + noun;
     showToast("Rolled: " + adj + noun);
+}
+function rollUsernameInPopup() {
+    const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const noun = nouns[Math.floor(Math.random() * nouns.length)];
+    document.getElementById('newHandleInput').value = adj + noun;
+}
+function openChangeUsernamePopup() {
+    document.getElementById('newHandleInput').value = db.profile.handle || '';
+    document.getElementById('changeUsernamePopup').style.display = 'block';
+}
+function confirmUsernameChange() {
+    const newHandle = document.getElementById('newHandleInput').value.trim();
+    if (!newHandle) return showToast('Please enter a username');
+    db.profile.handle = newHandle;
+    db.profile.username = newHandle;
+    save();
+    loadProfileUI();
+    document.getElementById('changeUsernamePopup').style.display = 'none';
+    // Refresh the read-only display
+    const handleDisplay = document.getElementById('handleDisplay');
+    if (handleDisplay) handleDisplay.textContent = newHandle;
+    showToast('Username updated!');
+}
+function openChangeEmailPopup() {
+    document.getElementById('newEmailInput').value = db.profile.email || '';
+    document.getElementById('changeEmailPopup').style.display = 'block';
+}
+function confirmEmailChange() {
+    const newEmail = document.getElementById('newEmailInput').value.trim();
+    if (!newEmail) return showToast('Please enter an email address');
+    db.profile.email = newEmail;
+    save();
+    document.getElementById('changeEmailPopup').style.display = 'none';
+    // Refresh the read-only display
+    const emailDisplay = document.getElementById('emailDisplay');
+    if (emailDisplay) emailDisplay.textContent = newEmail;
+    showToast('Email updated!');
 }
 async function handleAuth() {
     const user = document.getElementById('usernameInput').value.trim().toLowerCase();
@@ -2647,14 +2726,56 @@ function openEditProfile() {
     const nameParts = (db.profile.realName || db.profile.username || "").split(" ");
     document.getElementById('editFN').value = nameParts[0] || "";
     document.getElementById('editLN').value = nameParts.slice(1).join(" ") || "";
-    
-    // Load the handle
-    document.getElementById('editHandle').value = db.profile.handle || "";
-    
-    document.getElementById('editEm').value = db.profile.email || "";
-    document.getElementById('edit2Step').checked = db.profile.twoStep || false;
     document.getElementById('editPicPreview').src = db.profile.pic || 'https://via.placeholder.com/50';
-    document.getElementById('editBirthday').value = db.profile.birthday || "";
+
+    // Birthday — lock once set
+    const bd = db.profile.birthday || "";
+    const birthdayInput = document.getElementById('editBirthday');
+    const birthdayDisplay = document.getElementById('birthdayDisplay');
+    if (bd) {
+        const [yr, mo, dy] = bd.split('-');
+        birthdayDisplay.textContent = new Date(yr, mo - 1, dy).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        birthdayDisplay.style.display = 'block';
+        birthdayInput.style.display = 'none';
+    } else {
+        birthdayDisplay.style.display = 'none';
+        birthdayInput.style.display = 'block';
+        birthdayInput.value = "";
+    }
+
+    // Username — lock once set
+    const handle = db.profile.handle || "";
+    const handleDisplay = document.getElementById('handleDisplay');
+    const changeHandleLink = document.getElementById('changeHandleLink');
+    const handleEditWrap = document.getElementById('handleEditWrap');
+    if (handle) {
+        handleDisplay.textContent = handle;
+        handleDisplay.style.display = 'block';
+        changeHandleLink.style.display = 'inline';
+        handleEditWrap.style.display = 'none';
+    } else {
+        handleDisplay.style.display = 'none';
+        changeHandleLink.style.display = 'none';
+        handleEditWrap.style.display = 'flex';
+        document.getElementById('editHandle').value = "";
+    }
+
+    // Email — lock once set
+    const email = db.profile.email || "";
+    const emailDisplay = document.getElementById('emailDisplay');
+    const changeEmailLink = document.getElementById('changeEmailLink');
+    const emailEditWrap = document.getElementById('emailEditWrap');
+    if (email) {
+        emailDisplay.textContent = email;
+        emailDisplay.style.display = 'block';
+        changeEmailLink.style.display = 'inline';
+        emailEditWrap.style.display = 'none';
+    } else {
+        emailDisplay.style.display = 'none';
+        changeEmailLink.style.display = 'none';
+        emailEditWrap.style.display = 'flex';
+        document.getElementById('editEm').value = "";
+    }
 }
 
 function closeEditProfile() {
@@ -2688,18 +2809,27 @@ function updateProfilePic(input) {
 async function saveProfile() {
     const fn = document.getElementById('editFN').value.trim();
     const ln = document.getElementById('editLN').value.trim();
-    const handle = document.getElementById('editHandle').value.trim();
     
     if(!fn) return showToast("First Name is required!");
 
-    // Store them separately in the DB
     db.profile.realName = (fn + " " + ln).trim();
-    db.profile.handle = handle || fn; // Fallback to First Name if handle is empty
-    db.profile.username = db.profile.handle; // Keep this for legacy compatibility
-    
-    db.profile.email = document.getElementById('editEm').value.trim();
-    db.profile.twoStep = document.getElementById('edit2Step').checked;
-    db.profile.birthday = document.getElementById('editBirthday').value || "";
+
+    // Only save handle if not already locked
+    if (!db.profile.handle) {
+        const handle = document.getElementById('editHandle').value.trim();
+        db.profile.handle = handle || fn;
+        db.profile.username = db.profile.handle;
+    }
+
+    // Only save email if not already locked
+    if (!db.profile.email) {
+        db.profile.email = document.getElementById('editEm').value.trim();
+    }
+
+    // Only save birthday if not already locked
+    if (!db.profile.birthday) {
+        db.profile.birthday = document.getElementById('editBirthday').value || "";
+    }
 
     save(); 
     loadProfileUI(); 
@@ -2743,8 +2873,15 @@ function loadProfileUI() {
     if(!db.profile) db.profile = { username: '', handle: '', realName: '', pic: '' };
     
     const displayEl = document.getElementById('displayName');
-    // Show the Handle (e.g. ZanyDragon) as the main name
-    displayEl.innerText = db.profile.handle || db.profile.realName || 'User';
+    const handle = db.profile.handle || db.profile.realName || 'User';
+    displayEl.innerText = handle;
+
+    // Update greeting
+    const greetingEl = document.getElementById('settingsGreeting');
+    if (greetingEl) {
+        const firstName = (db.profile.realName || '').split(' ')[0] || handle;
+        greetingEl.innerText = 'Hi, ' + firstName;
+    }
     
     const picEl = document.getElementById('profileDisplay');
     if(picEl && db.profile.pic) picEl.src = db.profile.pic;
@@ -3644,7 +3781,7 @@ function toggleModal() {
             updateRangeStatusText();
         } else {
             rangeMode = false;
-            if (btn) { btn.style.background = 'transparent'; btn.style.color = 'white'; btn.innerText = 'SELECT DATE RANGE'; }
+            if (btn) { btn.style.background = 'transparent'; btn.style.color = ''; btn.innerText = 'SELECT DATE RANGE'; }
             if (info) info.style.display = 'none';
         }
         renderHeatmap();
@@ -3998,7 +4135,7 @@ function toggleRangeMode() {
         updateRangeStatusText();
     } else {
         btn.style.background = 'transparent';
-        btn.style.color = 'white';
+        btn.style.color = '';
         btn.innerText = 'SELECT DATE RANGE';
         info.style.display = 'none';
     }
@@ -4011,7 +4148,7 @@ function clearRange() {
     rangeMode = false;
     const btn = document.getElementById('rangeToggleBtn');
     const info = document.getElementById('rangeInfoArea');
-    if (btn) { btn.style.background = 'transparent'; btn.style.color = 'white'; btn.innerText = 'SELECT DATE RANGE'; }
+    if (btn) { btn.style.background = 'transparent'; btn.style.color = ''; btn.innerText = 'SELECT DATE RANGE'; }
     if (info) info.style.display = 'none';
     renderHeatmap();
     updateHeaderRangeIndicator();
@@ -4310,9 +4447,6 @@ setupAutoListDetection('noteViewerContent', 'viewer-btn-bullet', 'viewer-btn-che
     const container = noteBox.closest('.note-container');
     noteBox.addEventListener('focus', () => {
         container.classList.add('editing');
-        setTimeout(() => {
-            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
     });
     noteBox.addEventListener('input', () => {
         container.classList.toggle('has-content', noteBox.innerHTML.trim() !== '' && noteBox.innerHTML.trim() !== '<br>');

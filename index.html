@@ -2746,6 +2746,10 @@ setupAutoListDetection('noteViewerContent', 'viewer-btn-bullet', 'viewer-btn-che
     const container = noteBox.closest('.note-container');
     noteBox.addEventListener('focus', () => {
         container.classList.add('editing');
+        // Scroll so the whole container (including format buttons) is visible
+        setTimeout(() => {
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
     });
     noteBox.addEventListener('blur', () => {
         // Small delay so the commit button click still registers

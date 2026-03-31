@@ -2140,10 +2140,8 @@ document.getElementById('noteContent').addEventListener('keydown', function(e) {
                 document.execCommand('insertHTML', false, '<br>' + listMode);
             }
         } else {
-            // Not in list mode: treat Enter as save (commitNote)
-            e.preventDefault();
-            commitNote();
-        }
+    // Not in list mode: allow normal line break
+}
     }
     // Auto-update button highlights based on cursor position
     setTimeout(() => {

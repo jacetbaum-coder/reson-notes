@@ -559,9 +559,7 @@ textarea {
     width:100%; 
     height:100%; 
     background:rgba(0,0,0,0.4); 
-    z-index: 5000; /* Updated */
-    backdrop-filter: blur(12px); 
-    -webkit-backdrop-filter: blur(12px); 
+    z-index: 4999;
 }
 
 .note-menu-btn { position: absolute; top: 8px; right: 8px; background: none; border: none; color: #000; cursor: pointer; font-size: 1.1rem; z-index: 10; padding: 4px 8px; }
@@ -1762,7 +1760,7 @@ input:checked + .sld:before { transform: translateX(16px); }
     </div>
 </div>
 
-<div id="editProfileModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:420px; background:white; padding:20px; border-radius:25px; z-index:5000; box-shadow:0 20px 50px rgba(0,0,0,0.3); max-height: 85vh; overflow-y: auto;">
+<div id="editProfileModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:420px; background:white; padding:20px; border-radius:25px; z-index:5001; box-shadow:0 20px 50px rgba(0,0,0,0.3); max-height: 85vh; overflow-y: auto;">
     <div class="set-sec">
     <h3 style="margin-top:0">My Profile</h3>
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
@@ -1776,6 +1774,12 @@ input:checked + .sld:before { transform: translateX(16px); }
     <div class="set-row">
         <div style="flex:1"><label>First Name</label><input type="text" id="editFN"></div>
         <div style="flex:1"><label>Last Name</label><input type="text" id="editLN"></div>
+    </div>
+
+    <!-- Birthday Row -->
+    <div style="margin-top:12px;">
+        <label style="display:block; font-size:0.7rem; font-weight:800; color:#666; margin-bottom:3px;">Birthday</label>
+        <input type="date" id="editBirthday" style="width:100%; padding:12px; border-radius:12px; border:1px solid #ddd; font-size:0.9rem; outline:none; background:#f9f9f9;">
     </div>
 
     <!-- Generated Username Row (Reddit Style) -->
@@ -2410,6 +2414,7 @@ function openEditProfile() {
     document.getElementById('editEm').value = db.profile.email || "";
     document.getElementById('edit2Step').checked = db.profile.twoStep || false;
     document.getElementById('editPicPreview').src = db.profile.pic || 'https://via.placeholder.com/50';
+    document.getElementById('editBirthday').value = db.profile.birthday || "";
 }
 
 function closeEditProfile() {
@@ -2454,6 +2459,7 @@ async function saveProfile() {
     
     db.profile.email = document.getElementById('editEm').value.trim();
     db.profile.twoStep = document.getElementById('edit2Step').checked;
+    db.profile.birthday = document.getElementById('editBirthday').value || "";
 
     save(); 
     loadProfileUI(); 
@@ -4696,16 +4702,31 @@ function getBuiltInHolidays(year) {
     return holidays;
 }
 
+function getBirthdayHoliday(dateKey) {
+    const bday = db.profile && db.profile.birthday;
+    if (!bday) return null;
+    // Compare only MM-DD so it recurs every year
+    const bdayMMDD = bday.slice(5); // "MM-DD"
+    const dateMMDD = dateKey.slice(5);
+    if (bdayMMDD !== dateMMDD) return null;
+    const firstName = (db.profile.realName || db.profile.handle || 'Your').split(' ')[0];
+    return { date: dateKey, name: firstName + "'s Birthday 🎂", id: 'birthday', isBuiltIn: true, isBirthday: true };
+}
+
 function getHolidaysForDate(dateKey) {
     const year = parseInt(dateKey.split('-')[0]);
     const builtIn = getBuiltInHolidays(year).filter(h => h.date === dateKey);
     const custom = (db.holidays || []).filter(h => h.date === dateKey);
-    return [...builtIn.map(h => ({ ...h, id: 'builtin_' + h.date + '_' + h.name, isBuiltIn: true })), ...custom];
+    const bday = getBirthdayHoliday(dateKey);
+    const bdayArr = bday ? [bday] : [];
+    return [...builtIn.map(h => ({ ...h, id: 'builtin_' + h.date + '_' + h.name, isBuiltIn: true })), ...custom, ...bdayArr];
 }
 
 function dateHasHoliday(dateKey) {
     const year = parseInt(dateKey.split('-')[0]);
-    return getBuiltInHolidays(year).some(h => h.date === dateKey) || (db.holidays || []).some(h => h.date === dateKey);
+    return getBuiltInHolidays(year).some(h => h.date === dateKey)
+        || (db.holidays || []).some(h => h.date === dateKey)
+        || !!getBirthdayHoliday(dateKey);
 }
 
 function dateHasEvent(dateKey) {

@@ -763,7 +763,7 @@ input:checked + .sld:before { transform: translateX(16px); }
     width: 100%;
     max-width: 500px;
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
     position: relative;
     margin: 4px 0 2px 0;
     padding: 0 5px;
@@ -975,6 +975,585 @@ input:checked + .sld:before { transform: translateX(16px); }
     margin-top: 10px;
     grid-column: 1 / -1;
 }
+
+/* --- GLOBAL SEARCH --- */
+#globalSearchBar {
+    display: flex;
+    align-items: center;
+    background: rgba(255,255,255,0.25);
+    border: 1.5px solid white;
+    border-radius: 10px;
+    padding: 0 8px;
+    height: 34px;
+    flex: 1;
+    max-width: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-width 0.35s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease, padding 0.35s ease, margin 0.35s ease;
+    margin-right: 0;
+    padding: 0;
+}
+#globalSearchBar.open {
+    max-width: 260px;
+    opacity: 1;
+    padding: 0 8px;
+    margin-right: 8px;
+}
+#globalSearchInput {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 0.8rem;
+    outline: none;
+    padding: 6px 4px;
+    font-family: inherit;
+    color: white;
+    min-width: 0;
+}
+#globalSearchInput::placeholder { color: rgba(255,255,255,0.6); }
+#globalSearchClose {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: rgba(255,255,255,0.7);
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+.search-result-card {
+    position: relative;
+    background: #ffffff;
+    padding: 12px;
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(0,0,0,0.02);
+    cursor: pointer;
+    overflow: hidden;
+    min-height: 80px;
+}
+.search-result-card .search-result-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+.search-result-card .search-result-cat {
+    font-weight: 800;
+    font-size: 0.7rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    opacity: 0.6;
+}
+.search-result-card .search-result-date {
+    font-size: 0.65rem;
+    color: #aaa;
+    font-weight: 700;
+}
+.search-result-card .search-result-preview {
+    font-size: 0.8rem;
+    color: #444;
+    line-height: 1.3;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+.search-highlight {
+    background: #fff3b0;
+    border-radius: 2px;
+    padding: 0 1px;
+}
+.search-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 40px 0;
+    opacity: 0.8;
+}
+#searchToggleBtn {
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* --- MAIN DOTS MENU (2 options) --- */
+.main-dots-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 40px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+    z-index: 3000;
+    min-width: 200px;
+    padding: 6px 0;
+    margin-top: 4px;
+    overflow: hidden;
+}
+.main-dots-dropdown.open { display: block; }
+.main-dots-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+    transition: background 0.15s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+}
+.main-dots-option:hover { background: #f3f8f4; }
+.main-dots-option svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+/* --- EDIT CATEGORIES PANEL --- */
+#editCategoriesPanel {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--bg);
+    z-index: 8500;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 20px 100px;
+    padding-top: env(safe-area-inset-top, 40px);
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+}
+#editCategoriesPanel.open {
+    transform: translateX(0);
+}
+.ecp-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-top: 10px;
+}
+.ecp-back {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+}
+.ecp-title {
+    font-size: 1.3rem;
+    font-weight: 900;
+    color: white;
+    text-transform: uppercase;
+}
+.ecp-cat-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.ecp-cat-item {
+    display: flex;
+    align-items: center;
+    background: white;
+    border-radius: 16px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+.ecp-cat-item:active { transform: scale(0.97); }
+.ecp-cat-name {
+    flex: 1;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #333;
+}
+.ecp-cat-count {
+    font-size: 0.75rem;
+    color: #aaa;
+    font-weight: 600;
+    margin-right: 8px;
+}
+.ecp-cat-actions {
+    display: flex;
+    gap: 2px;
+}
+.ecp-cat-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+}
+.ecp-cat-actions button svg { width: 18px; height: 18px; }
+.ecp-cat-actions button:hover { background: #f3f3f3; }
+.ecp-cat-actions .ecp-delete-btn { color: #cc3333; }
+.ecp-cat-actions .ecp-delete-btn:hover { background: #fff0f0; }
+.ecp-cat-chevron {
+    color: #ccc;
+    font-size: 1.2rem;
+    margin-left: 4px;
+    display: flex;
+    align-items: center;
+}
+.ecp-add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.2);
+    border: 2px dashed rgba(255,255,255,0.5);
+    border-radius: 16px;
+    padding: 14px;
+    color: white;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 8px;
+}
+.ecp-add-btn:hover { background: rgba(255,255,255,0.3); }
+
+/* Sub-category page */
+.ecp-subcat-bubbles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+}
+.ecp-subcat-bubble {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    padding: 10px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #333;
+}
+.ecp-subcat-delete {
+    background: none;
+    border: none;
+    color: #cc3333;
+    cursor: pointer;
+    padding: 0;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    opacity: 0.5;
+    transition: opacity 0.15s;
+}
+.ecp-subcat-delete:hover { opacity: 1; }
+.ecp-subcat-add {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.2);
+    border: 2px dashed rgba(255,255,255,0.5);
+    padding: 10px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+}
+.ecp-subcat-add:hover { background: rgba(255,255,255,0.3); }
+.ecp-empty-sub {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 30px 0;
+    text-align: center;
+}
+
+/* Filter bar back button */
+.filter-back-btn {
+    background: rgba(255,255,255,0.3);
+    border: 2px solid white;
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- MULTI-SELECT MODE --- */
+#noteDeck.select-mode .saved-note {
+    padding-left: 44px;
+    transition: padding 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.select-circle {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2.5px solid #ddd;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+    z-index: 5;
+    cursor: pointer;
+}
+.select-circle.checked {
+    border-color: var(--accent);
+    background: var(--accent);
+}
+.select-circle.checked::after {
+    content: '';
+    width: 6px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2.5px 2.5px 0;
+    transform: rotate(45deg);
+    margin-top: -2px;
+}
+#selectToolbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    display: none;
+    align-items: center;
+    justify-content: space-around;
+    padding: 10px 20px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 20px));
+    z-index: 8000;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
+    border-radius: 20px 20px 0 0;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+}
+#selectToolbar.visible {
+    display: flex;
+    transform: translateY(0);
+}
+.select-toolbar-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 12px;
+    transition: background 0.15s;
+    color: #333;
+}
+.select-toolbar-btn:hover { background: #f3f3f3; }
+.select-toolbar-btn svg { width: 22px; height: 22px; }
+.select-toolbar-btn span {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.select-toolbar-btn.danger { color: #cc3333; }
+.select-count-bar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 500px;
+    padding: 8px 5px;
+    margin-bottom: 4px;
+}
+.select-count-bar.visible { display: flex; }
+.select-count-text {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: white;
+}
+.select-done-btn {
+    background: white;
+    color: var(--accent);
+    border: none;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+#selectMoveMenu {
+    display: none;
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    z-index: 8500;
+    min-width: 220px;
+    padding: 8px 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+#selectMoveMenu.open { display: block; }
+.select-move-option {
+    padding: 12px 18px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.select-move-option:hover { background: #f3f8f4; }
+
+/* --- EVENTS & HOLIDAYS --- */
+.day-card-dots {
+    display: flex;
+    gap: 3px;
+    justify-content: center;
+    margin-top: -1px;
+    min-height: 6px;
+}
+.cal-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+}
+.cal-dot.holiday { background: #000; }
+.cal-dot.event { background: #ff3b30; }
+.day-card.active .cal-dot.holiday { background: #fff; }
+.day-card.active .cal-dot.event { background: #ff6b6b; }
+
+.circle-day { position: relative; }
+.heatmap-dots {
+    position: absolute;
+    bottom: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 2px;
+}
+.circle-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+}
+.circle-dot.holiday { background: #000; }
+.circle-dot.event { background: #ff3b30; }
+
+.event-card {
+    grid-column: 1 / -1;
+    background: #ffffff;
+    padding: 10px 16px;
+    border-radius: 18px;
+    height: 55px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid rgba(0,0,0,0.02);
+    cursor: pointer;
+    overflow: hidden;
+}
+.event-card.holiday-card {
+    border-left: 4px solid #000;
+}
+.event-card.meeting-card {
+    border-left: 4px solid #ff3b30;
+}
+.event-card .event-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex: 1;
+    min-width: 0;
+}
+.event-card .event-title {
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: #000;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.event-card .event-meta {
+    font-size: 0.6rem;
+    color: #999;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.event-card .event-actions {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    flex-shrink: 0;
+}
+.event-card .event-edit-btn,
+.event-card .event-delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    color: #aaa;
+    font-size: 0.85rem;
+    transition: background 0.15s;
+}
+.event-card .event-edit-btn:hover { background: #f3f3f3; color: #333; }
+.event-card .event-delete-btn:hover { background: #fff0f0; color: #cc3333; }
+
+#eventEditModal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 85%;
+    max-width: 360px;
+    background: var(--bg);
+    border: 2px solid white;
+    border-radius: 24px;
+    padding: 24px;
+    z-index: 7500;
+    color: white;
+}
+#eventEditModal h3 {
+    margin: 0 0 16px 0;
+    font-size: 1rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+#eventEditModal input,
+#eventEditModal select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    font-size: 0.95rem;
+    outline: none;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+    background: white;
+}
 </style>
 </head>
 <!-- Replace your existing <body> content with this updated version -->
@@ -1033,10 +1612,25 @@ input:checked + .sld:before { transform: translateX(16px); }
 
 <!-- Sort Dropdown Menu -->
 <div class="sort-menu-container" id="sortMenuContainer">
-    <button class="sort-hamburger" onclick="toggleCatMgmt(event)" title="Manage Categories" style="padding:6px 10px;">
+    <button id="searchToggleBtn" onclick="toggleGlobalSearch()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+    <div id="globalSearchBar">
+        <input type="text" id="globalSearchInput" placeholder="Search all notes...">
+        <button id="globalSearchClose" onclick="exitSearchMode()">✕</button>
+    </div>
+    <div style="flex:1;"></div>
+    <button class="sort-hamburger" onclick="toggleMainDotsMenu(event)" title="Options" style="padding:6px 10px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
     </button>
-    <div id="catMgmtDropdown"></div>
+    <div class="main-dots-dropdown" id="mainDotsDropdown">
+        <button class="main-dots-option" onclick="openEditCategories()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="8" x2="12" y2="16"/></svg>
+            Edit Categories
+        </button>
+        <button class="main-dots-option" onclick="enterSelectMode()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            Select
+        </button>
+    </div>
     <button class="sort-hamburger" onclick="toggleSortMenu(event)">
         <div class="hamburger-lines"><span></span><span></span><span></span></div>
         <span id="sortLabel">Sort</span>
@@ -1291,7 +1885,20 @@ input:checked + .sld:before { transform: translateX(16px); }
             <button onclick="clearRange()" style="width:100%; margin-top:10px; padding:10px; border:1.5px solid rgba(255,255,255,0.5); background:transparent; color:white; border-radius:10px; font-weight:700; cursor:pointer; font-size:0.75rem;">Clear Range</button>
         </div>
     </div>
-    <button onclick="closeCalModal()" style="width:100%; margin-top:15px; background:white; color:black; border:none; padding:12px; border-radius:10px; font-weight:800; text-transform:uppercase;">Close</button>
+    <div style="display:flex; gap:8px; margin-top:12px;">
+        <button id="calAddHolidayBtn" onclick="addHolidayPrompt()" style="flex:1; padding:10px; border:2px solid white; background:transparent; color:white; border-radius:10px; font-weight:700; cursor:pointer; font-size:0.75rem; text-transform:uppercase;">+ Holiday</button>
+        <button id="calAddEventBtn" onclick="addEventPrompt()" style="flex:1; padding:10px; border:2px solid white; background:transparent; color:white; border-radius:10px; font-weight:700; cursor:pointer; font-size:0.75rem; text-transform:uppercase;">+ Event</button>
+    </div>
+    <div id="eventAddConfirmArea" style="display:none; margin-top:10px; padding:14px; background:rgba(255,255,255,0.15); border-radius:14px;">
+        <div id="eventAddDateLabel" style="font-size:0.75rem; font-weight:800; color:rgba(255,255,255,0.8); text-align:center; margin-bottom:8px;"></div>
+        <input type="text" id="eventAddNameInput" placeholder="Name..." style="width:100%; padding:10px; border-radius:10px; border:none; outline:none; font-size:0.9rem; margin-bottom:6px; box-sizing:border-box;">
+        <input type="text" id="eventAddTimeInput" placeholder="Time (e.g. 7:30 am) — events only" style="width:100%; padding:10px; border-radius:10px; border:none; outline:none; font-size:0.9rem; margin-bottom:8px; box-sizing:border-box;">
+        <div style="display:flex; gap:8px;">
+            <button onclick="cancelEventAddMode()" style="flex:1; padding:10px; border:1.5px solid rgba(255,255,255,0.5); background:transparent; color:white; border-radius:10px; font-weight:700; cursor:pointer; font-size:0.75rem;">Cancel</button>
+            <button onclick="confirmEventAdd()" style="flex:1; padding:10px; border:none; background:white; color:var(--accent); border-radius:10px; font-weight:700; cursor:pointer; font-size:0.75rem;">Confirm</button>
+        </div>
+    </div>
+    <button onclick="closeCalModal()" style="width:100%; margin-top:8px; background:white; color:black; border:none; padding:12px; border-radius:10px; font-weight:800; text-transform:uppercase;">Close</button>
 </div>
 
 <!-- Category Creator Modal -->
@@ -1319,6 +1926,53 @@ input:checked + .sld:before { transform: translateX(16px); }
         <button onclick="closeDeleteConfirmModal()" style="flex:1; padding:12px; border-radius:10px; border:2px solid white; background:transparent; color:white; font-weight:bold; cursor:pointer;">Cancel</button>
         <button onclick="confirmDelete()" style="flex:1; padding:12px; border-radius:10px; border:none; background:#ff4444; color:white; font-weight:bold; cursor:pointer;">Delete</button>
     </div>
+</div>
+
+<!-- Edit Categories Panel -->
+<div id="editCategoriesPanel" style="display:none;">
+    <div class="ecp-header">
+        <button class="ecp-back" onclick="closeEditCategories()">←</button>
+        <div class="ecp-title">Edit Categories</div>
+    </div>
+    <div id="ecpContent"></div>
+</div>
+
+<!-- Multi-Select Count Bar -->
+<div class="select-count-bar" id="selectCountBar">
+    <span class="select-count-text" id="selectCountText">0 selected</span>
+    <div style="display:flex;gap:8px;">
+        <button class="select-done-btn" onclick="toggleSelectAll()" style="background:rgba(255,255,255,0.2);color:white;">Select All</button>
+        <button class="select-done-btn" onclick="exitSelectMode()">Done</button>
+    </div>
+</div>
+
+<!-- Multi-Select Toolbar -->
+<div id="selectToolbar">
+    <button class="select-toolbar-btn" onclick="openBulkMoveMenu()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+        <span>Move</span>
+    </button>
+    <button class="select-toolbar-btn danger" onclick="bulkDelete()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        <span>Delete</span>
+    </button>
+</div>
+
+<!-- Bulk Move Category Menu -->
+<div id="selectMoveMenu"></div>
+
+<!-- Event/Holiday Edit Modal -->
+<div id="eventEditModal">
+    <h3 id="eventEditTitle">Edit Event</h3>
+    <input type="text" id="eventEditName" placeholder="Event name...">
+    <input type="text" id="eventEditTime" placeholder="Time (e.g. 7:30 am)">
+    <select id="eventEditCategory"></select>
+    <input type="date" id="eventEditDate">
+    <div style="display:flex; gap:10px; margin-top:6px;">
+        <button onclick="closeEventEditModal()" style="flex:1; padding:12px; border-radius:10px; border:2px solid white; background:transparent; color:white; font-weight:bold; cursor:pointer;">Cancel</button>
+        <button onclick="saveEventEdit()" style="flex:1; padding:12px; border-radius:10px; border:none; background:white; color:var(--accent); font-weight:bold; cursor:pointer;">Save</button>
+    </div>
+    <button onclick="deleteEditingEvent()" style="width:100%; margin-top:8px; padding:10px; border-radius:10px; border:none; background:rgba(255,0,0,0.3); color:white; font-weight:bold; cursor:pointer; font-size:0.8rem;">Delete</button>
 </div>
 
 <!-- Context Menu for Deleting -->
@@ -1385,9 +2039,13 @@ let db = JSON.parse(localStorage.getItem('reson_db')) || {
     notes_list: [], 
     deleted_notes: [],
     custom_categories: [],
+    sub_categories: {},
     profile: { username: '', phone: '', pic: '' } 
 };
 if (!db.deleted_notes) db.deleted_notes = [];
+if (!db.sub_categories) db.sub_categories = {};
+if (!db.holidays) db.holidays = [];
+if (!db.events) db.events = [];
 let authHeader = localStorage.getItem('reson_auth'); 
 let selectedDate = new Date();
 let currentCategory = null;
@@ -1623,6 +2281,8 @@ function showMain() {
     syncWithCloud(); 
 }
 function showSettings() {
+    // Exit select mode if active
+    if (isSelectMode) exitSelectMode();
     // UI Visibility
     document.querySelector('header').style.display = 'none';
     document.getElementById('strip').style.display = 'none';
@@ -1698,7 +2358,11 @@ function save() {
 function getGroupable() {
     const hidden = db.hidden_base_categories || [];
     const base = ['todo', 'work', 'groceries', 'errands'].filter(c => !hidden.includes(c));
-    return [...base, ...(db.custom_categories || [])];
+    const subCats = [];
+    Object.entries(db.sub_categories || {}).forEach(([parent, subs]) => {
+        subs.forEach(s => subCats.push(parent + '/' + s.toLowerCase()));
+    });
+    return [...base, ...(db.custom_categories || []), ...subCats];
 }
 
 function cleanupData() {
@@ -1727,7 +2391,18 @@ async function commitNote() {
     const text = document.getElementById('noteContent').innerHTML.trim();
     if (!text) return;
     await syncWithCloud(); 
-    const cat = currentCategory ? currentCategory.toLowerCase() : "general";
+    let cat = currentCategory ? currentCategory.toLowerCase() : "general";
+
+    // Event detection
+    const plainNoteText = text.replace(/<[^>]*>/g, '').trim();
+    const eventDetection = detectEventFromText(plainNoteText);
+    if (eventDetection.isEvent && eventDetection.detectedCategory && (cat === 'general' || !currentCategory)) {
+        const validCats = getGroupable();
+        if (validCats.includes(eventDetection.detectedCategory)) {
+            cat = eventDetection.detectedCategory;
+        }
+    }
+
     const mirrorId = (document.getElementById('mirrorToggle').checked && rangeEnd) ? "m_" + Date.now() : null;
 
     let start = rangeStart || selectedDate;
@@ -1746,6 +2421,23 @@ async function commitNote() {
         }
         cur.setDate(cur.getDate() + 1);
     }
+
+    // Create calendar events if detected
+    if (eventDetection.isEvent) {
+        if (!db.events) db.events = [];
+        let evCur = new Date(start);
+        while (evCur <= end) {
+            db.events.push({
+                id: Date.now() + Math.random(),
+                date: formatDateKey(evCur),
+                title: eventDetection.title,
+                time: eventDetection.time,
+                category: cat
+            });
+            evCur.setDate(evCur.getDate() + 1);
+        }
+    }
+
     save();
     document.getElementById('noteContent').innerHTML = '';
     document.getElementById('noteContent').closest('.note-container').classList.remove('editing');
@@ -1774,7 +2466,7 @@ function renderDeck() {
 
     const filtered = db.notes_list.filter(n => {
         const dMatch = n.date === key;
-        const cMatch = !currentCategory || n.tags[0].toLowerCase() === currentCategory.toLowerCase();
+        const cMatch = matchesCategory(n, currentCategory);
         return dMatch && cMatch;
     });
 
@@ -1807,7 +2499,47 @@ function renderDeck() {
     // }
 
     // Slice the list if not in "View All" mode
-    const displayList = isViewAllMode ? sortedFiltered : sortedFiltered.slice(0, 4);
+    const displayList = (isViewAllMode || isSelectMode) ? sortedFiltered : sortedFiltered.slice(0, 4);
+
+    // Add select-mode class to deck
+    deck.className = isSelectMode ? 'select-mode' : '';
+
+    // Render holiday cards for this date
+    if (!isSelectMode) {
+        const dateHolidays = getHolidaysForDate(key);
+        dateHolidays.forEach(holiday => {
+            const hCard = document.createElement('div');
+            hCard.className = 'event-card holiday-card';
+            if (holiday.isBuiltIn) {
+                hCard.innerHTML = '<div class="event-info"><div class="event-title"></div><div class="event-meta">Holiday</div></div>';
+            } else {
+                hCard.innerHTML = '<div class="event-info"><div class="event-title"></div><div class="event-meta">Holiday (custom)</div></div><div class="event-actions"><button class="event-edit-btn">✎</button><button class="event-delete-btn">✕</button></div>';
+                hCard.querySelector('.event-edit-btn').onclick = (e) => { e.stopPropagation(); editHoliday(holiday.id); };
+                hCard.querySelector('.event-delete-btn').onclick = (e) => { e.stopPropagation(); deleteHoliday(holiday.id); };
+                hCard.onclick = () => editHoliday(holiday.id);
+            }
+            hCard.querySelector('.event-title').textContent = holiday.name;
+            deck.appendChild(hCard);
+        });
+
+        // Render event cards for this date
+        const dateEvents = (db.events || []).filter(ev => {
+            if (ev.date !== key) return false;
+            if (currentCategory && ev.category !== currentCategory) return false;
+            return true;
+        });
+        dateEvents.forEach(ev => {
+            const eCard = document.createElement('div');
+            eCard.className = 'event-card meeting-card';
+            eCard.innerHTML = '<div class="event-info"><div class="event-title"></div><div class="event-meta"></div></div><div class="event-actions"><button class="event-edit-btn">✎</button><button class="event-delete-btn">✕</button></div>';
+            eCard.querySelector('.event-title').textContent = ev.title;
+            eCard.querySelector('.event-meta').textContent = (ev.time ? ev.time + ' \u00B7 ' : '') + (ev.category || '');
+            eCard.querySelector('.event-edit-btn').onclick = (e) => { e.stopPropagation(); editEvent(ev.id); };
+            eCard.querySelector('.event-delete-btn').onclick = (e) => { e.stopPropagation(); deleteEvent(ev.id); };
+            eCard.onclick = () => editEvent(ev.id);
+            deck.appendChild(eCard);
+        });
+    }
 
     displayList.forEach(note => {
         const card = document.createElement('div');
@@ -1815,11 +2547,17 @@ function renderDeck() {
         // This splits the HTML content into separate lines correctly
         let lines = note.content.split(/<br>|<div>|<\/div>|\n/gi);
         lines = lines.map(l => l.replace(/<[^>]*>/g, '').trim()).filter(l => l !== "");
-        let html = `<button class="note-menu-btn" data-note-menu-id="${note.id}">⋮</button>`;
+        const displayTag = note.tags[0].includes('/') ? note.tags[0].split('/').pop() : note.tags[0];
+        let html = '';
+        if (isSelectMode) {
+            html += `<div class="select-circle ${selectedNoteIds.has(note.id) ? 'checked' : ''}" data-note-id="${note.id}"></div>`;
+        } else {
+            html += `<button class="note-menu-btn" data-note-menu-id="${note.id}">⋮</button>`;
+        }
         if (note.pinned) {
             html += `<svg width="14" height="14" viewBox="0 0 24 24" fill="#2d5a3a" stroke="#2d5a3a" stroke-width="2" style="position:absolute; top:10px; right:28px; opacity:0.7;"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-2l-3-3V7h1V3H7v4h1v5l-3 3v2z"/></svg>`;
         }
-        html += `<span class="saved-note-title">${note.tags[0]}</span><div class="card-checklist">`;
+        html += `<span class="saved-note-title">${displayTag}</span><div class="card-checklist">`;
         lines.forEach((l, i) => {
             const hasCheckbox = l.includes('☐');
             const cleanText = l.replace('☐', '').trim();
@@ -1849,7 +2587,11 @@ function renderDeck() {
                 toggleLine(note.id, parseInt(this.dataset.toggleIdx));
             });
         });
-        card.onclick = () => openNoteViewer(note);
+        if (isSelectMode) {
+            card.onclick = () => toggleNoteSelection(note.id);
+        } else {
+            card.onclick = () => openNoteViewer(note);
+        }
         deck.appendChild(card);
     });
 }
@@ -1862,8 +2604,17 @@ function toggleViewAll() {
 // Update switchCategory to reset view mode when changing tabs
 function switchCategory(catId, btn) {
     const id = catId === '' ? null : catId;
+    // Check if this category has sub-categories and we're not already in sub-cat view
+    if (id && !subCategoryParent && !id.includes('/') && db.sub_categories && db.sub_categories[id] && db.sub_categories[id].length > 0) {
+        subCategoryParent = id;
+        currentCategory = id;
+        isViewAllMode = false;
+        renderFilters();
+        renderDeck();
+        return;
+    }
     currentCategory = id;
-    isViewAllMode = false; // Reset to 2x2 view
+    isViewAllMode = false;
     renderFilters();
     renderDeck();
 }
@@ -1884,14 +2635,28 @@ function getAllCategories() {
 
 function renderFilters() {
     const container = document.getElementById('filterContainer');
-    const all = getAllCategories();
     
-    container.innerHTML = all.map(cat => `
-        <button class="bubble ${currentCategory === cat.id ? 'active' : ''}" 
-                onclick="switchCategory('${cat.id || ''}', this)">
-            ${cat.label}
-        </button>
-    `).join('') + `<button class="add-cat-btn" onclick="openCatModal()">+</button>`;
+    if (subCategoryParent) {
+        const allCats = getAllCategories();
+        const parentCat = allCats.find(c => c.id === subCategoryParent);
+        const parentLabel = parentCat ? parentCat.label : subCategoryParent;
+        const subs = (db.sub_categories && db.sub_categories[subCategoryParent]) || [];
+        let html = `<button class="filter-back-btn" onclick="exitSubCategoryFilter()">←</button>`;
+        html += `<button class="bubble ${currentCategory === subCategoryParent ? 'active' : ''}" onclick="switchCategory('${subCategoryParent}', this)">All ${parentLabel}</button>`;
+        subs.forEach(sub => {
+            const subId = subCategoryParent + '/' + sub.toLowerCase();
+            html += `<button class="bubble ${currentCategory === subId ? 'active' : ''}" onclick="switchCategory('${subId}', this)">${sub}</button>`;
+        });
+        container.innerHTML = html;
+    } else {
+        const all = getAllCategories();
+        container.innerHTML = all.map(cat => `
+            <button class="bubble ${currentCategory === cat.id ? 'active' : ''}" 
+                    onclick="switchCategory('${cat.id || ''}', this)">
+                ${cat.label}
+            </button>
+        `).join('') + `<button class="add-cat-btn" onclick="openCatModal()">+</button>`;
+    }
 }
 
 function openCatModal() {
@@ -1942,43 +2707,20 @@ function openCalYearPicker() {
     document.getElementById('yearPicker').style.display = 'block';
     if (activeBtn) setTimeout(() => activeBtn.scrollIntoView({ block: 'center', behavior: 'instant' }), 10);
 }
-function toggleCatMgmt(e) {
+function toggleMainDotsMenu(e) {
     e.stopPropagation();
-    const dropdown = document.getElementById('catMgmtDropdown');
-    // Close sort dropdown if open
+    const dropdown = document.getElementById('mainDotsDropdown');
     document.getElementById('sortDropdown').classList.remove('open');
-    const isOpen = dropdown.classList.contains('open');
     dropdown.classList.toggle('open');
-    if (!isOpen) renderCatMgmtList();
 }
 
-function renderCatMgmtList() {
-    const dropdown = document.getElementById('catMgmtDropdown');
-    const all = getAllCategories().filter(c => c.id !== null);
-    if (all.length === 0) {
-        dropdown.innerHTML = '<div class="cat-mgmt-empty">No categories</div>';
-        return;
-    }
-    const renameIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-    const deleteIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>';
-    dropdown.innerHTML = all.map(cat => {
-        const escaped = cat.label.replace(/'/g, "\\'");
-        const typeFlag = cat.isBase ? 'base' : 'custom';
-        return `<div class="cat-mgmt-item">
-            <span class="cat-mgmt-name">${cat.label}</span>
-            <div class="cat-mgmt-actions">
-                <button title="Rename" onclick="event.stopPropagation(); renameCategoryPrompt('${cat.id}', '${escaped}', '${typeFlag}')">${renameIcon}</button>
-                <button class="cat-delete-btn" title="Delete" onclick="event.stopPropagation(); deleteCategoryWithNotes('${cat.id}', '${escaped}', '${typeFlag}')">${deleteIcon}</button>
-            </div>
-        </div>`;
-    }).join('');
-}
+function renderCatMgmtList() {}
 
 let pendingRename = null;
 let pendingDelete = null;
 
 function renameCategoryPrompt(catId, catLabel, catType) {
-    document.getElementById('catMgmtDropdown').classList.remove('open');
+    document.getElementById('mainDotsDropdown').classList.remove('open');
     pendingRename = { catId, catLabel, catType };
     document.getElementById('renameInput').value = catLabel;
     document.getElementById('overlay').style.display = 'block';
@@ -2015,11 +2757,12 @@ function confirmRename() {
     renderFilters();
     renderDeck();
     closeRenameModal();
+    if (document.getElementById('editCategoriesPanel').classList.contains('open')) renderEditCategoriesContent();
     showToast('Renamed to ' + trimmed);
 }
 
 function deleteCategoryWithNotes(catId, catLabel, catType) {
-    document.getElementById('catMgmtDropdown').classList.remove('open');
+    document.getElementById('mainDotsDropdown').classList.remove('open');
     const notesInCat = db.notes_list.filter(n => n.tags && n.tags[0] && n.tags[0].toLowerCase() === catId);
     const count = notesInCat.length;
     pendingDelete = { catId, catLabel, catType, count };
@@ -2053,6 +2796,7 @@ function confirmDelete() {
     renderFilters();
     renderDeck();
     closeDeleteConfirmModal();
+    if (document.getElementById('editCategoriesPanel').classList.contains('open')) renderEditCategoriesContent();
     showToast('Deleted ' + catLabel + (count > 0 ? ' and ' + count + ' note' + (count > 1 ? 's' : '') : ''));
 }
 
@@ -2065,6 +2809,7 @@ function createNewCategory() {
             db.custom_categories.push(val);
             save();
             renderFilters();
+            if (document.getElementById('editCategoriesPanel').classList.contains('open')) renderEditCategoriesContent();
         }
     }
     input.value = '';
@@ -2172,7 +2917,11 @@ function closeNoteViewer() {
             activeNote.lastEdited = Date.now();
         }
         save();
-        renderDeck();
+        if (isSearchMode) {
+            performSearch(document.getElementById('globalSearchInput').value);
+        } else {
+            renderDeck();
+        }
         // Reset modal toolbar formatting
         resetFormatButtons('noteViewerContent', 'viewer-btn-bullet', 'viewer-btn-check', 'viewer-btn-bold', 'viewer-btn-italic', 'viewer-btn-under');
     }
@@ -2217,7 +2966,7 @@ function setupCalendar() {
         const isSel = formatDateKey(d) === formatDateKey(selectedDate);
         const card = document.createElement('div');
         card.className = `day-card ${isSel ? 'active' : ''}`;
-        card.innerHTML = `<div style="font-size:0.7rem;">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</div><div style="font-weight:800;font-size:1.2rem;">${d.getDate()}</div>`;
+        card.innerHTML = `<div style="font-size:0.7rem;">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</div><div style="font-weight:800;font-size:1.2rem;">${d.getDate()}</div>${(function(){ const dk=formatDateKey(d); const hh=dateHasHoliday(dk); const ee=dateHasEvent(dk); if(!hh&&!ee) return '<div class="day-card-dots"></div>'; let s='<div class="day-card-dots">'; if(hh) s+='<div class="cal-dot holiday"></div>'; if(ee) s+='<div class="cal-dot event"></div>'; return s+'</div>'; })()}`;
         card.onclick = () => { selectedDate = d; setupCalendar(); renderDeck(); };
         strip.appendChild(card);
         if (isSel) selCard = card;
@@ -2352,11 +3101,22 @@ function renderHeatmap() {
     for (let i = 1; i <= daysInMonth; i++) {
         const d = new Date(year, month, i);
         const k = formatDateKey(d);
-        const count = db.notes_list.filter(n => n.date === k).length;
+        const noteCount = db.notes_list.filter(n => n.date === k).length;
+        const hDot = dateHasHoliday(k);
+        const eDot = dateHasEvent(k);
+        const eventCount = (hDot ? 1 : 0) + ((db.events || []).filter(ev => ev.date === k).length);
+        const count = noteCount + eventCount;
         
         const el = document.createElement('div');
         el.className = `circle-day ${k === formatDateKey(selectedDate) ? 'selected' : ''}`;
-        el.innerText = i;
+        let dotHtml = '';
+        if (hDot || eDot) {
+            dotHtml = '<div class="heatmap-dots">';
+            if (hDot) dotHtml += '<div class="circle-dot holiday"></div>';
+            if (eDot) dotHtml += '<div class="circle-dot event"></div>';
+            dotHtml += '</div>';
+        }
+        el.innerHTML = i + dotHtml;
         
         // Heatmap Colors
         if (count === 0) el.style.backgroundColor = 'var(--heat-0)';
@@ -2385,12 +3145,19 @@ function renderHeatmap() {
                     }
                 }
                 updateRangeStatusText();
+                if (eventAddMode) updateEventAddModeUI();
+                renderHeatmap();
+            } else if (eventAddMode) {
+                selectedDate = d;
+                setupCalendar();
+                renderDeck();
+                updateEventAddModeUI();
                 renderHeatmap();
             } else {
                 selectedDate = d; 
                 setupCalendar();  
                 renderDeck();     
-                closeAllModals(); 
+                renderHeatmap();
             }
         };
         grid.appendChild(el);
@@ -2463,11 +3230,14 @@ function closeAllModals() {
     setTimeout(() => { viewerAll.style.display = 'none'; }, 350);
     document.getElementById('renameModal').style.display = 'none';
     document.getElementById('deleteConfirmModal').style.display = 'none';
+    document.getElementById('eventEditModal').style.display = 'none';
     document.getElementById('overlay').style.display = 'none';
     document.getElementById('noteMenu').style.display = 'none';
-    document.getElementById('catMgmtDropdown').classList.remove('open');
+    const mainDots = document.getElementById('mainDotsDropdown');
+    if (mainDots) mainDots.classList.remove('open');
     pendingRename = null;
     pendingDelete = null;
+    eventAddMode = null;
     updateHeaderRangeIndicator();
     
     // Pulls the note editor back to the front for next time
@@ -2479,8 +3249,8 @@ window.addEventListener('mousedown', (e) => {
     if (menu.style.display === 'block' && !menu.contains(e.target) && !e.target.classList.contains('note-menu-btn')) {
         menu.style.display = 'none';
     }
-    const catMgmt = document.getElementById('catMgmtDropdown');
-    if (catMgmt.classList.contains('open') && !catMgmt.contains(e.target) && !e.target.closest('[onclick*="toggleCatMgmt"]')) {
+    const catMgmt = document.getElementById('mainDotsDropdown');
+    if (catMgmt && catMgmt.classList.contains('open') && !catMgmt.contains(e.target) && !e.target.closest('[onclick*="toggleMainDotsMenu"]')) {
         catMgmt.classList.remove('open');
     }
 });
@@ -2583,9 +3353,13 @@ if (data && (data.notes_list || data.profile)) {
         notes_list: data.notes_list || [],
         deleted_notes: data.deleted_notes || [],
         custom_categories: data.custom_categories || [],
+        sub_categories: data.sub_categories || db.sub_categories || {},
+        holidays: data.holidays || db.holidays || [],
+        events: data.events || db.events || [],
         profile: data.profile || db.profile
     };
     if (!db.deleted_notes) db.deleted_notes = [];
+    if (!db.sub_categories) db.sub_categories = {};
     
     localStorage.setItem('reson_db', JSON.stringify(db));
             
@@ -2664,6 +3438,8 @@ function updateHeaderRangeIndicator() {
 }
 
 function closeCalModal() {
+    eventAddMode = null;
+    updateEventAddModeUI();
     document.getElementById('calModal').style.display = 'none';
     document.getElementById('overlay').style.display = 'none';
     updateHeaderRangeIndicator();
@@ -2675,7 +3451,7 @@ let sortDirections = { created: 'desc', edited: 'desc', viewed: 'desc' };
 
 function toggleSortMenu(e) {
     e.stopPropagation();
-    document.getElementById('catMgmtDropdown').classList.remove('open');
+    document.getElementById('mainDotsDropdown').classList.remove('open');
     const dropdown = document.getElementById('sortDropdown');
     dropdown.classList.toggle('open');
 }
@@ -3192,6 +3968,751 @@ window.addEventListener('mousedown', (e) => {
 
 // Purge expired deleted notes on app load
 purgeExpiredDeletedNotes();
+
+// --- GLOBAL SEARCH ---
+let isSearchMode = false;
+let _searchDebounce = null;
+
+function stripHTML(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return (tmp.textContent || tmp.innerText || '').replace(/\s+/g, ' ').trim();
+}
+
+function toggleGlobalSearch() {
+    const bar = document.getElementById('globalSearchBar');
+    if (bar.classList.contains('open')) {
+        exitSearchMode();
+    } else {
+        bar.classList.add('open');
+        document.getElementById('globalSearchInput').focus();
+    }
+}
+
+function exitSearchMode() {
+    const bar = document.getElementById('globalSearchBar');
+    const input = document.getElementById('globalSearchInput');
+    bar.classList.remove('open');
+    input.value = '';
+    if (isSearchMode) {
+        isSearchMode = false;
+        document.getElementById('strip').style.display = 'flex';
+        document.getElementById('filterContainer').style.display = 'flex';
+        document.getElementById('sortMenuContainer').style.display = 'flex';
+        document.getElementById('deckHeader').style.display = 'flex';
+        document.querySelector('.note-container').style.display = 'block';
+        renderDeck();
+    }
+}
+
+function performSearch(query) {
+    query = (query || '').trim();
+    const deck = document.getElementById('noteDeck');
+    if (!query) {
+        if (isSearchMode) {
+            isSearchMode = false;
+            document.getElementById('strip').style.display = 'flex';
+            document.getElementById('filterContainer').style.display = 'flex';
+            document.getElementById('sortMenuContainer').style.display = 'flex';
+            document.getElementById('deckHeader').style.display = 'flex';
+            document.querySelector('.note-container').style.display = 'block';
+            renderDeck();
+        }
+        return;
+    }
+    isSearchMode = true;
+    document.getElementById('strip').style.display = 'none';
+    document.getElementById('filterContainer').style.display = 'none';
+    document.getElementById('sortMenuContainer').style.display = 'none';
+    document.getElementById('deckHeader').style.display = 'none';
+    document.querySelector('.note-container').style.display = 'none';
+
+    const lq = query.toLowerCase();
+    const renames = db.base_category_renames || {};
+    const results = [];
+    db.notes_list.forEach(note => {
+        const plainText = stripHTML(note.content);
+        const catRaw = note.tags[0] || 'general';
+        const catDisplay = renames[catRaw] || catRaw;
+        const dateObj = new Date(note.date + 'T00:00:00');
+        const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const catMatch = catDisplay.toLowerCase().includes(lq);
+        const dateMatch = dateStr.toLowerCase().includes(lq);
+        const contentIdx = plainText.toLowerCase().indexOf(lq);
+        const contentMatch = contentIdx !== -1;
+        if (catMatch || dateMatch || contentMatch) {
+            let score = 0;
+            if (catMatch) score += 3;
+            if (dateMatch) score += 2;
+            if (contentMatch) score += 1;
+            results.push({ note, plainText, catDisplay, dateStr, score, contentIdx });
+        }
+    });
+    results.sort((a, b) => b.score - a.score || (b.note.lastEdited || b.note.createdAt || 0) - (a.note.lastEdited || a.note.createdAt || 0));
+    renderSearchResults(results, lq);
+}
+
+function renderSearchResults(results, query) {
+    const deck = document.getElementById('noteDeck');
+    deck.innerHTML = '';
+    if (results.length === 0) {
+        deck.innerHTML = '<div class="search-empty">No notes found</div>';
+        return;
+    }
+    results.forEach(({ note, plainText, catDisplay, dateStr, contentIdx }) => {
+        const card = document.createElement('div');
+        card.className = 'search-result-card';
+        // Build preview with highlight
+        let preview = '';
+        if (contentIdx !== -1) {
+            const start = Math.max(0, contentIdx - 40);
+            const end = Math.min(plainText.length, contentIdx + query.length + 80);
+            let snippet = (start > 0 ? '...' : '') + plainText.substring(start, end) + (end < plainText.length ? '...' : '');
+            // Escape HTML in snippet then highlight
+            snippet = snippet.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            const re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+            snippet = snippet.replace(re, '<span class="search-highlight">$1</span>');
+            preview = snippet;
+        } else {
+            let snippet = plainText.substring(0, 120);
+            if (plainText.length > 120) snippet += '...';
+            snippet = snippet.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            preview = snippet;
+        }
+        card.innerHTML = `
+            <div class="search-result-meta">
+                <span class="search-result-cat">${catDisplay}</span>
+                <span class="search-result-date">${dateStr}</span>
+            </div>
+            <div class="search-result-preview">${preview}</div>
+        `;
+        card.onclick = () => openNoteViewer(note);
+        deck.appendChild(card);
+    });
+}
+
+// Debounced input handler
+document.getElementById('globalSearchInput').addEventListener('input', function() {
+    clearTimeout(_searchDebounce);
+    const val = this.value;
+    _searchDebounce = setTimeout(() => performSearch(val), 200);
+});
+
+// Escape key exits search mode
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && isSearchMode) {
+        exitSearchMode();
+    }
+    if (e.key === 'Escape' && isSelectMode) {
+        exitSelectMode();
+    }
+});
+
+// --- CATEGORY MATCHING HELPER ---
+function matchesCategory(note, category) {
+    if (!category) return true;
+    const noteTag = note.tags[0].toLowerCase();
+    const catLower = category.toLowerCase();
+    if (noteTag === catLower) return true;
+    // If filtering by parent, also match sub-category notes
+    if (!catLower.includes('/') && noteTag.startsWith(catLower + '/')) return true;
+    return false;
+}
+
+// --- SUB-CATEGORY FILTER NAV ---
+let subCategoryParent = null;
+
+function exitSubCategoryFilter() {
+    subCategoryParent = null;
+    currentCategory = null;
+    renderFilters();
+    renderDeck();
+}
+
+// --- EDIT CATEGORIES PANEL ---
+let ecpSubCatParent = null;
+
+function openEditCategories() {
+    document.getElementById('mainDotsDropdown').classList.remove('open');
+    ecpSubCatParent = null;
+    renderEditCategoriesContent();
+    const panel = document.getElementById('editCategoriesPanel');
+    panel.style.display = 'block';
+    void panel.offsetWidth;
+    panel.classList.add('open');
+}
+
+function closeEditCategories() {
+    const panel = document.getElementById('editCategoriesPanel');
+    panel.classList.remove('open');
+    setTimeout(() => { panel.style.display = 'none'; }, 350);
+}
+
+function renderEditCategoriesContent() {
+    const container = document.getElementById('ecpContent');
+    if (ecpSubCatParent) {
+        renderSubCategoryView(container);
+    } else {
+        renderCategoryListPanel(container);
+    }
+}
+
+function matchesCategoryForCount(note, catId) {
+    const tag = note.tags[0].toLowerCase();
+    return tag === catId || tag.startsWith(catId + '/');
+}
+
+function renderCategoryListPanel(container) {
+    const all = getAllCategories().filter(c => c.id !== null);
+    const renameIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+    const deleteIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+    let html = '<div class="ecp-cat-list">';
+    if (all.length === 0) {
+        html += '<div class="ecp-empty-sub">No categories yet</div>';
+    }
+    all.forEach(cat => {
+        const noteCount = db.notes_list.filter(n => matchesCategoryForCount(n, cat.id)).length;
+        const subCount = (db.sub_categories && db.sub_categories[cat.id]) ? db.sub_categories[cat.id].length : 0;
+        const escaped = cat.label.replace(/'/g, "\\'");
+        const typeFlag = cat.isBase ? 'base' : 'custom';
+        html += `<div class="ecp-cat-item" onclick="ecpOpenSubCats('${cat.id}')">
+            <div class="ecp-cat-name">${cat.label}${subCount > 0 ? ' <span style="font-size:0.7rem;color:#aaa;">(' + subCount + ' sub)</span>' : ''}</div>
+            <span class="ecp-cat-count">${noteCount} note${noteCount !== 1 ? 's' : ''}</span>
+            <div class="ecp-cat-actions">
+                <button title="Rename" onclick="event.stopPropagation(); ecpRenameCat('${cat.id}', '${escaped}', '${typeFlag}')">${renameIcon}</button>
+                <button class="ecp-delete-btn" title="Delete" onclick="event.stopPropagation(); ecpDeleteCat('${cat.id}', '${escaped}', '${typeFlag}')">${deleteIcon}</button>
+            </div>
+            <div class="ecp-cat-chevron">\u203A</div>
+        </div>`;
+    });
+    html += '</div>';
+    html += '<button class="ecp-add-btn" onclick="openCatModal()">+ Add Category</button>';
+    container.innerHTML = html;
+}
+
+function ecpRenameCat(catId, catLabel, catType) {
+    renameCategoryPrompt(catId, catLabel, catType);
+}
+
+function ecpDeleteCat(catId, catLabel, catType) {
+    deleteCategoryWithNotes(catId, catLabel, catType);
+}
+
+function ecpOpenSubCats(catId) {
+    ecpSubCatParent = catId;
+    renderEditCategoriesContent();
+}
+
+function renderSubCategoryView(container) {
+    const catId = ecpSubCatParent;
+    const allCats = getAllCategories();
+    const parentCat = allCats.find(c => c.id === catId);
+    const parentLabel = parentCat ? parentCat.label : catId;
+    const subs = (db.sub_categories && db.sub_categories[catId]) || [];
+    let html = `<div class="ecp-header" style="margin-bottom:16px;padding-top:0;">
+        <button class="ecp-back" onclick="ecpSubCatParent=null; renderEditCategoriesContent();">\u2190</button>
+        <div class="ecp-title">${parentLabel}</div>
+    </div>`;
+    html += '<div style="color:rgba(255,255,255,0.8); font-size:0.8rem; font-weight:700; text-transform:uppercase; margin-bottom:12px;">Sub-categories</div>';
+    if (subs.length === 0) {
+        html += '<div class="ecp-empty-sub">No sub-categories yet. Tap + Add below!</div>';
+    }
+    html += '<div class="ecp-subcat-bubbles">';
+    subs.forEach((sub, i) => {
+        html += `<div class="ecp-subcat-bubble">
+            ${sub}
+            <button class="ecp-subcat-delete" onclick="event.stopPropagation(); deleteSubCategory('${catId}', ${i})">\u2715</button>
+        </div>`;
+    });
+    html += `<button class="ecp-subcat-add" onclick="addSubCategory('${catId}')">+ Add</button>`;
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function addSubCategory(catId) {
+    const name = prompt('Sub-category name:');
+    if (!name || !name.trim()) return;
+    if (!db.sub_categories) db.sub_categories = {};
+    if (!db.sub_categories[catId]) db.sub_categories[catId] = [];
+    const trimmed = name.trim();
+    if (db.sub_categories[catId].find(s => s.toLowerCase() === trimmed.toLowerCase())) {
+        showToast('Already exists');
+        return;
+    }
+    db.sub_categories[catId].push(trimmed);
+    save();
+    renderEditCategoriesContent();
+    renderFilters();
+    showToast('Added ' + trimmed);
+}
+
+function deleteSubCategory(catId, index) {
+    if (!db.sub_categories || !db.sub_categories[catId]) return;
+    const removed = db.sub_categories[catId].splice(index, 1)[0];
+    if (db.sub_categories[catId].length === 0) delete db.sub_categories[catId];
+    const subTag = catId + '/' + removed.toLowerCase();
+    db.notes_list.forEach(n => {
+        if (n.tags[0].toLowerCase() === subTag) n.tags[0] = catId;
+    });
+    save();
+    renderEditCategoriesContent();
+    renderFilters();
+    renderDeck();
+    showToast('Removed ' + removed);
+}
+
+// --- MULTI-SELECT MODE ---
+let isSelectMode = false;
+let selectedNoteIds = new Set();
+
+function enterSelectMode() {
+    document.getElementById('mainDotsDropdown').classList.remove('open');
+    isSelectMode = true;
+    selectedNoteIds.clear();
+    document.getElementById('bottomTabs').style.display = 'none';
+    document.querySelector('.note-container').style.display = 'none';
+    // Position count bar before the deck
+    const deck = document.getElementById('noteDeck');
+    const countBar = document.getElementById('selectCountBar');
+    deck.parentNode.insertBefore(countBar, deck);
+    renderDeck();
+    updateSelectUI();
+    const toolbar = document.getElementById('selectToolbar');
+    toolbar.style.display = 'flex';
+    void toolbar.offsetWidth;
+    toolbar.classList.add('visible');
+    countBar.classList.add('visible');
+}
+
+function exitSelectMode() {
+    isSelectMode = false;
+    selectedNoteIds.clear();
+    document.getElementById('bottomTabs').style.display = 'flex';
+    document.querySelector('.note-container').style.display = 'block';
+    const toolbar = document.getElementById('selectToolbar');
+    toolbar.classList.remove('visible');
+    setTimeout(() => { toolbar.style.display = 'none'; }, 350);
+    document.getElementById('selectCountBar').classList.remove('visible');
+    const moveMenu = document.getElementById('selectMoveMenu');
+    if (moveMenu) moveMenu.classList.remove('open');
+    renderDeck();
+}
+
+function toggleNoteSelection(id) {
+    if (selectedNoteIds.has(id)) {
+        selectedNoteIds.delete(id);
+    } else {
+        selectedNoteIds.add(id);
+    }
+    updateSelectUI();
+    document.querySelectorAll('.select-circle').forEach(circle => {
+        const noteId = parseFloat(circle.dataset.noteId);
+        circle.classList.toggle('checked', selectedNoteIds.has(noteId));
+    });
+}
+
+function toggleSelectAll() {
+    const key = formatDateKey(selectedDate);
+    const filtered = db.notes_list.filter(n => {
+        const dMatch = n.date === key;
+        const cMatch = matchesCategory(n, currentCategory);
+        return dMatch && cMatch;
+    });
+    if (selectedNoteIds.size === filtered.length && filtered.length > 0) {
+        selectedNoteIds.clear();
+    } else {
+        filtered.forEach(n => selectedNoteIds.add(n.id));
+    }
+    renderDeck();
+    updateSelectUI();
+}
+
+function updateSelectUI() {
+    const count = selectedNoteIds.size;
+    const countText = document.getElementById('selectCountText');
+    if (countText) countText.textContent = count + ' selected';
+    document.querySelectorAll('#selectToolbar .select-toolbar-btn').forEach(btn => {
+        btn.style.opacity = count > 0 ? '1' : '0.4';
+        btn.style.pointerEvents = count > 0 ? 'auto' : 'none';
+    });
+}
+
+function bulkDelete() {
+    if (selectedNoteIds.size === 0) return;
+    const count = selectedNoteIds.size;
+    if (!confirm('Delete ' + count + ' note' + (count > 1 ? 's' : '') + '?')) return;
+    selectedNoteIds.forEach(id => {
+        const note = db.notes_list.find(n => n.id === id);
+        if (note) {
+            note.deletedAt = Date.now();
+            if (!db.deleted_notes) db.deleted_notes = [];
+            db.deleted_notes.push(note);
+        }
+    });
+    db.notes_list = db.notes_list.filter(n => !selectedNoteIds.has(n.id));
+    save();
+    selectedNoteIds.clear();
+    renderDeck();
+    updateSelectUI();
+    showToast(count + ' note' + (count > 1 ? 's' : '') + ' deleted');
+}
+
+function openBulkMoveMenu() {
+    if (selectedNoteIds.size === 0) return;
+    const menu = document.getElementById('selectMoveMenu');
+    const hidden = db.hidden_base_categories || [];
+    const baseCats = ['todo', 'work', 'groceries', 'errands'].filter(c => !hidden.includes(c));
+    const allCats = [...baseCats, ...(db.custom_categories || [])];
+    Object.entries(db.sub_categories || {}).forEach(([parent, subs]) => {
+        subs.forEach(s => allCats.push(parent + '/' + s.toLowerCase()));
+    });
+    menu.innerHTML = allCats.map(c => {
+        const display = c.includes('/') ? c.split('/').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' \u203A ') : c.charAt(0).toUpperCase() + c.slice(1);
+        return `<div class="select-move-option" onclick="bulkMove('${c}')">${display}</div>`;
+    }).join('');
+    menu.classList.toggle('open');
+}
+
+function bulkMove(newCat) {
+    const count = selectedNoteIds.size;
+    selectedNoteIds.forEach(id => {
+        const note = db.notes_list.find(n => n.id === id);
+        if (note) note.tags = [newCat.toLowerCase()];
+    });
+    save();
+    selectedNoteIds.clear();
+    document.getElementById('selectMoveMenu').classList.remove('open');
+    renderDeck();
+    updateSelectUI();
+    showToast(count + ' note' + (count > 1 ? 's' : '') + ' moved');
+}
+
+// Close move menu and main dots when clicking outside
+window.addEventListener('mousedown', (e) => {
+    const moveMenu = document.getElementById('selectMoveMenu');
+    if (moveMenu && moveMenu.classList.contains('open') && !moveMenu.contains(e.target)) {
+        moveMenu.classList.remove('open');
+    }
+    const mainDots = document.getElementById('mainDotsDropdown');
+    if (mainDots && mainDots.classList.contains('open') && !mainDots.contains(e.target) && !e.target.closest('[onclick*="toggleMainDotsMenu"]')) {
+        mainDots.classList.remove('open');
+    }
+});
+
+// --- EVENT & HOLIDAY MANAGEMENT ---
+
+// Built-in US Federal + PA State Holiday Generator
+function getBuiltInHolidays(year) {
+    const holidays = [];
+    function pad(n) { return String(n).padStart(2, '0'); }
+    function key(y, m, d) { return y + '-' + pad(m) + '-' + pad(d); }
+    // Fixed-date holidays
+    holidays.push({ date: key(year, 1, 1), name: "New Year's Day" });
+    holidays.push({ date: key(year, 6, 19), name: "Juneteenth" });
+    holidays.push({ date: key(year, 7, 4), name: "Independence Day" });
+    holidays.push({ date: key(year, 11, 11), name: "Veterans Day" });
+    holidays.push({ date: key(year, 12, 25), name: "Christmas Day" });
+    // Nth-weekday holidays
+    function nthWeekday(y, month, weekday, n) {
+        let count = 0;
+        for (let d = 1; d <= 31; d++) {
+            const dt = new Date(y, month - 1, d);
+            if (dt.getMonth() !== month - 1) break;
+            if (dt.getDay() === weekday) { count++; if (count === n) return d; }
+        }
+        return 1;
+    }
+    function lastWeekday(y, month, weekday) {
+        let last = 1;
+        for (let d = 1; d <= 31; d++) {
+            const dt = new Date(y, month - 1, d);
+            if (dt.getMonth() !== month - 1) break;
+            if (dt.getDay() === weekday) last = d;
+        }
+        return last;
+    }
+    // MLK Day: 3rd Monday of January
+    holidays.push({ date: key(year, 1, nthWeekday(year, 1, 1, 3)), name: "Martin Luther King Jr. Day" });
+    // Presidents' Day: 3rd Monday of February
+    holidays.push({ date: key(year, 2, nthWeekday(year, 2, 1, 3)), name: "Presidents' Day" });
+    // Memorial Day: Last Monday of May
+    holidays.push({ date: key(year, 5, lastWeekday(year, 5, 1)), name: "Memorial Day" });
+    // Labor Day: 1st Monday of September
+    holidays.push({ date: key(year, 9, nthWeekday(year, 9, 1, 1)), name: "Labor Day" });
+    // Columbus Day: 2nd Monday of October
+    holidays.push({ date: key(year, 10, nthWeekday(year, 10, 1, 2)), name: "Columbus Day" });
+    // Thanksgiving: 4th Thursday of November
+    holidays.push({ date: key(year, 11, nthWeekday(year, 11, 4, 4)), name: "Thanksgiving" });
+    // Day after Thanksgiving (PA state holiday)
+    const thDay = nthWeekday(year, 11, 4, 4);
+    holidays.push({ date: key(year, 11, thDay + 1), name: "Day After Thanksgiving (PA)" });
+    // PA-specific: Flag Day
+    holidays.push({ date: key(year, 6, 14), name: "Flag Day (PA)" });
+    // PA-specific: Election Day (first Tuesday after first Monday in November)
+    const firstMonNov = nthWeekday(year, 11, 1, 1);
+    holidays.push({ date: key(year, 11, firstMonNov + 1), name: "Election Day" });
+    // Easter (for Good Friday, PA state holiday)
+    function computeEaster(y) {
+        const a = y % 19, b = Math.floor(y / 100), c = y % 100;
+        const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+        const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+        const i = Math.floor(c / 4), k = c % 4;
+        const l = (32 + 2 * e + 2 * i - h - k) % 7;
+        const m = Math.floor((a + 11 * h + 22 * l) / 451);
+        const month = Math.floor((h + l - 7 * m + 114) / 31);
+        const day = ((h + l - 7 * m + 114) % 31) + 1;
+        return { month, day };
+    }
+    const easter = computeEaster(year);
+    const easterDate = new Date(year, easter.month - 1, easter.day);
+    const goodFriday = new Date(easterDate); goodFriday.setDate(easterDate.getDate() - 2);
+    holidays.push({ date: key(year, goodFriday.getMonth() + 1, goodFriday.getDate()), name: "Good Friday (PA)" });
+    holidays.push({ date: key(year, easter.month, easter.day), name: "Easter Sunday" });
+    return holidays;
+}
+
+function getHolidaysForDate(dateKey) {
+    const year = parseInt(dateKey.split('-')[0]);
+    const builtIn = getBuiltInHolidays(year).filter(h => h.date === dateKey);
+    const custom = (db.holidays || []).filter(h => h.date === dateKey);
+    return [...builtIn.map(h => ({ ...h, id: 'builtin_' + h.date + '_' + h.name, isBuiltIn: true })), ...custom];
+}
+
+function dateHasHoliday(dateKey) {
+    const year = parseInt(dateKey.split('-')[0]);
+    return getBuiltInHolidays(year).some(h => h.date === dateKey) || (db.holidays || []).some(h => h.date === dateKey);
+}
+
+function dateHasEvent(dateKey) {
+    return (db.events || []).some(ev => ev.date === dateKey);
+}
+
+let eventAddMode = null; // null, 'holiday', or 'event'
+
+function detectEventFromText(plainText) {
+    const lowerText = plainText.toLowerCase();
+    const eventKeywords = /\b(meeting|appointment|call|lunch|dinner|breakfast|party|interview|class|session|workout|practice|game|concert|show|flight|trip|dentist|doctor|visit|conference|hangout|date night|birthday|anniversary|wedding|reunion|ceremony|seminar|webinar|exam|deadline|presentation|review|standup|sync)\b/i;
+    const timePattern = /(?:at|@)\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i;
+    const standaloneTime = /\b(\d{1,2}:\d{2}\s*(?:am|pm))\b/i;
+
+    const hasEventKeyword = eventKeywords.test(plainText);
+    let timeMatch = plainText.match(timePattern);
+    if (!timeMatch) timeMatch = plainText.match(standaloneTime);
+
+    if (hasEventKeyword) {
+        let title = plainText.split(/\n/)[0].trim();
+        if (title.length > 80) title = title.substring(0, 80) + '...';
+        let time = timeMatch ? timeMatch[1].trim() : null;
+        let detectedCategory = null;
+        if (/\bwork\b/i.test(lowerText)) detectedCategory = 'work';
+        else if (/\bgrocery|groceries|shopping\b/i.test(lowerText)) detectedCategory = 'groceries';
+        else if (/\berrand/i.test(lowerText)) detectedCategory = 'errands';
+        else if (/\btodo|to-do\b/i.test(lowerText)) detectedCategory = 'todo';
+        return { isEvent: true, title, time, detectedCategory };
+    }
+
+    if (timeMatch && /\b(go to|attend|be at|arrive|leave|pick up|drop off|meet)\b/i.test(lowerText)) {
+        let title = plainText.split(/\n/)[0].trim();
+        if (title.length > 80) title = title.substring(0, 80) + '...';
+        let time = timeMatch[1].trim();
+        let detectedCategory = null;
+        if (/\bwork\b/i.test(lowerText)) detectedCategory = 'work';
+        return { isEvent: true, title, time, detectedCategory };
+    }
+
+    return { isEvent: false };
+}
+
+function addHolidayPrompt() {
+    if (eventAddMode === 'holiday') {
+        // Already in add-holiday mode, cancel it
+        cancelEventAddMode();
+        return;
+    }
+    eventAddMode = 'holiday';
+    updateEventAddModeUI();
+    showToast('Select a date (or date range) then tap Confirm');
+}
+
+function addEventPrompt() {
+    if (eventAddMode === 'event') {
+        cancelEventAddMode();
+        return;
+    }
+    eventAddMode = 'event';
+    updateEventAddModeUI();
+    showToast('Select a date (or date range) then tap Confirm');
+}
+
+function cancelEventAddMode() {
+    eventAddMode = null;
+    updateEventAddModeUI();
+}
+
+function updateEventAddModeUI() {
+    const hBtn = document.getElementById('calAddHolidayBtn');
+    const eBtn = document.getElementById('calAddEventBtn');
+    const confirmArea = document.getElementById('eventAddConfirmArea');
+    if (hBtn) {
+        hBtn.style.background = eventAddMode === 'holiday' ? 'white' : 'transparent';
+        hBtn.style.color = eventAddMode === 'holiday' ? 'black' : 'white';
+    }
+    if (eBtn) {
+        eBtn.style.background = eventAddMode === 'event' ? 'white' : 'transparent';
+        eBtn.style.color = eventAddMode === 'event' ? 'black' : 'white';
+    }
+    if (confirmArea) confirmArea.style.display = eventAddMode ? 'block' : 'none';
+    // Update confirm label
+    const label = document.getElementById('eventAddDateLabel');
+    if (label) {
+        const opts = { month: 'short', day: 'numeric', year: 'numeric' };
+        if (rangeStart && rangeEnd) {
+            label.textContent = rangeStart.toLocaleDateString('en-US', opts) + ' → ' + rangeEnd.toLocaleDateString('en-US', opts);
+        } else {
+            label.textContent = selectedDate.toLocaleDateString('en-US', opts);
+        }
+    }
+}
+
+function confirmEventAdd() {
+    if (!eventAddMode) return;
+    if (eventAddMode === 'holiday') {
+        const name = document.getElementById('eventAddNameInput').value.trim();
+        if (!name) { showToast('Enter a holiday name'); return; }
+        if (!db.holidays) db.holidays = [];
+        let start = rangeStart || selectedDate;
+        let end = rangeEnd || start;
+        let cur = new Date(start);
+        while (cur <= end) {
+            db.holidays.push({ id: Date.now() + Math.random(), date: formatDateKey(cur), name: name });
+            cur.setDate(cur.getDate() + 1);
+        }
+        showToast('Holiday added: ' + name);
+    } else {
+        const title = document.getElementById('eventAddNameInput').value.trim();
+        if (!title) { showToast('Enter an event name'); return; }
+        const time = document.getElementById('eventAddTimeInput').value.trim() || null;
+        if (!db.events) db.events = [];
+        let start = rangeStart || selectedDate;
+        let end = rangeEnd || start;
+        let cur = new Date(start);
+        while (cur <= end) {
+            db.events.push({
+                id: Date.now() + Math.random(),
+                date: formatDateKey(cur),
+                title: title,
+                time: time,
+                category: currentCategory || 'general'
+            });
+            cur.setDate(cur.getDate() + 1);
+        }
+        showToast('Event added: ' + title);
+    }
+    document.getElementById('eventAddNameInput').value = '';
+    document.getElementById('eventAddTimeInput').value = '';
+    eventAddMode = null;
+    updateEventAddModeUI();
+    save();
+    renderDeck();
+    setupCalendar();
+    renderHeatmap();
+}
+
+let editingEventId = null;
+let editingEventType = null;
+
+function editHoliday(id) {
+    const holiday = (db.holidays || []).find(h => h.id === id);
+    if (!holiday) return;
+    editingEventId = id;
+    editingEventType = 'holiday';
+    document.getElementById('eventEditTitle').textContent = 'Edit Holiday';
+    document.getElementById('eventEditName').value = holiday.name;
+    document.getElementById('eventEditTime').style.display = 'none';
+    document.getElementById('eventEditCategory').style.display = 'none';
+    document.getElementById('eventEditDate').value = holiday.date;
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('eventEditModal').style.display = 'block';
+}
+
+function editEvent(id) {
+    const ev = (db.events || []).find(e => e.id === id);
+    if (!ev) return;
+    editingEventId = id;
+    editingEventType = 'event';
+    document.getElementById('eventEditTitle').textContent = 'Edit Event';
+    document.getElementById('eventEditName').value = ev.title;
+    document.getElementById('eventEditTime').value = ev.time || '';
+    document.getElementById('eventEditTime').style.display = 'block';
+    const select = document.getElementById('eventEditCategory');
+    select.style.display = 'block';
+    const hidden = db.hidden_base_categories || [];
+    const baseCats = ['general', 'todo', 'work', 'groceries', 'errands'].filter(c => c === 'general' || !hidden.includes(c));
+    const allCats = [...baseCats, ...(db.custom_categories || [])];
+    select.innerHTML = allCats.map(c => '<option value="' + c + '"' + (c === ev.category ? ' selected' : '') + '>' + c.charAt(0).toUpperCase() + c.slice(1) + '</option>').join('');
+    document.getElementById('eventEditDate').value = ev.date;
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('eventEditModal').style.display = 'block';
+}
+
+function closeEventEditModal() {
+    document.getElementById('eventEditModal').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+    editingEventId = null;
+    editingEventType = null;
+}
+
+function saveEventEdit() {
+    if (!editingEventId) return;
+    const name = document.getElementById('eventEditName').value.trim();
+    const date = document.getElementById('eventEditDate').value;
+    if (!name) return;
+    if (editingEventType === 'holiday') {
+        const holiday = (db.holidays || []).find(h => h.id === editingEventId);
+        if (holiday) { holiday.name = name; if (date) holiday.date = date; }
+    } else {
+        const ev = (db.events || []).find(e => e.id === editingEventId);
+        if (ev) {
+            ev.title = name;
+            ev.time = document.getElementById('eventEditTime').value.trim() || null;
+            ev.category = document.getElementById('eventEditCategory').value || ev.category;
+            if (date) ev.date = date;
+        }
+    }
+    save();
+    renderDeck();
+    setupCalendar();
+    if (document.getElementById('calModal').style.display === 'block') renderHeatmap();
+    closeEventEditModal();
+    showToast('Updated!');
+}
+
+function deleteEditingEvent() {
+    if (!editingEventId) return;
+    if (editingEventType === 'holiday') {
+        db.holidays = (db.holidays || []).filter(h => h.id !== editingEventId);
+    } else {
+        db.events = (db.events || []).filter(e => e.id !== editingEventId);
+    }
+    save();
+    renderDeck();
+    setupCalendar();
+    if (document.getElementById('calModal').style.display === 'block') renderHeatmap();
+    closeEventEditModal();
+    showToast('Deleted!');
+}
+
+function deleteHoliday(id) {
+    db.holidays = (db.holidays || []).filter(h => h.id !== id);
+    save(); renderDeck(); setupCalendar();
+    showToast('Holiday removed');
+}
+
+function deleteEvent(id) {
+    db.events = (db.events || []).filter(e => e.id !== id);
+    save(); renderDeck(); setupCalendar();
+    showToast('Event removed');
+}
 </script>
 </body>
 </html>

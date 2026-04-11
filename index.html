@@ -473,6 +473,22 @@ textarea {
 }
 
 .note-menu-btn { position: absolute; top: 8px; right: 8px; background: none; border: none; color: #ccc; cursor: pointer; font-size: 1.1rem; }
+.pin-btn {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    z-index: 2;
+    color: #e0b100;
+    padding: 0 2px;
+    transition: transform 0.1s;
+}
+.pin-btn:active {
+    transform: scale(1.2);
+}
 
 #bottomTabs { 
     position: fixed; 
@@ -1421,23 +1437,6 @@ function renderDeck() {
         card.onclick = () => openNoteViewer(note);
         deck.appendChild(card);
     });
-/* Pin button for notes */
-.pin-btn {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    cursor: pointer;
-    z-index: 2;
-    color: #e0b100;
-    padding: 0 2px;
-    transition: transform 0.1s;
-}
-.pin-btn:active {
-    transform: scale(1.2);
-}
 }
 
 function toggleViewAll() {
@@ -2031,7 +2030,7 @@ document.addEventListener('click', function(e) {
             textSpan.classList.toggle('done', e.target.classList.contains('checked'));
         }
     }
-}
+});
 
 // Resets formatting buttons for a given editor and toolbar
 function resetFormatButtons(editorId = 'noteContent', bulletBtnId = 'btn-bullet', checkBtnId = 'btn-check', boldBtnId = 'btn-bold', italicBtnId = 'btn-italic', underBtnId = 'btn-under') {

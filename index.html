@@ -965,9 +965,13 @@ function handleCheckboxToggleInEditor(e) {
 const WORKER_URL = "https://reson-api.jacetbaum.workers.dev"; 
 let db = JSON.parse(localStorage.getItem('reson_db')) || { 
     notes_list: [], 
+    deleted_notes: [],
     custom_categories: [],
+    sub_categories: {},
     profile: { username: '', phone: '', pic: '' } 
 };
+if (!db.deleted_notes) db.deleted_notes = [];
+if (!db.sub_categories) db.sub_categories = {};
 let authHeader = localStorage.getItem('reson_auth'); 
 let selectedDate = new Date();
 let currentCategory = null;
@@ -1103,8 +1107,10 @@ async function handleAuth() {
     }
 
     document.getElementById('loginOverlay').style.display = 'none';
-    renderDeck();
+    loadProfileUI();
+    renderFilters();
     setupCalendar();
+    renderDeck();
 }
 // --- PROFILE LOGIC ---
 function openEditProfile() {
@@ -1858,10 +1864,11 @@ async function syncWithCloud() {
         // Check if data exists and isn't just an empty object
         // Update this part inside syncWithCloud:
 if (data && (data.notes_list || data.profile)) { 
-    // If the cloud has data, WE TRUST THE CLOUD COMPLETELY for a fresh sync
     db = {
         notes_list: data.notes_list || [],
+        deleted_notes: data.deleted_notes || [],
         custom_categories: data.custom_categories || [],
+        sub_categories: data.sub_categories || {},
         profile: data.profile || db.profile
     };
     

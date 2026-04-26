@@ -2537,6 +2537,8 @@ async function handleAuth() {
     localStorage.setItem('reson_auth', authHeader);
 
     if(isRegistering) {
+        // Brand-new account: legitimate to push an empty db.
+        cloudSyncCompleted = true;
         db.profile = { username: user, phone: phone, pic: '' };
         await uploadToCloud();
     } else {
@@ -4106,8 +4108,53 @@ function insertBullet() {
 }
 
 const R2_URL = "https://pub-66479d392b224c95a6cb0e230ac238bb.r2.dev/notes_db.json";
+
+// --- Sync safety state ---
+// `cloudSyncCompleted` blocks uploads until we've successfully pulled from the
+// cloud at least once this session. This prevents a freshly-loaded (or evicted)
+// localStorage from clobbering the cloud copy with an empty db.
+let cloudSyncCompleted = false;
+let lastCloudSyncAt = 0;
+
+// Keep rolling local backups so we can recover even if a bad sync slips through.
+function backupLocalDb() {
+    try {
+        const cur = localStorage.getItem('reson_db');
+        if (!cur) return;
+        const parsed = JSON.parse(cur);
+        if (!parsed || !parsed.notes_list || parsed.notes_list.length === 0) return;
+        localStorage.setItem('reson_db_backup_' + Date.now(), cur);
+        const keys = Object.keys(localStorage)
+            .filter(k => k.startsWith('reson_db_backup_'))
+            .sort();
+        while (keys.length > 5) {
+            localStorage.removeItem(keys.shift());
+        }
+    } catch (e) { console.warn('backup failed', e); }
+}
+
+function _mergeById(localArr, cloudArr, getTime) {
+    const map = new Map();
+    (cloudArr || []).forEach(n => { if (n && n.id != null) map.set(n.id, n); });
+    (localArr || []).forEach(n => {
+        if (!n || n.id == null) return;
+        const existing = map.get(n.id);
+        if (!existing) { map.set(n.id, n); return; }
+        if ((getTime(n) || 0) >= (getTime(existing) || 0)) map.set(n.id, n);
+    });
+    return Array.from(map.values());
+}
+
 async function uploadToCloud() {
     if(!authHeader) return;
+    // Refuse to upload an empty db unless we've confirmed the cloud is also
+    // empty via a successful sync. This stops cleared/evicted localStorage
+    // from wiping the cloud backup.
+    const localEmpty = !db.notes_list || db.notes_list.length === 0;
+    if (localEmpty && !cloudSyncCompleted) {
+        console.warn('uploadToCloud blocked: local db empty and cloud not yet synced this session');
+        return;
+    }
     try {
         await fetch(WORKER_URL, {
             method: 'POST',
@@ -4128,41 +4175,136 @@ async function syncWithCloud() {
             cache: 'no-store'
         });
         
-        if (!res.ok) throw new Error("Sync failed");
+        if (!res.ok) throw new Error("Sync failed: " + res.status);
         
         const data = await res.json();
 
-        // Check if data exists and isn't just an empty object
-        // Update this part inside syncWithCloud:
-if (data && (data.notes_list || data.profile)) { 
-    // If the cloud has data, WE TRUST THE CLOUD COMPLETELY for a fresh sync
-    db = {
-        notes_list: data.notes_list || [],
-        deleted_notes: data.deleted_notes || [],
-        custom_categories: data.custom_categories || [],
-        sub_categories: data.sub_categories || db.sub_categories || {},
-        holidays: data.holidays || db.holidays || [],
-        events: data.events || db.events || [],
-        keyword_rules: data.keyword_rules || db.keyword_rules || {},
-        profile: data.profile || db.profile
-    };
-    if (!db.deleted_notes) db.deleted_notes = [];
-    if (!db.sub_categories) db.sub_categories = {};
-    if (!db.keyword_rules) db.keyword_rules = {};
-    
-    localStorage.setItem('reson_db', JSON.stringify(db));
-            
-            // Force the UI to update with the fresh cloud data
-            loadProfileUI(); 
-            renderFilters();
-            renderDeck();
-            setupCalendar();
-            console.log("Cloud Data Synced Successfully");
+        // Empty / malformed response: don't touch local data, but mark sync as
+        // attempted so we don't loop. Only mark fully completed if the cloud
+        // looked sane (had a profile or notes_list field).
+        if (!data || typeof data !== 'object') {
+            console.warn('Cloud returned no usable data; keeping local db');
+            return;
         }
+
+        const cloudHasShape = ('notes_list' in data) || ('profile' in data);
+        if (!cloudHasShape) {
+            console.warn('Cloud payload missing expected fields; keeping local db');
+            return;
+        }
+
+        // Snapshot before merging in case anything goes wrong.
+        backupLocalDb();
+
+        // Tombstones: anything deleted on either side stays deleted.
+        const deletedIds = new Set();
+        (db.deleted_notes || []).forEach(n => { if (n && n.id != null) deletedIds.add(n.id); });
+        (data.deleted_notes || []).forEach(n => { if (n && n.id != null) deletedIds.add(n.id); });
+
+        // Merge active notes by id, preferring most recent edit.
+        const noteTime = n => n.lastEdited || n.createdAt || 0;
+        const mergedNotes = _mergeById(db.notes_list, data.notes_list, noteTime)
+            .filter(n => !deletedIds.has(n.id));
+
+        // Merge deleted list (union by id, keep most recently deleted record).
+        const delTime = n => n.deletedAt || n.lastEdited || n.createdAt || 0;
+        const mergedDeleted = _mergeById(db.deleted_notes, data.deleted_notes, delTime);
+
+        // Merge events by id (union).
+        const evTime = e => e.lastEdited || e.createdAt || 0;
+        const mergedEvents = _mergeById(db.events, data.events, evTime);
+
+        // Categories: union.
+        const customCats = Array.from(new Set([
+            ...(data.custom_categories || []),
+            ...(db.custom_categories || [])
+        ]));
+
+        // Sub-categories: union per parent.
+        const subCats = {};
+        [data.sub_categories || {}, db.sub_categories || {}].forEach(obj => {
+            Object.entries(obj).forEach(([k, v]) => {
+                subCats[k] = Array.from(new Set([...(subCats[k] || []), ...(v || [])]));
+            });
+        });
+
+        // Keyword rules: merge, local wins on conflict (user just edited).
+        const kwRules = { ...(data.keyword_rules || {}), ...(db.keyword_rules || {}) };
+
+        // Holidays: prefer non-empty.
+        const holidays = (data.holidays && data.holidays.length)
+            ? data.holidays
+            : (db.holidays || []);
+
+        // Profile: prefer cloud if present, fall back to local.
+        const profile = data.profile || db.profile || { username: '', phone: '', pic: '' };
+
+        // Hidden base categories: union.
+        const hiddenBase = Array.from(new Set([
+            ...(data.hidden_base_categories || []),
+            ...(db.hidden_base_categories || [])
+        ]));
+
+        db = {
+            notes_list: mergedNotes,
+            deleted_notes: mergedDeleted,
+            custom_categories: customCats,
+            sub_categories: subCats,
+            holidays,
+            events: mergedEvents,
+            keyword_rules: kwRules,
+            profile,
+            hidden_base_categories: hiddenBase
+        };
+
+        localStorage.setItem('reson_db', JSON.stringify(db));
+        cloudSyncCompleted = true;
+        lastCloudSyncAt = Date.now();
+
+        // Force the UI to update with the merged data
+        loadProfileUI(); 
+        renderFilters();
+        renderDeck();
+        setupCalendar();
+        console.log("Cloud Data Synced (merged):", mergedNotes.length, "notes");
+
+        // Push merged result back so the cloud reflects any local-only notes
+        // that this session contributed. Safe now that cloudSyncCompleted=true.
+        uploadToCloud();
     } catch (e) { 
         console.log("Cloud sync error: ", e); 
     }
 }
+
+// Emergency: restore the most recent non-empty local backup into the live db.
+// Exposed for manual use from the console / a settings button.
+window.restoreLatestLocalBackup = function() {
+    const keys = Object.keys(localStorage)
+        .filter(k => k.startsWith('reson_db_backup_'))
+        .sort();
+    while (keys.length) {
+        const k = keys.pop();
+        try {
+            const parsed = JSON.parse(localStorage.getItem(k));
+            if (parsed && parsed.notes_list && parsed.notes_list.length) {
+                db = parsed;
+                if (!db.deleted_notes) db.deleted_notes = [];
+                if (!db.sub_categories) db.sub_categories = {};
+                if (!db.keyword_rules) db.keyword_rules = {};
+                localStorage.setItem('reson_db', JSON.stringify(db));
+                cloudSyncCompleted = true; // allow re-upload of restored data
+                uploadToCloud();
+                if (typeof renderDeck === 'function') renderDeck();
+                if (typeof setupCalendar === 'function') setupCalendar();
+                if (typeof renderFilters === 'function') renderFilters();
+                showToast('Restored ' + db.notes_list.length + ' notes from backup');
+                return true;
+            }
+        } catch (e) { /* try previous */ }
+    }
+    showToast('No usable local backup found');
+    return false;
+};
 let rangeStart = null;
 let rangeEnd = null;
 let rangeMode = false;
